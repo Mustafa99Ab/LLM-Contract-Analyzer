@@ -1,0 +1,142 @@
+[
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn flawed_time_check(accounts: &[AccountInfo]) -> ProgramResult {\n    // (VULN: Using the current slot number for time-sensitive logic, which is easily manipulable by a validator)\n    let current_slot = Clock::get()?.slot;\n    if current_slot % 100 != 0 { return Err(ProgramError::Custom(1)); }\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V3 - Logic Errors\nAnalysis: Logic Error: Time-Dependent Logic. Uses the easily manipulable slot number for critical timing instead of a secure Oracle or a verified timestamp.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn incorrect_balance_check(accounts: &[AccountInfo], amount: u64, allowance: u64) -> ProgramResult {\n    // Assume: user_balance is state[0]\n    // (VULN: Flawed check that allows transfer if amount is less than the SUM of balance and allowance)\n    if amount > user_balance + allowance { return Err(ProgramError::Custom(2)); }\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V3 - Logic Errors\nAnalysis: Logic Error: Incorrect Balance Check. The condition allows a transfer based on a flawed summation logic, potentially leading to unauthorized spending.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn off_by_one_loop(accounts: &[AccountInfo], list_len: usize) -> ProgramResult {\n    // (VULN: Loop runs one less time than intended, leaving the last element unprocessed or unchecked)\n    for i in 0..list_len - 1 { /* process element i */ }\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V3 - Logic Errors\nAnalysis: Logic Error: Off-by-One. The loop runs one iteration short, resulting in incomplete processing of data structures.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn magic_number_state_check(accounts: &[AccountInfo]) -> ProgramResult {\n    // Assume: status is a u8 field in account_data\n    let status = account_data.status;\n    // (VULN: Using an unclear 'magic number' (0) for initialization status)\n    if status == 0 { /* Initialize */ }\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V3 - Logic Errors\nAnalysis: Logic Error: Magic Number Use. Uses a hardcoded, unclear number (0) for state validation, making the code fragile and prone to misinterpretation.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn unwrapped_arithmetic(accounts: &[AccountInfo], amount: u64) -> ProgramResult {\n    let user_balance = get_balance();\n    // (VULN: Using unwrap() on subtraction, which panics the program on underflow instead of returning an error)\n    let new_balance = user_balance.checked_sub(amount).unwrap();\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V3 - Logic Errors\nAnalysis: Logic Error: Unwrapped Arithmetic. Failure to handle potential arithmetic underflow gracefully, leading to a program panic (DoS).",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn flawed_boolean_logic(accounts: &[AccountInfo], a: bool, b: bool, c: bool) -> ProgramResult {\n    // (VULN: Ambiguous boolean grouping without parentheses, relying on implicit operator precedence)\n    if a || b && c { /* Execute Action */ }\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V3 - Logic Errors\nAnalysis: Logic Error: Flawed Boolean Grouping. Uses ambiguous boolean logic without explicit parentheses, which may lead to unintended execution flow.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn stale_data_read(accounts: &[AccountInfo]) -> ProgramResult {\n    let state_a = accounts[0].try_borrow_data()?; \n    // long running computation...\n    // (VULN: Re-reading state_a here might be necessary but is omitted, leading to stale data use)\n    let state_b = accounts[1].try_borrow_data()?; \n    if state_a.field > state_b.field { /* do something */ }\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V3 - Logic Errors\nAnalysis: Logic Error: Stale Data Usage. Reading account data once and using it later in a complex function without accounting for potential changes or requiring re-borrowing.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn silent_input_clamping(accounts: &[AccountInfo], user_input: u64) -> ProgramResult {\n    let mut final_input = user_input;\n    // (VULN: Clamping the input silently without returning an error to the user)\n    if final_input > MAX_VALUE { final_input = MAX_VALUE; }\n    process(final_input);\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V3 - Logic Errors\nAnalysis: Logic Error: Silent Clamping. Adjusts an invalid user input silently instead of explicitly rejecting the transaction, causing user confusion or unintended behavior.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn missing_self_transfer_check(accounts: &[AccountInfo], amount: u64) -> ProgramResult {\n    // Assume: accounts[0] is sender, accounts[1] is receiver\n    // (VULN: Fails to check if sender == receiver, leading to wasteful or unnecessary logic execution)\n    transfer(accounts[0], accounts[1], amount);\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V3 - Logic Errors\nAnalysis: Logic Error: Missing Self-Transfer Check. Does not prevent a user from transferring funds to themselves, which wastes compute resources.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn inverted_comparison(accounts: &[AccountInfo], fee: u64) -> ProgramResult {\n    // (VULN: Inverting a logic condition: should be MAX_FEE check, but is written as a MIN_FEE check)\n    if fee < MIN_FEE_REQUIRED { return Err(ProgramError::Custom(1)); }\n    // Action proceeds even if fee is excessively high\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V3 - Logic Errors\nAnalysis: Logic Error: Inverted Comparison. Comparison logic is inverted (e.g., checking minimum instead of maximum), allowing critical conditions to be bypassed.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn secure_time_check(accounts: &[AccountInfo]) -> ProgramResult {\n    // (FIX: Relying on a secure mechanism or oracle for time verification)\n    if Clock::get()?.unix_timestamp < MIN_TIMESTAMP { return Err(ProgramError::Custom(1)); }\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V3 - Logic Errors\nAnalysis: Safe: Time-Dependent Logic. Uses a secure, verified timestamp for critical timing.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn correct_balance_check(accounts: &[AccountInfo], amount: u64, allowance: u64) -> ProgramResult {\n    // (FIX: Ensures amount is checked against the appropriate source, e.g., only user_balance OR allowance)\n    if amount > user_balance { return Err(ProgramError::Custom(2)); }\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V3 - Logic Errors\nAnalysis: Safe: Correct Balance Check. Logic ensures the transfer amount is covered by the available balance or allowance based on the required authorization model.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn correct_loop_bound(accounts: &[AccountInfo], list_len: usize) -> ProgramResult {\n    // (FIX: Loop runs for the correct number of iterations)\n    for i in 0..list_len { /* process element i */ }\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V3 - Logic Errors\nAnalysis: Safe: Correct Loop Bound. Loop correctly covers all elements in the data structure.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn clear_state_check(accounts: &[AccountInfo]) -> ProgramResult {\n    // (FIX: Using clear constants or enums for state checks)\n    if account_data.status == StateStatus::Uninitialized { /* Initialize */ }\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V3 - Logic Errors\nAnalysis: Safe: Clear State Check. Uses clearly defined enums or constants for state validation, improving clarity and safety.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn graceful_arithmetic(accounts: &[AccountInfo], amount: u64) -> ProgramResult {\n    let user_balance = get_balance();\n    // (FIX: Uses ok_or to return a controlled error on underflow)\n    let new_balance = user_balance.checked_sub(amount).ok_or(ProgramError::ArithmeticOverflow)?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V3 - Logic Errors\nAnalysis: Safe: Graceful Arithmetic. Handles potential arithmetic underflow gracefully by returning a controlled error.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn clear_boolean_logic(accounts: &[AccountInfo], a: bool, b: bool, c: bool) -> ProgramResult {\n    // (FIX: Uses parentheses to enforce intended operator precedence)\n    if a || (b && c) { /* Execute Action */ }\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V3 - Logic Errors\nAnalysis: Safe: Clear Boolean Logic. Uses parentheses to ensure operator precedence is explicit and intended.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn consistent_data_read(accounts: &[AccountInfo]) -> ProgramResult {\n    // (FIX: Minimizing the scope of account data borrowing or re-borrowing when necessary)\n    let state_a = accounts[0].try_borrow_data()?; \n    // simple calculation...\n    let state_b = accounts[1].try_borrow_data()?; \n    if state_a.field > state_b.field { /* do something */ }\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V3 - Logic Errors\nAnalysis: Safe: Consistent Data Read. Ensures account data usage is minimized or re-verified when necessary in complex flows.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn explicit_input_error(accounts: &[AccountInfo], user_input: u64) -> ProgramResult {\n    // (FIX: Returns an explicit error if input is invalid)\n    if user_input > MAX_VALUE { return Err(ProgramError::InvalidArgument); }\n    process(user_input);\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V3 - Logic Errors\nAnalysis: Safe: Explicit Input Error. Explicitly rejects transactions with invalid input outside of safe bounds.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn check_self_transfer(accounts: &[AccountInfo], amount: u64) -> ProgramResult {\n    // (FIX: Prevents self-transfer early to save compute)\n    if accounts[0].key == accounts[1].key { return Err(ProgramError::Custom(2)); }\n    transfer(accounts[0], accounts[1], amount);\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V3 - Logic Errors\nAnalysis: Safe: Prevents Self-Transfer. Includes a check to prevent users from transferring to themselves, saving unnecessary computation.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Logic Errors (OWASP V3).",
+        "input": "pub fn correct_comparison(accounts: &[AccountInfo], fee: u64) -> ProgramResult {\n    // (FIX: Correctly asserts that the fee is not excessively high)\n    if fee > MAX_FEE_ALLOWED { return Err(ProgramError::Custom(1)); }\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V3 - Logic Errors\nAnalysis: Safe: Correct Comparison. Logic accurately checks and enforces intended bounds (e.g., maximum fee allowed).",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V3 - Logic Errors"
+    }
+]
