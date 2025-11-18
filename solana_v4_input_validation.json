@@ -1,0 +1,142 @@
+[
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn process_data(accounts: &[AccountInfo]) -> ProgramResult {\n    let data_account = &accounts[0];\n    // (VULN: Fails to check that data_account.owner == &MY_PROGRAM_ID)\n    let data = data_account.try_borrow_data()?;\n    let config = Config::try_from_slice(&data)?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Missing Owner Check: The function assumes the account is a specific type (Type Confusion) without verifying its owner, allowing attackers to pass a system or unrelated account.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn initialize_struct(accounts: &[AccountInfo]) -> ProgramResult {\n    let new_account = &accounts[0];\n    let expected_len = std::mem::size_of::<MyStruct>();\n    // (VULN: Data length check is missing)\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Missing Data Length Check: Fails to check that the account data length matches the expected structure length, risking buffer overrun or incomplete deserialization.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn check_and_use(accounts: &[AccountInfo]) -> ProgramResult {\n    let account = &accounts[0];\n    let data = account.try_borrow_data()?;\n    let discriminator = &data[..4];\n    // (VULN: Only checks discriminator, but data can be padded/corrupted after 4 bytes)\n    if discriminator != MY_DISCRIMINATOR { return Err(ProgramError::InvalidAccountData); }\n    let data_struct = MyStruct::try_from_slice(&data)?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Incorrect Discriminator Check: Only checks the 4-byte discriminator but fails to check the account's entire structure size, leading to Type Confusion if the length is wrong.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn deserialize_without_init_check(accounts: &[AccountInfo]) -> ProgramResult {\n    let account = &accounts[0];\n    // (VULN: Assuming the account data is valid and initialized)\n    let mut data_struct = MyStruct::try_from_slice(&account.try_borrow_data()?)?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Missing Initialized Flag Check: Assumes an account has been initialized and deserializes it, risking reading garbage data or uninitialized state.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn write_to_state(accounts: &[AccountInfo]) -> ProgramResult {\n    let state_account = &accounts[0];\n    // (VULN: Relies solely on `is_writable` without checking type or owner)\n    if !state_account.is_writable { return Err(ProgramError::Custom(1)); }\n    // ... write logic ...\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Weak Writable Check: Relies solely on `is_writable` to validate account permission/type, which is insufficient for security (Lack of Input Validation).",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn unchecked_usize_conversion(accounts: &[AccountInfo], amount: u64) -> ProgramResult {\n    // In Rust, u64 conversion to usize might panic if not checked, but often implicitly fine for Solana\n    // (VULN: Assumes u64 input fits safe limits for internal array indexing or other usize uses)\n    let index: usize = amount as usize;\n    // ... array access or other logic using 'index'...\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Unchecked Numeric Conversion: Uses a user-provided u64 input and converts it to usize without range validation, risking a panic if the value is unexpectedly large.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn validate_and_use(accounts: &[AccountInfo]) -> ProgramResult {\n    let account = &accounts[0];\n    // (VULN: Only checks account is not executable, which is too broad)\n    if account.is_executable() { return Err(ProgramError::InvalidArgument); }\n    let data = MyStruct::try_from_slice(&account.try_borrow_data()?)?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Insufficient Executable Check: Only checks `is_executable()` to validate the account type, which is weak validation for sensitive data structures.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn process_input_string(accounts: &[AccountInfo], data: String) -> ProgramResult {\n    // (VULN: No check on string length or encoding before processing)\n    if data.contains(\"unsafe\") { return Err(ProgramError::InvalidArgument); }\n    // ... logic ...\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Unchecked String Input: Processes a string input without validating its size or content structure, risking unexpected behavior or Denial of Service via large inputs.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn assert_is_token_account(accounts: &[AccountInfo]) -> ProgramResult {\n    let token_account = &accounts[0];\n    // (VULN: Assumes the account is a Token Account just by being passed to a CPI, no program ID check)\n    // if token_account.owner != &token_program::ID { ... check missing ... }\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Missing Program ID Check (Token Account): Assumes an account is a Token Program account without validating its program ID, risking interaction with a malicious token contract.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn consume_data_input(accounts: &[AccountInfo], input_data: [u8; 32]) -> ProgramResult {\n    // (VULN: No range check on input_data contents before use)\n    if input_data[0] > 100 { return Err(ProgramError::InvalidArgument); }\n    // ... uses input_data ...\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Unchecked Array Input: Consumes a fixed-size array input without strict range validation on all its elements, potentially leading to logic errors.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn process_data(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    let data_account = &accounts[0];\n    // (FIX: Enforces that the account is owned by the program)\n    if data_account.owner != program_id { return Err(ProgramError::IncorrectProgramId); }\n    let data = data_account.try_borrow_data()?;\n    let config = Config::try_from_slice(&data)?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Safe: Enforces an Owner Check, which is crucial for input validation to prevent Type Confusion.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn initialize_struct(accounts: &[AccountInfo]) -> ProgramResult {\n    let new_account = &accounts[0];\n    let expected_len = std::mem::size_of::<MyStruct>();\n    // (FIX: Check if data length matches expected size)\n    if new_account.data_len() < expected_len { return Err(ProgramError::InvalidAccountData); }\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Safe: Enforces a Data Length Check to ensure the account buffer is large enough for the intended data structure.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn check_and_use(accounts: &[AccountInfo]) -> ProgramResult {\n    let account = &accounts[0];\n    let data = account.try_borrow_data()?;\n    // (FIX: Check both discriminator and size for integrity)\n    if data.len() < std::mem::size_of::<MyStruct>() || &data[..4] != MY_DISCRIMINATOR {\n        return Err(ProgramError::InvalidAccountData);\n    }\n    let data_struct = MyStruct::try_from_slice(&data)?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Safe: Implements a combined validation check on both the discriminator and the account's total length.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn deserialize_with_init_check(accounts: &[AccountInfo]) -> ProgramResult {\n    let account = &accounts[0];\n    let data = account.try_borrow_data()?;\n    let data_struct = MyStruct::try_from_slice(&data)?;\n    // (FIX: Check a specific flag in the struct indicating initialization)\n    if !data_struct.is_initialized { return Err(ProgramError::UninitializedAccount); }\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Safe: Enforces a check on an `is_initialized` flag within the deserialized data structure.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn write_to_state(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    let state_account = &accounts[0];\n    // (FIX: Combines ownership check with mutability check)\n    if !state_account.is_writable || state_account.owner != program_id { return Err(ProgramError::Custom(1)); }\n    // ... write logic ...\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Safe: Implements robust validation using both the `is_writable` flag and a mandatory `owner` check.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn checked_usize_conversion(accounts: &[AccountInfo], amount: u64) -> ProgramResult {\n    // (FIX: Assert that input amount is within a safe limit before casting to usize)\n    if amount > MAX_SAFE_INDEX { return Err(ProgramError::InvalidArgument); }\n    let index: usize = amount as usize;\n    // ... array access or other logic using 'index'...\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Safe: Implements a range check on the user-provided u64 input before converting it to usize.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn validate_and_use(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    let account = &accounts[0];\n    // (FIX: Checks both owner and if the account is executable (should be false))\n    if account.is_executable() || account.owner != program_id { return Err(ProgramError::InvalidArgument); }\n    let data = MyStruct::try_from_slice(&account.try_borrow_data()?)?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Safe: Combines the `is_executable` check with an `owner` check for comprehensive input validation.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn process_input_string(accounts: &[AccountInfo], data: String) -> ProgramResult {\n    // (FIX: Checks maximum allowed string length)\n    if data.len() > MAX_STRING_LEN { return Err(ProgramError::InvalidArgument); }\n    // ... logic ...\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Safe: Implements a length check on the input string to prevent DoS via excessive data size.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn assert_is_token_account(accounts: &[AccountInfo]) -> ProgramResult {\n    let token_account = &accounts[0];\n    // (FIX: Mandatory program ID check)\n    if token_account.owner != &token_program::ID { return Err(ProgramError::IncorrectProgramId); }\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Safe: Enforces a check on the account owner's Program ID to ensure interaction is only with the official Token Program.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Lack of Input Validation (OWASP V4). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn consume_data_input(accounts: &[AccountInfo], input_data: [u8; 32]) -> ProgramResult {\n    // (FIX: Strict range check on data contents before use)\n    for byte in input_data.iter() {\n        if *byte > MAX_BYTE_VALUE { return Err(ProgramError::InvalidArgument); }\n    }\n    // ... uses input_data ...\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V4 - Lack of Input Validation (Type Confusion)\nAnalysis: Safe: Implements strict validation by iterating over array elements to ensure all fall within a specified safe range.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V4 - Lack of Input Validation"
+    }
+]
