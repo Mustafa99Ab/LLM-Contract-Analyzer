@@ -1,0 +1,122 @@
+[
+    {
+        "id": "sol_v2_vuln_01",
+        "code": "\nuse anchor_lang::prelude::*;\n\n#[program]\npub mod price_oracle_vuln {\n    use super::*;\n\n    pub fn borrow_money(ctx: Context<Borrow>, amount: u64) -> Result<()> {\n        let oracle_account = &ctx.accounts.oracle;\n        // VULNERABILITY: Trusting the data passed in the account without verifying the owner\n        // An attacker can pass a fake account with manipulated price data.\n        let price_data = PriceData::try_from_slice(&oracle_account.data.borrow())?;\n        \n        let max_borrow = price_data.price * 50; // 50% LTV\n        require!(amount <= max_borrow, CustomError::InsufficientCollateral);\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct Borrow<'info> {\n    /// CHECK: Unsafe read\n    pub oracle: AccountInfo<'info>, \n    pub user: Signer<'info>,\n}\n",
+        "is_vulnerable": true,
+        "description": "The contract deserializes data from an arbitrary account passed by the user without checking if the account is owned by the official Oracle program."
+    },
+    {
+        "id": "sol_v2_vuln_02",
+        "code": "\nuse anchor_lang::prelude::*;\nuse pyth_sdk_solana::load_price_feed_from_account_info;\n\npub fn check_price(ctx: Context<CheckPrice>) -> Result<()> {\n    let price_account_info = &ctx.accounts.price_feed;\n    let price_feed = load_price_feed_from_account_info(price_account_info).unwrap();\n    \n    // VULNERABILITY: Fetching price without checking for staleness (timestamp).\n    // The price could be from hours ago (market crash), but the contract accepts it.\n    let current_price = price_feed.get_price_unchecked();\n    \n    msg!(\"Current price is {}\", current_price.price);\n    Ok(())\n}\n",
+        "is_vulnerable": true,
+        "description": "Uses Pyth SDK but calls `get_price_unchecked()` and ignores the publish timestamp, allowing stale/old prices to be used."
+    },
+    {
+        "id": "sol_v2_vuln_03",
+        "code": "\nuse anchor_lang::prelude::*;\n\npub fn swap_tokens(ctx: Context<Swap>, amount_in: u64) -> Result<()> {\n    let reserve_x = ctx.accounts.pool.reserve_x;\n    let reserve_y = ctx.accounts.pool.reserve_y;\n\n    // VULNERABILITY: Relies purely on Spot Price (Reserve Ratio).\n    // Susceptible to manipulation via Flash Loans (sandwich attack) within the same block.\n    let price = reserve_y / reserve_x; \n    \n    let amount_out = amount_in * price;\n    // ... transfer logic\n    Ok(())\n}\n",
+        "is_vulnerable": true,
+        "description": "Calculates price based solely on the current ratio of reserves in a pool (Spot Price), making it highly vulnerable to flash loan manipulation."
+    },
+    {
+        "id": "sol_v2_vuln_04",
+        "code": "\nuse anchor_lang::prelude::*;\n\npub fn liquidate(ctx: Context<Liquidate>) -> Result<()> {\n    let oracle_data = &ctx.accounts.oracle;\n    \n    // VULNERABILITY: No confidence interval check.\n    // If the market is highly volatile (wide confidence interval), the price might be inaccurate.\n    let price = parse_price(oracle_data)?;\n    \n    if price < 100 {\n        // Liquidate user\n    }\n    Ok(())\n}\n",
+        "is_vulnerable": true,
+        "description": "Reads the price but ignores the confidence interval/uncertainty field provided by oracles like Pyth."
+    },
+    {
+        "id": "sol_v2_vuln_05",
+        "code": "\nuse anchor_lang::prelude::*;\n\n#[account]\npub struct Config {\n    pub oracle_address: Pubkey,\n}\n\npub fn update_oracle(ctx: Context<UpdateConfig>, new_oracle: Pubkey) -> Result<()> {\n    // VULNERABILITY: The update function is not restricted (missing access control).\n    // Any user can change the trusted oracle address to their own malicious account.\n    let config = &mut ctx.accounts.config;\n    config.oracle_address = new_oracle;\n    Ok(())\n}\n",
+        "is_vulnerable": true,
+        "description": "While the logic uses a stored oracle address, the function to update this address lacks access control, allowing anyone to switch the oracle to a fake one."
+    },
+    {
+        "id": "sol_v2_vuln_06",
+        "code": "\nuse anchor_lang::prelude::*;\n\npub fn get_asset_price(ctx: Context<GetPrice>) -> Result<u64> {\n    let feed = &ctx.accounts.feed;\n    \n    // VULNERABILITY: Hardcoded assumption about decimals.\n    // If the oracle changes decimals or a different asset is used, the math breaks (e.g. $100 becomes $0.0001).\n    let raw_price = feed.read_u64(8); \n    let price = raw_price / 1000000; \n    \n    Ok(price)\n}\n",
+        "is_vulnerable": true,
+        "description": "Incorrect handling of price decimals/scaling, which can lead to massive under/overvaluation of assets."
+    },
+    {
+        "id": "sol_v2_vuln_07",
+        "code": "\nuse anchor_lang::prelude::*;\n\npub fn lend(ctx: Context<Lend>, amount: u64) -> Result<()> {\n    let user_provided_price = ctx.accounts.user_input.price;\n\n    // VULNERABILITY: Blindly trusting a price passed as an argument by the user \n    // without verifying it against an on-chain oracle.\n    let collateral_value = ctx.accounts.user.collateral * user_provided_price;\n    \n    require!(collateral_value > amount, MyError::Undercollateralized);\n    Ok(())\n}\n",
+        "is_vulnerable": true,
+        "description": "Accepts the asset price directly from the user input/struct without any on-chain verification."
+    },
+    {
+        "id": "sol_v2_vuln_08",
+        "code": "\nuse anchor_lang::prelude::*;\n\npub fn complex_calc(ctx: Context<Calc>) -> Result<()> {\n    let oracle_info = &ctx.accounts.oracle;\n    \n    // VULNERABILITY: Missing check for the 'executable' flag or Program ID.\n    // Even if data structure looks correct, it might not be generated by the trusted program.\n    let data = OracleStruct::try_from_slice(&oracle_info.data.borrow())?;\n    \n    if data.last_updated < 0 { \n        // Logic error in checking time (using signed int wrongly)\n        return Ok(()); \n    }\n    Ok(())\n}\n",
+        "is_vulnerable": true,
+        "description": "Fails to verify that the account providing data is owned by the expected Oracle Program ID."
+    },
+    {
+        "id": "sol_v2_vuln_09",
+        "code": "\nuse anchor_lang::prelude::*;\n\npub fn execute_trade(ctx: Context<Trade>) -> Result<()> {\n    let pair = &ctx.accounts.pair;\n    \n    // VULNERABILITY: Using the last transaction price as the global price.\n    // An attacker can make a small trade at a skewed price to set this value before a large attack.\n    let price = pair.last_trade_price;\n    \n    // ... execute trade logic\n    Ok(())\n}\n",
+        "is_vulnerable": true,
+        "description": "Relies on the 'last trade price' of a DEX pair, which can be easily manipulated by a single trade before the attack transaction."
+    },
+    {
+        "id": "sol_v2_vuln_10",
+        "code": "\nuse anchor_lang::prelude::*;\n\npub fn check_sol_price(ctx: Context<Check>) -> Result<()> {\n    let oracle = &ctx.accounts.oracle;\n    let feed = OracleFeed::deserialize(&mut &oracle.data.borrow()[..])?;\n\n    // VULNERABILITY: Checking timestamp but with a very large buffer.\n    // Allowing prices from 24 hours ago is dangerous for volatile assets.\n    let current_time = Clock::get()?.unix_timestamp;\n    if current_time - feed.timestamp < 86400 { // 24 hours allowed\n        msg!(\"Price accepted\");\n    }\n    Ok(())\n}\n",
+        "is_vulnerable": true,
+        "description": "Implements a staleness check, but the threshold (24 hours) is far too lenient for a blockchain environment."
+    },
+    {
+        "id": "sol_v2_safe_01",
+        "code": "\nuse anchor_lang::prelude::*;\nuse pyth_sdk_solana::{load_price_feed_from_account_info, PriceFeed};\n\npub fn check_price_safe(ctx: Context<CheckPrice>) -> Result<()> {\n    let oracle_account = &ctx.accounts.oracle;\n    let feed = load_price_feed_from_account_info(oracle_account).unwrap();\n    \n    let current_time = Clock::get()?.unix_timestamp;\n    let max_age = 60; // 60 seconds max age\n\n    // SAFE: Using get_price_no_older_than to ensure data freshness\n    let valid_price = feed.get_price_no_older_than(current_time, max_age);\n\n    match valid_price {\n        Some(p) => msg!(\"Price is {}\", p.price),\n        None => return Err(error!(MyError::StaleOracle)),\n    }\n    Ok(())\n}\n",
+        "is_vulnerable": false,
+        "description": "Correctly uses Pyth SDK with `get_price_no_older_than` to reject stale prices."
+    },
+    {
+        "id": "sol_v2_safe_02",
+        "code": "\nuse anchor_lang::prelude::*;\n\n#[program]\npub mod secure_oracle {\n    use super::*;\n    \n    pub fn use_oracle(ctx: Context<UseOracle>) -> Result<()> {\n        let oracle_data = &ctx.accounts.oracle;\n        let clock = Clock::get()?;\n        \n        let price_struct = parse_data(oracle_data)?;\n        \n        // SAFE: Strict staleness check (must be within last 30 seconds)\n        require!(clock.unix_timestamp - price_struct.timestamp <= 30, MyError::StaleData);\n        \n        // SAFE: Confidence check (must be reasonably precise)\n        require!(price_struct.confidence < price_struct.price / 100, MyError::LowConfidence);\n        \n        Ok(())\n    }\n}\n",
+        "is_vulnerable": false,
+        "description": "Manually implements strict checks for both data freshness (timestamp) and data quality (confidence interval)."
+    },
+    {
+        "id": "sol_v2_safe_03",
+        "code": "\nuse anchor_lang::prelude::*;\n\n#[derive(Accounts)]\npub struct VerifyOracle<'info> {\n    /// CHECK: Verified by constraint\n    #[account(owner = pyth_program::ID)] \n    pub oracle_account: AccountInfo<'info>,\n    pub user: Signer<'info>,\n}\n\npub fn execute(ctx: Context<VerifyOracle>) -> Result<()> {\n    // SAFE: The account struct constraint ensures the oracle account \n    // is owned by the specific, trusted Pyth Program ID.\n    let price = fetch_price(&ctx.accounts.oracle_account)?;\n    Ok(())\n}\n",
+        "is_vulnerable": false,
+        "description": "Uses Anchor's `#[account(owner = ...)]` constraint to enforce that the oracle account belongs to the trusted program."
+    },
+    {
+        "id": "sol_v2_safe_04",
+        "code": "\nuse anchor_lang::prelude::*;\n\npub fn get_switchboard_price(ctx: Context<AccessFeed>) -> Result<()> {\n    let aggregator = &ctx.accounts.aggregator;\n    \n    // SAFE: Using Switchboard's V2 Aggregator logic to verify the result\n    let val: f64 = aggregator.get_result()?;\n    let timestamp = aggregator.last_updated_round.round_open_timestamp;\n    \n    let clock = Clock::get()?;\n    if clock.unix_timestamp - timestamp > 100 {\n        return Err(error!(MyError::OracleOutdated));\n    }\n    Ok(())\n}\n",
+        "is_vulnerable": false,
+        "description": "Correctly integrates Switchboard oracle by checking the result and the last updated round timestamp."
+    },
+    {
+        "id": "sol_v2_safe_05",
+        "code": "\nuse anchor_lang::prelude::*;\n\npub fn compare_prices(ctx: Context<Compare>) -> Result<()> {\n    let price_a = get_price(&ctx.accounts.oracle_a)?;\n    let price_b = get_price(&ctx.accounts.oracle_b)?;\n    \n    // SAFE: Using two different oracles and ensuring they don't deviate too much\n    let diff = (price_a - price_b).abs();\n    require!(diff < (price_a / 20), MyError::PriceDeviationTooHigh);\n    \n    let final_price = (price_a + price_b) / 2;\n    Ok(())\n}\n",
+        "is_vulnerable": false,
+        "description": "Mitigates manipulation by using multiple oracle sources and checking for significant deviation between them."
+    },
+    {
+        "id": "sol_v2_safe_06",
+        "code": "\nuse anchor_lang::prelude::*;\n\n#[account]\npub struct Config {\n    pub admin: Pubkey,\n    pub hardcoded_oracle: Pubkey,\n}\n\npub fn lending_op(ctx: Context<LendOp>) -> Result<()> {\n    // SAFE: Ensuring the passed oracle account matches the one stored in Config\n    require!(\n        ctx.accounts.oracle.key() == ctx.accounts.config.hardcoded_oracle, \n        MyError::InvalidOracleAddress\n    );\n    \n    let price = read_price(&ctx.accounts.oracle)?;\n    Ok(())\n}\n",
+        "is_vulnerable": false,
+        "description": "Strictly validates the oracle account address against a trusted address stored in the contract configuration."
+    },
+    {
+        "id": "sol_v2_safe_07",
+        "code": "\nuse anchor_lang::prelude::*;\n\npub fn safe_twap_calc(ctx: Context<Twap>) -> Result<()> {\n    // SAFE: Instead of spot price, using Time Weighted Average Price (TWAP)\n    // calculated over the last 30 minutes to resist flash loan attacks.\n    let observations = ctx.accounts.pool.observe();\n    let twap = calculate_twap(observations, 1800)?; // 1800 seconds\n    \n    msg!(\"Safe TWAP price: {}\", twap);\n    Ok(())\n}\n",
+        "is_vulnerable": false,
+        "description": "Uses TWAP (Time-Weighted Average Price) instead of spot price to filter out short-term volatility from flash loans."
+    },
+    {
+        "id": "sol_v2_safe_08",
+        "code": "\nuse anchor_lang::prelude::*;\n\npub fn bound_check(ctx: Context<Check>, new_price: u64) -> Result<()> {\n    let last_price = ctx.accounts.state.last_known_price;\n    \n    // SAFE: Circuit breaker / Guardrails\n    // Rejecting the price if it moves more than 10% in a single update.\n    let upper_bound = last_price * 110 / 100;\n    let lower_bound = last_price * 90 / 100;\n    \n    require!(new_price < upper_bound && new_price > lower_bound, MyError::PriceTooVolatile);\n    \n    ctx.accounts.state.last_known_price = new_price;\n    Ok(())\n}\n",
+        "is_vulnerable": false,
+        "description": "Implements safeguards (circuit breakers) to reject oracle updates that show unrealistic volatility within a short timeframe."
+    },
+    {
+        "id": "sol_v2_safe_09",
+        "code": "\nuse anchor_lang::prelude::*;\n\npub fn swap_guard(ctx: Context<Swap>) -> Result<()> {\n    let amm_price = ctx.accounts.pool.get_spot_price();\n    let oracle_price = ctx.accounts.oracle.get_price()?;\n    \n    // SAFE: Verifying AMM price against an external oracle\n    // If the AMM price deviates significantly from the global oracle, pause the swap.\n    let deviation = (amm_price - oracle_price).abs();\n    require!(deviation < oracle_price / 50, MyError::PriceManipulationDetected);\n    \n    Ok(())\n}\n",
+        "is_vulnerable": false,
+        "description": "Cross-validates the AMM spot price against an external Chainlink/Pyth oracle to detect and prevent market manipulation attacks."
+    },
+    {
+        "id": "sol_v2_safe_10",
+        "code": "\nuse anchor_lang::prelude::*;\nuse chainlink_solana as chainlink;\n\npub fn get_chainlink_price(ctx: Context<Access>) -> Result<()> {\n    let feed = &ctx.accounts.chainlink_feed;\n    \n    // SAFE: Proper Chainlink integration checking decimals and round ID\n    let round = chainlink::latest_round_data(ctx.accounts.chainlink_program.clone(), feed.clone())?;\n    \n    let description = chainlink::description(ctx.accounts.chainlink_program.clone(), feed.clone())?;\n    let decimals = chainlink::decimals(ctx.accounts.chainlink_program.clone(), feed.clone())?;\n\n    msg!(\"Price from {}: {} (decimals: {})\", description, round.answer, decimals);\n    Ok(())\n}\n",
+        "is_vulnerable": false,
+        "description": "Correct usage of the Chainlink Solana crate to fetch verified round data and decimals."
+    }
+]
