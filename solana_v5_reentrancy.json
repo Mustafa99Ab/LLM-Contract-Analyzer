@@ -1,0 +1,142 @@
+[
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn withdraw_reentrancy(accounts: &[AccountInfo], amount: u64) -> ProgramResult {\n    // 1. Check (Balance check is assumed to pass)\n    // 2. Interaction (Transfer funds via CPI)\n    invoke(&instruction::transfer_out(amount), accounts)?;\n    // (VULN: State update (Effect) happens AFTER the external Interaction)\n    // 3. Effect (Update user's balance in program state)\n    let user_state = accounts[0].try_borrow_mut_data()?;\n    user_state.balance -= amount;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: Reentrancy Risk: Fails to follow Checks-Effects-Interactions (CEI) pattern, executing the external transfer (Interaction) before updating the internal state (Effect).",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn cpi_to_unverified_target(accounts: &[AccountInfo]) -> ProgramResult {\n    let target_account = &accounts[1];\n    // (VULN: No Owner Check on target_account to ensure it's valid for CPI)\n    invoke(&instruction::call_function(target_account.key), accounts)?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: Missing CPI Account Check: Executes CPI using an external account without verifying its owner or type, risking interaction with a malicious program.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn insecure_shared_state_cpi(accounts: &[AccountInfo]) -> ProgramResult {\n    let state_account = &accounts[0];\n    // 1. Check (Reads state_account)\n    // 2. Interaction (CPI to external program, passing state_account as writable)\n    // (VULN: External program can modify state_account during CPI before Effect)\n    invoke(&instruction::external_call(state_account.key), accounts)?;\n    // 3. Effect (Uses or modifies state_account again)\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: Reentrancy via Shared Mutable State: Passes a writable account used for internal state checks to an external CPI, allowing the external program to modify state prematurely.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn cpi_over_permissive_account(accounts: &[AccountInfo]) -> ProgramResult {\n    let read_only_config = &accounts[1];\n    // (VULN: CPI instruction is constructed to treat read_only_config as mutable/writable)\n    invoke(&instruction::write_config(read_only_config.key), accounts)?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: CPI Over-Permissive Account: Passes an account to CPI with excessive write permissions (Writable) when it only needs to be Read-Only.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn nested_cpi_risk(accounts: &[AccountInfo]) -> ProgramResult {\n    // 1. Check\n    // 2. Interaction\n    invoke(&instruction::first_call(...), accounts)?;\n    // (VULN: If first_call re-enters, execution continues without limit)\n    invoke(&instruction::second_call(...), accounts)?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: Nested CPI without Depth Guard: Executes sequential CPI calls without a lock or state flag to limit potential recursion depth.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn cpi_without_signer_validation(accounts: &[AccountInfo]) -> ProgramResult {\n    // (VULN: The security context is not verified before the CPI is constructed)\n    invoke_signed(&instruction::protected_action(...), accounts, &[])?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: CPI without Signer Validation: Executes an `invoke_signed` CPI without validating the signature context (e.g., the PDA seeds or authority) beforehand.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn cpi_to_weakly_vetted_list(accounts: &[AccountInfo]) -> ProgramResult {\n    let target_program = accounts[1].key;\n    // (VULN: If target_program is checked against a list that includes attacker-controlled addresses)\n    if *target_program != TRUSTED_ID && *target_program != ATTACKER_ID {\n        return Err(ProgramError::IncorrectProgramId);\n    }\n    invoke(&instruction::call_function(...), accounts)?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: Insecure Program ID Check: Checks the target program ID against a list that might contain unsafe or outdated program IDs.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn delayed_state_update(accounts: &[AccountInfo]) -> ProgramResult {\n    // 1. Check 1 (Passes)\n    // 2. Interaction (CPI)\n    invoke(&instruction::external_logic(...), accounts)?;\n    // 3. Check 2 (Re-entry can bypass this check)\n    // 4. Effect (Delayed state update)\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: Delayed State Update: State update (Effect) is delayed significantly after CPI, allowing re-entry to bypass intermediate checks (Check 2).",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn unchecked_cpi_reentrancy_path(accounts: &[AccountInfo]) -> ProgramResult {\n    // 1. Check\n    // 2. Interaction\n    let _ = invoke(&instruction::transfer_out(...), accounts);\n    // (VULN: Execution continues to Effect even if the CPI failed, state may be inconsistent)\n    // 3. Effect\n    update_state_variable();\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: CPI Result Not Checked (Reentrancy Path): Executes CPI and ignores the `ProgramResult`, allowing execution to continue to the Effect step even upon CPI failure, leading to inconsistent state.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn cpi_with_unverified_callee(accounts: &[AccountInfo]) -> ProgramResult {\n    let callee_program = &accounts[0];\n    // (VULN: The callee_program account is not verified as a known, safe program)\n    invoke(&instruction::execute_arbitrary_call(), accounts)?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: Missing Validation on Callee Program: Fails to check that the account passed as the program ID to CPI is a verified and trusted program.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn withdraw_safe(accounts: &[AccountInfo], amount: u64) -> ProgramResult {\n    // 1. Check (Balance check is assumed to pass)\n    // 2. Effect (Update user's balance in program state)\n    let user_state = accounts[0].try_borrow_mut_data()?;\n    user_state.balance -= amount;\n    // (FIX: State update (Effect) happens BEFORE the external Interaction)\n    // 3. Interaction (Transfer funds via CPI)\n    invoke(&instruction::transfer_out(amount), accounts)?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: Safe: Follows the Checks-Effects-Interactions (CEI) pattern, securing state before the external call.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn cpi_to_verified_target(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    let target_account = &accounts[1];\n    // (FIX: Owner Check on target_account)\n    if target_account.owner != program_id {\n        return Err(ProgramError::IncorrectProgramId);\n    }\n    invoke(&instruction::call_function(target_account.key), accounts)?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: Safe: Executes CPI only after verifying the target account's owner, preventing interaction with malicious accounts.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn secure_locked_cpi(accounts: &[AccountInfo]) -> ProgramResult {\n    let lock_state = accounts[0].try_borrow_mut_data()?;\n    // 1. Check (Check lock status)\n    if lock_state.is_locked { return Err(ProgramError::Custom(1)); }\n    lock_state.is_locked = true; // Lock (Effect 1)\n    // 2. Interaction\n    invoke(&instruction::external_call(...), accounts)?;\n    // 3. Effect (Unlock)\n    lock_state.is_locked = false; // Unlock\n    // (FIX: Lock mechanism prevents immediate re-entry)\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: Safe: Implements a simple mutex lock state to prevent re-entry during the critical CPI phase.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn cpi_strict_permissions(accounts: &[AccountInfo]) -> ProgramResult {\n    let read_only_config = &accounts[1];\n    // (FIX: CPI instruction constructed to treat read_only_config as Read-Only)\n    invoke(&instruction::read_config(read_only_config.key), accounts)?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: Safe: Restricts accounts passed to CPI to Read-Only permissions whenever possible.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn nested_cpi_depth_guard(accounts: &[AccountInfo]) -> ProgramResult {\n    let call_depth = accounts[0].try_borrow_mut_data()?;\n    // 1. Check (Limit depth)\n    if call_depth.count > MAX_DEPTH { return Err(ProgramError::Custom(2)); }\n    call_depth.count += 1; // Increment (Effect)\n    // 2. Interaction\n    invoke(&instruction::first_call(...), accounts)?;\n    // 3. Effect (Decrement)\n    call_depth.count -= 1;\n    // (FIX: Explicitly limits recursion depth using a counter in state)\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: Safe: Implements a state-based depth counter to limit recursive CPI calls.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn cpi_with_signer_validation(accounts: &[AccountInfo]) -> ProgramResult {\n    // (FIX: Validation logic ensures signature context and PDA derivation is correct)\n    validate_pda_signature(accounts)?;\n    invoke_signed(&instruction::protected_action(...), accounts, &[])?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: Safe: Enforces validation on the PDA derivation and signature context before executing `invoke_signed`.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn cpi_to_trusted_target(accounts: &[AccountInfo]) -> ProgramResult {\n    let target_program = accounts[1].key;\n    const TRUSTED_ID: Pubkey = Pubkey::new_from_array([/* trusted key bytes */]);\n    // (FIX: Only allows known, safe ID)\n    if *target_program != TRUSTED_ID {\n        return Err(ProgramError::IncorrectProgramId);\n    }\n    invoke(&instruction::call_function(...), accounts)?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: Safe: Restricts CPI calls to a single, hardcoded trusted program ID.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn immediate_state_update(accounts: &[AccountInfo]) -> ProgramResult {\n    // 1. Check 1 (Passes)\n    // 2. Effect (Immediate state update/lock)\n    lock_and_update_state();\n    // 3. Interaction (CPI)\n    invoke(&instruction::external_logic(...), accounts)?;\n    // (FIX: State is secured before the external call, preventing bypass)\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: Safe: Ensures state modification or a locking mechanism (Effect) is performed immediately after checks and before CPI (Interaction).",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn checked_cpi_reentrancy_path(accounts: &[AccountInfo]) -> ProgramResult {\n    // 1. Check\n    // 2. Interaction\n    invoke(&instruction::transfer_out(...), accounts)?; // (FIX: Propagation of failure via ?)\n    // 3. Effect (Only runs if interaction succeeded)\n    update_state_variable();\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: Safe: Ensures the CPI result is checked and failure is propagated (`?`), so the subsequent state update (Effect) only occurs upon success.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Reentrancy Attacks or violations of the CEI pattern (OWASP V5).",
+        "input": "pub fn cpi_with_verified_callee(accounts: &[AccountInfo]) -> ProgramResult {\n    let callee_program = &accounts[0];\n    const SAFE_PROGRAM_ID: Pubkey = Pubkey::new_from_array([/* safe key bytes */]);\n    // (FIX: Explicitly checks the callee program ID)\n    if *callee_program.key != SAFE_PROGRAM_ID {\n        return Err(ProgramError::IncorrectProgramId);\n    }\n    invoke(&instruction::execute_safe_call(), accounts)?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V5 - Reentrancy Attacks (CPI Violation)\nAnalysis: Safe: Validates the callee program ID against a known safe address before execution.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V5 - Reentrancy Attacks"
+    }
+]
