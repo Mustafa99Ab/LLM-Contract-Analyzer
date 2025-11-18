@@ -1,0 +1,142 @@
+[
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn unchecked_array_allocation(accounts: &[AccountInfo], size: u64) -> ProgramResult {\n    // (VULN: Allocating large memory based on unchecked user input 'size')\n    let mut large_buffer: Vec<u8> = vec![0; size as usize];\n    // ... processing logic ...\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Unchecked Array Allocation: Allocates an excessively large memory buffer based on an unchecked user input size, risking out-of-memory or high computational costs (DoS).",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn unbounded_loop_cpi(accounts: &[AccountInfo]) -> ProgramResult {\n    for i in 0..accounts.len() {\n        // (VULN: Loop complexity is tied to unchecked list size, and contains CPI)\n        invoke(&instruction::log_message(), &accounts)?;\n    }\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Unbounded Loop with CPI: Executes a loop tied to the number of passed accounts, where the loop contains a CPI, risking resource exhaustion if an attacker passes many accounts.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn reliance_on_slow_external_program(accounts: &[AccountInfo]) -> ProgramResult {\n    // (VULN: CPI to a known slow/complex external program without a timeout or resource check)\n    invoke(&instruction::complex_computation(), accounts)?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Reliance on Slow External Program: Executes a CPI to an external program known for high compute unit usage, increasing the transaction's fee requirement and risk of failure (DoS).",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn uncontained_data_deserialization(accounts: &[AccountInfo]) -> ProgramResult {\n    let account_data = accounts[0].try_borrow_data()?;\n    // (VULN: Deserializing data without checking its size or bounds beforehand)\n    let large_struct = LargeStruct::try_from_slice(&account_data)?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Uncontained Data Deserialization: Deserializes a large structure from account data without verifying the data's length or bounds, leading to potential compute budget exhaustion.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn insufficient_fee_check(accounts: &[AccountInfo]) -> ProgramResult {\n    // (VULN: Function executes complex logic without checking the transaction's budget limits or priority fee)\n    for _ in 0..10000 { /* CPU intensive task */ };\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Insufficient Fee/Budget Check: Executes a computationally intensive task without first validating that the transaction's compute budget is adequate or prioritized, risking failure due to lack of resources.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn unchecked_log_emission(accounts: &[AccountInfo], message: String) -> ProgramResult {\n    // (VULN: Logs an unbounded user-provided string, potentially filling transaction logs)\n    msg!(\"{}\", message);\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Unchecked Log Emission: Logs an unbounded user-provided string, consuming transaction log space and risking hitting the log limit.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn repetitive_account_initialization(accounts: &[AccountInfo]) -> ProgramResult {\n    // (VULN: Logic allows re-initialization of an account, wasting lamports and block space)\n    // Assume: no check if account is initialized\n    initialize_account(accounts[0].key);\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Repetitive Account Initialization: Logic allows an account to be repeatedly initialized, wasting computation and block space (DoS).",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn unbounded_serialization(accounts: &[AccountInfo], data: Vec<u8>) -> ProgramResult {\n    // (VULN: Serializing unbounded user data into state without size check)\n    accounts[0].data.borrow_mut().copy_from_slice(&data);\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Unbounded Serialization: Writes unbounded user data into an account's state without size check, risking buffer overload and DoS.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn state_locking_dos(accounts: &[AccountInfo]) -> ProgramResult {\n    let account_data = accounts[0].try_borrow_mut_data()?;\n    // (VULN: Holds the mutable account lock for an extended period, preventing parallel access)\n    long_running_computation();\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: State Locking DoS: Holds the mutable account lock (`try_borrow_mut_data`) for an extended, unnecessary duration, preventing parallel access.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn cpi_chain_without_program_id(accounts: &[AccountInfo]) -> ProgramResult {\n    // (VULN: Executes a CPI sequence relying on implicit/unverified program IDs)\n    invoke(&instruction::transfer_out(...), accounts)?;\n    invoke(&instruction::log_message(), accounts)?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: CPI Chain without Program ID Check: Executes sequential CPI calls without verifying that the callee programs are trusted, risking an uncontained computation loop.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn checked_array_allocation(accounts: &[AccountInfo], size: u64) -> ProgramResult {\n    // (FIX: Asserting that the user input 'size' is below a safe threshold)\n    if size > MAX_SAFE_SIZE { return Err(ProgramError::InvalidInstructionData); }\n    let mut large_buffer: Vec<u8> = vec![0; size as usize];\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Checked Array Allocation: Implements input validation to ensure user-provided size is within a safe, bounded limit.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn bounded_loop_cpi(accounts: &[AccountInfo]) -> ProgramResult {\n    let limit = accounts.len().min(MAX_SAFE_ACCOUNTS);\n    for i in 0..limit {\n        // (FIX: Bounding the loop iteration to a safe, predefined maximum)\n        invoke(&instruction::log_message(), &accounts)?;\n    }\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Bounded Loop with CPI: Bounds the loop iteration to a safe, predefined maximum, regardless of the number of accounts passed by the user.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn safe_external_program_reliance(accounts: &[AccountInfo]) -> ProgramResult {\n    // (FIX: Executing a CPI to a verified program with low compute cost)\n    invoke(&instruction::simple_computation(), accounts)?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Safe External Program Reliance: Restricts CPI calls to trusted programs known to have low compute costs and fast execution times.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn contained_data_deserialization(accounts: &[AccountInfo]) -> ProgramResult {\n    let account_data = accounts[0].try_borrow_data()?;\n    // (FIX: Checking the data length matches the expected bounds)\n    if account_data.len() != EXPECTED_STRUCT_SIZE { return Err(ProgramError::InvalidAccountData); }\n    let large_struct = LargeStruct::try_from_slice(&account_data)?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Contained Data Deserialization: Implements strict length and bounds checking on account data before attempting deserialization.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn resource_check_before_compute(accounts: &[AccountInfo]) -> ProgramResult {\n    // (FIX: Placing a resource check or logic to ensure the transaction is prioritized)\n    check_priority_fee_is_sufficient();\n    for _ in 0..100 { /* Simple task */ };\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Resource Check Before Compute: Implements logic to verify that the transaction is sufficiently prioritized before executing any significant computation.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn bounded_log_emission(accounts: &[AccountInfo], message: String) -> ProgramResult {\n    // (FIX: Asserts the user-provided string length is below a safe limit)\n    if message.len() > MAX_LOG_LENGTH { return Err(ProgramError::InvalidArgument); }\n    msg!(\"{}\", message);\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Bounded Log Emission: Asserts the user-provided string length is below a safe limit before logging, preventing log overflow.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn single_initialization_check(accounts: &[AccountInfo]) -> ProgramResult {\n    // (FIX: Checks if the account has already been initialized before proceeding)\n    if accounts[0].data_len() > 0 { return Err(ProgramError::AccountAlreadyInitialized); }\n    initialize_account(accounts[0].key);\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Single Initialization Check: Checks if the account has already been initialized before proceeding, preventing wasteful re-initialization.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn bounded_serialization(accounts: &[AccountInfo], data: Vec<u8>) -> ProgramResult {\n    // (FIX: Asserts the input data size is within the allocated account size)\n    if data.len() > accounts[0].data_len() { return Err(ProgramError::AccountDataTooSmall); }\n    accounts[0].data.borrow_mut().copy_from_slice(&data);\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Bounded Serialization: Asserts the input data size is within the allocated account size, preventing buffer and compute overload.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn state_locking_minimal(accounts: &[AccountInfo]) -> ProgramResult {\n    let account_data = accounts[0].try_borrow_mut_data()?;\n    // (FIX: Minimizes the scope of the mutable lock to only the required instruction)\n    simple_update(account_data);\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: State Locking Minimal: Minimizes the scope of the mutable account lock to only the required instruction, allowing better concurrency.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "pub fn cpi_chain_with_program_id_check(accounts: &[AccountInfo]) -> ProgramResult {\n    // (FIX: Executes CPI only after verifying the target program ID)\n    verify_program_id(accounts[0].key);\n    invoke(&instruction::transfer_out(...), accounts)?;\n    verify_program_id(accounts[1].key);\n    invoke(&instruction::log_message(), accounts)?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: CPI Chain with Program ID Check: Executes sequential CPI calls only after verifying the target program IDs, ensuring trust and minimizing risk.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V10 - Denial of Service"
+    }
+]
