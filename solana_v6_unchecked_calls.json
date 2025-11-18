@@ -1,0 +1,142 @@
+[
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn unchecked_cpi_call(accounts: &[AccountInfo]) -> ProgramResult {\n    let instruction = instruction::transfer(...); \n    // (VULN: Result is discarded, execution continues even if transfer fails)\n    let _ = invoke(&instruction, accounts);\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: Unchecked CPI Result: Executes a CPI instruction and explicitly ignores the returned ProgramResult, risking silent failure of an external call.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn insecure_pda_signer_cpi(accounts: &[AccountInfo], seed_bump: u8) -> ProgramResult {\n    let signer_seeds: &[&[u8]] = &[&[seed_bump]];\n    let instruction = instruction::some_action(...); \n    // (VULN: Assuming the seed_bump is correct and signing directly without verification)\n    invoke_signed(&instruction, accounts, &[signer_seeds])?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: Missing PDA Verification: Uses a Program Derived Address (PDA) as a signer in CPI without verifying its canonical bump seed against the expected derivation.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn call_external_program(accounts: &[AccountInfo]) -> ProgramResult {\n    let target_program = &accounts[1];\n    let instruction = instruction::initialize(...);\n    // (VULN: No Key Check on target_program, relying on caller's input for the destination program ID)\n    invoke(&instruction, accounts)?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: CPI to Unsafe Destination: Performs a CPI to an account whose key is not hardcoded or validated as a trusted program ID (External Call Risk).",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn process_unchecked_transfer(accounts: &[AccountInfo]) -> ProgramResult {\n    // Assume `external_transfer` is a helper that wraps `invoke` without the `?` macro.\n    let _ = external_transfer(accounts); \n    // (VULN: The helper function returns a value but the error is not propagated/handled)\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: Ignoring Error Handling Macro: Executes an external call wrapped in a helper function that fails to propagate the ProgramResult on error.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn invoke_without_authority(accounts: &[AccountInfo]) -> ProgramResult {\n    let instruction = instruction::set_data(...);\n    // (VULN: If the instruction requires signing, this will execute without checking authority)\n    invoke(&instruction, accounts)?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: CPI with Weak Authority: Performs CPI where the invoked program requires a signer, but the CPI fails to check the required signer authority.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn update_state_after_cpi(accounts: &[AccountInfo]) -> ProgramResult {\n    let user_state = accounts[0].try_borrow_data()?;\n    // 2. Interaction (CPI to external contract)\n    invoke(&instruction::transfer_out(...), accounts)?;\n    // (VULN: State update (Effect) comes after Interaction, risking re-entrancy via CPI)\n    update_state_variable(user_state);\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: Re-entrancy Risk (V6 Contextual): Fails to follow the Checks-Effects-Interactions pattern, allowing a malicious external call to re-enter before state is updated.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn initialize_new_account(accounts: &[AccountInfo]) -> ProgramResult {\n    let payer = &accounts[2]; // Untrusted program account\n    // (VULN: Using untrusted account in the instruction context can lead to unexpected side effects)\n    let instruction = instruction::create_account(payer.key, ...); \n    invoke(&instruction, accounts)?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: Using Untrusted Account as Payer: Passes an untrusted account (which could be another program) as the rent payer during CPI initialization.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn create_nested_pda_without_check(accounts: &[AccountInfo]) -> ProgramResult {\n    let (pda_key, _bump) = Pubkey::find_program_address(&[b\"config\"], &MY_PROGRAM_ID);\n    // (VULN: Assumes pda_key is correct and uses it directly in CPI instruction)\n    let instruction = instruction::set_authority(&pda_key, ...);\n    invoke(&instruction, accounts)?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: Ignoring PDA Derivation Failure: Uses the result of Pubkey::find_program_address without explicit error handling or verification in a CPI context.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn cpi_with_unverified_data(accounts: &[AccountInfo]) -> ProgramResult {\n    // Assume accounts[1] is an external state account used by the CPI target.\n    // (VULN: Lack of deserialization and boundary checks on accounts[1].data before CPI)\n    invoke(&instruction::update_status(...), accounts)?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: CPI with Unverified Account Data: Passes an account holding mutable data to an external call without verifying the data's integrity or size beforehand.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn execute_cpi_exposing_state(accounts: &[AccountInfo]) -> ProgramResult {\n    let sensitive_variable = get_sensitive_data();\n    let result = invoke(&instruction::external_computation(...), accounts);\n    // (VULN: If result is Err, the exposed error might contain hints about sensitive_variable)\n    result?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: External Program Error Disclosure: Executes CPI and fails to mask the raw external program error, potentially revealing internal program state upon failure.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn checked_cpi_call(accounts: &[AccountInfo]) -> ProgramResult {\n    let instruction = instruction::transfer(...); \n    // (FIX: Use the `?` macro to ensure ProgramError is propagated on failure)\n    invoke(&instruction, accounts)?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: Safe: Ensures the CPI call result is properly handled and errors are propagated using the `?` operator.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn secure_pda_signer_cpi(accounts: &[AccountInfo], seed_bump: u8) -> ProgramResult {\n    let (expected_key, expected_bump) = Pubkey::find_program_address(&[b\"config\"], &MY_PROGRAM_ID);\n    if expected_bump != seed_bump {\n        return Err(ProgramError::InvalidArgument);\n    }\n    let signer_seeds: &[&[u8]] = &[&[seed_bump]];\n    let instruction = instruction::some_action(...); \n    invoke_signed(&instruction, accounts, &[signer_seeds])?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: Safe: Verifies the canonical bump seed using find_program_address against the input before using the PDA as a signer.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn call_external_program(accounts: &[AccountInfo]) -> ProgramResult {\n    let target_program = &accounts[1];\n    const TRUSTED_KEY: Pubkey = Pubkey::new_from_array([/* trusted key bytes */]);\n    // (FIX: Enforce Key Check against trusted address)\n    if *target_program.key != TRUSTED_KEY {\n        return Err(ProgramError::IncorrectProgramId);\n    }\n    let instruction = instruction::initialize(...);\n    invoke(&instruction, accounts)?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: Safe: Performs a CPI only after verifying the target program's key against a hardcoded trusted address.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn process_checked_transfer(accounts: &[AccountInfo]) -> ProgramResult {\n    // Assume `external_transfer_checked` returns ProgramResult\n    external_transfer_checked(accounts)?;\n    // (FIX: Error handling is correctly delegated and propagated)\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: Safe: Ensures all external calls are wrapped in helpers that correctly propagate errors via the `?` operator.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn invoke_with_authority(accounts: &[AccountInfo]) -> ProgramResult {\n    // Assumes accounts[0] is the authority and is_signer check passed previously.\n    let instruction = instruction::set_data(...);\n    // (FIX: Ensures proper authority context is provided for the CPI)\n    invoke(&instruction, accounts)?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: Safe: Performs CPI ensuring that all required signer accounts are present and verified.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn update_state_before_cpi(accounts: &[AccountInfo]) -> ProgramResult {\n    let user_state = accounts[0].try_borrow_data()?;\n    // 2. Effect (State update happens BEFORE interaction)\n    update_state_variable(user_state);\n    // 3. Interaction (CPI call)\n    invoke(&instruction::transfer_out(...), accounts)?;\n    // (FIX: State update (Effect) comes before Interaction, preventing re-entrancy)\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: Safe: Follows the Checks-Effects-Interactions pattern, updating state before the external call.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn initialize_new_account(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    let payer = &accounts[0]; // Verified Signer\n    // (FIX: Uses a trusted account (verified signer) in the instruction context)\n    let instruction = instruction::create_account(payer.key, ...); \n    invoke(&instruction, accounts)?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: Safe: Uses a known and trusted account (a verified signer) as the rent payer during CPI initialization.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn create_nested_pda_with_check(accounts: &[AccountInfo]) -> ProgramResult {\n    let (pda_key, _bump) = Pubkey::find_program_address(&[b\"config\"], &MY_PROGRAM_ID);\n    // (FIX: Relies on the verified key result)\n    let instruction = instruction::set_authority(&pda_key, ...);\n    invoke(&instruction, accounts)?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: Safe: Relies on the verified key result from Pubkey::find_program_address before using the PDA in a CPI.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn cpi_with_verified_data(accounts: &[AccountInfo]) -> ProgramResult {\n    let external_state = accounts[1].try_borrow_data()?;\n    // (FIX: Ensure data format/size integrity check passes before CPI)\n    verify_external_state_format(external_state)?;\n    invoke(&instruction::update_status(...), accounts)?;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: Safe: Verifies and deserializes the account data before passing the account to the external call (CPI).",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify any Unchecked External Calls (OWASP V6). The code snippet is the main function/logic for a transaction.",
+        "input": "pub fn execute_cpi_masking_state(accounts: &[AccountInfo]) -> ProgramResult {\n    let result = invoke(&instruction::external_computation(...), accounts);\n    if result.is_err() {\n        // (FIX: Return a generic error instead of the raw external program error)\n        return Err(ProgramError::Custom(100)); \n    }\n    Ok(()) \n}",
+        "output": "Status: SAFE\nVulnerability: V6 - Unchecked External Calls\nAnalysis: Safe: Executes CPI and masks the error message if the result is a failure, preventing sensitive data leaks.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V6 - Unchecked External Calls"
+    }
+]
