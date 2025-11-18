@@ -1,0 +1,142 @@
+[
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def approval_program():\n    handle_creation = Seq([\n        App.globalPut(Bytes(\"admin\"), Txn.sender()),\n        Return(Int(1))\n    ])\n    update_admin = Seq([\n        # (VULN: No check on Txn.sender())\n        App.globalPut(Bytes(\"admin\"), Txn.application_args[1]),\n        Return(Int(1))\n    ])\n    program = Cond(\n        [Txn.application_id() == Int(0), handle_creation],\n        [Txn.application_args[0] == Bytes(\"update_admin\"), update_admin]\n    )\n    return program",
+        "output": "Status: VULNERABLE\nDescription: Arbitrary Update: Allows anyone to update the 'admin' global state variable without checking the sender's identity.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def approval_program():\n    handle_delete = Seq([\n        # (VULN: No check on sender, anyone can delete)\n        Return(Int(1)) \n    ])\n    program = Cond(\n        [Txn.on_completion() == OnComplete.DeleteApplication, handle_delete]\n    )\n    return program",
+        "output": "Status: VULNERABLE\nDescription: Arbitrary Delete: Allows any user to delete the application because there is no access control check on the DeleteApplication completion type.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def approval_program():\n    withdraw_asset = Seq([\n        # (VULN: No check on Txn.sender())\n        InnerTxnBuilder.Begin(),\n        InnerTxnBuilder.SetFields({\n            TxnField.type_enum: TxnType.AssetTransfer,\n            TxnField.asset_receiver: Txn.accounts[1],\n            TxnField.asset_amount: Btoi(Txn.application_args[1]),\n            TxnField.xfer_asset: Txn.assets[0],\n        }),\n        InnerTxnBuilder.Submit(),\n        Return(Int(1))\n    ])\n    # ...\n    return program",
+        "output": "Status: VULNERABLE\nDescription: Unchecked Asset Receiver: Allows anyone to trigger an inner transaction to transfer assets from the contract to an arbitrary account.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def approval_program():\n    # (VULN: No check that sender is the account owner)\n    update_local_score = Seq([\n        App.localPut(Txn.accounts[1], Bytes(\"score\"), Btoi(Txn.application_args[1])),\n        Return(Int(1))\n    ])\n    # ...\n    return program",
+        "output": "Status: VULNERABLE\nDescription: Arbitrary Update (Local State): Allows a user to modify the local state (score) of another user's account without permission.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def clear_state_program():\n    # (VULN: Always approves)\n    return Return(Int(1))",
+        "output": "Status: VULNERABLE\nDescription: Clear State Vulnerability: While often by design, unrestricted ClearState can be an issue if the contract logic relies on holding local state hostage.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def approval_program():\n    send_payment = Seq([\n        # (VULN: No check on Txn.sender())\n        InnerTxnBuilder.Begin(),\n        InnerTxnBuilder.SetFields({\n            TxnField.type_enum: TxnType.Payment,\n            TxnField.receiver: Txn.accounts[1],\n            TxnField.amount: Btoi(Txn.application_args[1]),\n        }),\n        InnerTxnBuilder.Submit(),\n        Return(Int(1))\n    ])\n    # ...\n    return program",
+        "output": "Status: VULNERABLE\nDescription: Unchecked Payment Receiver: Allows anyone to drain the contract's Algo balance by triggering an unchecked payment inner transaction.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def approval_program():\n    # (VULN: No check that sender is the admin)\n    set_fee = Seq([\n        App.globalPut(Bytes(\"fee\"), Btoi(Txn.application_args[1])),\n        Return(Int(1))\n    ])\n    # ...\n    return program",
+        "output": "Status: VULNERABLE\nDescription: Arbitrary Update: Allows unauthorized users to modify the critical 'fee' global parameter.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def approval_program():\n    # (VULN: No check on sender)\n    freeze_contract = Seq([\n        App.globalPut(Bytes(\"frozen\"), Int(1)),\n        Return(Int(1))\n    ])\n    # ...\n    return program",
+        "output": "Status: VULNERABLE\nDescription: Arbitrary Update: Allows any user to toggle the 'frozen' state of the contract, causing a Denial of Service.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def approval_program():\n    # (VULN: No check, first caller wins)\n    claim_winner = Seq([\n        App.globalPut(Bytes(\"winner\"), Txn.sender()),\n        Return(Int(1))\n    ])\n    # ...\n    return program",
+        "output": "Status: VULNERABLE\nDescription: Race Condition / Arbitrary Update: Allows anyone to claim the 'winner' spot without validation logic.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def approval_program():\n    # (VULN: No check on sender)\n    delete_data = Seq([\n        App.globalDel(Bytes(\"data\")),\n        Return(Int(1))\n    ])\n    # ...\n    return program",
+        "output": "Status: VULNERABLE\nDescription: Arbitrary Delete (Global State): Allows anyone to delete critical global state data.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def approval_program():\n    admin_key = Bytes(\"admin\")\n    update_admin = Seq([\n        Assert(Txn.sender() == App.globalGet(admin_key)), # (Access control check)\n        App.globalPut(admin_key, Txn.application_args[1]),\n        Return(Int(1))\n    ])\n    # ...\n    return program",
+        "output": "Status: SAFE\nDescription: Safe: Enforces that Txn.sender() matches the stored admin address before allowing an update.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def approval_program():\n    admin_key = Bytes(\"admin\")\n    handle_delete = Seq([\n        Assert(Txn.sender() == App.globalGet(admin_key)), # (Access control check)\n        Return(Int(1)) \n    ])\n    # ...\n    return program",
+        "output": "Status: SAFE\nDescription: Safe: Only allows the application to be deleted if the sender is the admin.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def approval_program():\n    admin_key = Bytes(\"admin\")\n    withdraw_asset = Seq([\n        Assert(Txn.sender() == App.globalGet(admin_key)), # (Access control check)\n        InnerTxnBuilder.Begin(),\n        # ...\n        InnerTxnBuilder.Submit(),\n        Return(Int(1))\n    ])\n    # ...\n    return program",
+        "output": "Status: SAFE\nDescription: Safe: Restricts asset withdrawal inner transactions to the admin only.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def approval_program():\n    update_local_score = Seq([\n        # (Check that sender is the one whose state is being updated)\n        Assert(Txn.sender() == Txn.accounts[1]), \n        App.localPut(Txn.accounts[1], Bytes(\"score\"), Btoi(Txn.application_args[1])),\n        Return(Int(1))\n    ])\n    # ...\n    return program",
+        "output": "Status: SAFE\nDescription: Safe: Ensures that a user can only update their own local state, preventing unauthorized modifications of others' data.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def clear_state_program():\n    # (Safe: ClearState only affects the sender)\n    return Return(Int(1))",
+        "output": "Status: SAFE\nDescription: Safe: Standard behavior for ClearState, as it isolates data removal to the sender.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def approval_program():\n    admin_key = Bytes(\"admin\")\n    send_payment = Seq([\n        Assert(Txn.sender() == App.globalGet(admin_key)), # (Access control check)\n        # ...\n        Return(Int(1))\n    ])\n    # ...\n    return program",
+        "output": "Status: SAFE\nDescription: Safe: Ensures only the admin can trigger payment inner transactions.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def approval_program():\n    admin_key = Bytes(\"admin\")\n    set_fee = Seq([\n        Assert(Txn.sender() == App.globalGet(admin_key)), # (Access control check)\n        App.globalPut(Bytes(\"fee\"), Btoi(Txn.application_args[1])),\n        Return(Int(1))\n    ])\n    # ...\n    return program",
+        "output": "Status: SAFE\nDescription: Safe: Validates sender identity against the admin key before updating fees.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def approval_program():\n    admin_key = Bytes(\"admin\")\n    freeze_contract = Seq([\n        Assert(Txn.sender() == App.globalGet(admin_key)), # (Access control check)\n        App.globalPut(Bytes(\"frozen\"), Int(1)),\n        Return(Int(1))\n    ])\n    # ...\n    return program",
+        "output": "Status: SAFE\nDescription: Safe: Restricts the ability to freeze the contract to the admin only.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def approval_program():\n    claim_winner = Seq([\n        # (FIX: Check that winner has not already been set)\n        Assert(App.globalGet(Bytes(\"winner\")) == Bytes(\"\")),\n        App.globalPut(Bytes(\"winner\"), Txn.sender()),\n        Return(Int(1))\n    ])\n    # ...\n    return program",
+        "output": "Status: SAFE\nDescription: Safe: Implements logic to ensure the winner slot is empty before allowing a claim, preventing overwrites.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in PyTeal as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
+        "input": "def approval_program():\n    admin_key = Bytes(\"admin\")\n    delete_data = Seq([\n        Assert(Txn.sender() == App.globalGet(admin_key)), # (Access control check)\n        App.globalDel(Bytes(\"data\")),\n        Return(Int(1))\n    ])\n    # ...\n    return program",
+        "output": "Status: SAFE\nDescription: Safe: Only allows the admin to delete global state data.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V1 - Access Control"
+    }
+]
