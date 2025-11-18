@@ -1,0 +1,62 @@
+[
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn add_balance(balance: u64, amount: u64) -> u64 {\n    // No check... this will wrap on overflow\n    let new_balance = balance + amount;\n    return new_balance;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn claim_reward(total_reward: u64, amount: u64) -> u64 {\n    // This can underflow to a huge number\n    let new_total = total_reward - amount;\n    return new_total;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn calculate_cost(items: u64, price_per_item: u64) -> u64 {\n    // Multiplication overflows very quickly\n    let total_cost = items * price_per_item;\n    return total_cost;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn update_score(current_score: u64, points: u64) -> u64 {\n    // Simple, dangerous addition\n    return current_score + points;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn apply_discount(total: u64, discount: u64) -> u64 {\n    // What if discount > total?\n    return total - discount;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn calculate_mint_fee(level: u64, fee_rate: u64) -> u64 {\n    // Unchecked math\n    return level * fee_rate;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn add_level(level: u32, increase: u32) -> u32 {\n    let new_level = level + increase;\n    return new_level;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn decrease_stamina(stamina: u32, cost: u32) -> u32 {\n    let remaining_stamina = stamina - cost;\n    return remaining_stamina;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn calculate_tax(amount: u32, tax_rate: u32) -> u32 {\n    let tax_amount = amount * tax_rate;\n    return tax_amount;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn complex_calc(a: u64, b: u64, c: u64) -> u64 {\n    // The vulnerability can happen at any step\n    let result = (a + b) - c;\n    return result;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn add_balance(balance: u64, amount: u64) -> u64 {\n    // Using checked_add prevents overflow\n    let new_balance = balance.checked_add(amount).unwrap_or(u64::MAX);\n    return new_balance;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn claim_reward(total_reward: u64, amount: u64) -> u64 {\n    // Using checked_sub prevents underflow\n    let new_total = total_reward.checked_sub(amount).unwrap_or(0);\n    return new_total;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn calculate_cost(items: u64, price_per_item: u64) -> u64 {\n    // This is the correct, safe solution\n    let total_cost = items.checked_mul(price_per_item).unwrap_or(u64::MAX);\n    return total_cost;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn update_score(current_score: u64, points: u64) -> u64 {\n    // Safe\n    return current_score.checked_add(points).unwrap_or(u64::MAX);\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn apply_discount(total: u64, discount: u64) -> u64 {\n    // Will return 0 if discount is larger\n    return total.checked_sub(discount).unwrap_or(0);\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn calculate_mint_fee(level: u64, fee_rate: u64) -> u64 {\n    // Safe\n    return level.checked_mul(fee_rate).unwrap_or(u64::MAX);\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn add_level(level: u32, increase: u32) -> u32 {\n    let new_level = level.checked_add(increase).unwrap_or(u32::MAX);\n    return new_level;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn decrease_stamina(stamina: u32, cost: u32) -> u32 {\n    let remaining_stamina = stamina.checked_sub(cost).unwrap_or(0);\n    return remaining_stamina;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn calculate_tax(amount: u32, tax_rate: u32) -> u32 {\n    let tax_amount = amount.checked_mul(tax_rate).unwrap_or(u32::MAX);\n    return tax_amount;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+    },
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn complex_calc(a: u64, b: u64, c: u64) -> u64 {\n    // Must check each step\n    let result = a.checked_add(b).unwrap_or(u64::MAX)\n                  .checked_sub(c).unwrap_or(0);\n    return result;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+    }
+]
