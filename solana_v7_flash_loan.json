@@ -1,0 +1,142 @@
+[
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn unchecked_price_reliance(accounts: &[AccountInfo]) -> ProgramResult {\n    let price_start = fetch_oracle_price();\n    // VULN: Executes external swap/interaction based on price_start without re-verification\n    invoke(&instruction::external_swap(), accounts)?;\n    if price_start > MIN_PRICE_THRESHOLD { grant_profit(); }\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Single-Block Price Reliance: Uses a single, initial price feed (price_start) throughout the transaction group, allowing an attacker to manipulate the price during the external swap (Interaction) and gain profit before the transaction ends.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn missing_liquidity_check(accounts: &[AccountInfo], loan_amount: u64) -> ProgramResult {\n    // VULN: Fails to check if the total collateral or reserve is sufficient to cover the loan repayment if the arbitrage fails\n    // Assume: loan is granted here\n    execute_arbitrage_logic(loan_amount);\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Missing Liquidity Check: Fails to ensure the contract's internal reserves are sufficient to cover the loan amount and potential fees, risking a liquidity drain.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn reentrancy_via_flash_loan_context(accounts: &[AccountInfo]) -> ProgramResult {\n    // 1. Interaction (Execute external trade)\n    invoke(&instruction::external_trade(), accounts)?;\n    // 2. Effect (Grant profit BEFORE loan repayment is verified)\n    grant_unverified_profit();\n    // 3. Check (Loan repayment check is the final step)\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: CEI Violation (Flash Loan Context): Violates Checks-Effects-Interactions (CEI) by granting profit (Effect) before verifying the repayment of the flash loan (Check), allowing the attacker to escape repayment.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn reliance_on_non_twap_oracle(accounts: &[AccountInfo]) -> ProgramResult {\n    let spot_price = fetch_insecure_spot_price();\n    // VULN: Uses an easily manipulable single spot price instead of a Time-Weighted Average Price (TWAP)\n    if spot_price > TARGET_PRICE { update_collateral(); }\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Single-Point Oracle Attack: Uses a volatile single spot price for calculating collateral or value, which is susceptible to manipulation within a single flash loan transaction.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn unchecked_external_fee(accounts: &[AccountInfo]) -> ProgramResult {\n    // VULN: Executes an external CPI to a fee-collecting service without checking the final amount returned\n    invoke(&instruction::external_fee_service(), accounts)?;\n    // Assumes fee calculation was correct\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Unchecked External Fee: Executes a CPI to an external service without validating the final asset balance or fee amount after the external call returns, risking arbitrary fee increase.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn weak_slippage_control(accounts: &[AccountInfo], min_out: u64) -> ProgramResult {\n    // VULN: Fails to enforce a strict slippage tolerance, allowing large price swings during the trade\n    execute_large_trade();\n    if actual_out < min_out * 0.9 { return Err(TradeError::Slippage); }\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Weak Slippage Control: Uses a very loose or incorrect slippage tolerance, allowing an attacker to execute an arbitrary trade at a manipulated price.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn asset_id_confusion_loan(accounts: &[AccountInfo]) -> ProgramResult {\n    // VULN: Logic error where the loan repayment asset ID is assumed rather than strictly verified\n    if repayment_asset_id != EXPECTED_ASSET_A { repay_loan(); }\n    // If repayment_asset_id is 0 (SOL) but should be another token, logic fails\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Asset ID Confusion (Loan Repayment): Logic fails to strictly verify the asset ID used for loan repayment, risking repayment with the wrong or worthless token.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn logic_dependent_on_volatile_state(accounts: &[AccountInfo]) -> ProgramResult {\n    let volatile_state = fetch_volatile_external_state();\n    // VULN: Logic decision relies on volatile_state which can be easily changed by the attacker in the same block\n    if volatile_state.is_high { execute_high_value_logic(); }\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Logic Dependent on Volatile State: Logic relies on an external, volatile state variable that an attacker can easily manipulate within the flash loan transaction.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn missing_protocol_fee_check(accounts: &[AccountInfo]) -> ProgramResult {\n    // VULN: Allows a flash loan transaction to bypass or reduce the mandatory protocol fee\n    if Txn.fee_paid == MIN_FEE { process_loan(); }\n    // Assumes minimum fee is sufficient without checking protocol fee\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Missing Protocol Fee Check: Fails to enforce the collection of the mandatory protocol fee from the flash loan or arbitrage profit.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn final_balance_miscalculation(accounts: &[AccountInfo]) -> ProgramResult {\n    // VULN: Calculation error in verifying the final pool balance after a large trade\n    let final_balance = calculate_final_balance();\n    if final_balance < REQUIRED_MINIMUM { /* Error not returned */ }\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Final Balance Miscalculation: Logic error in verifying the final pool solvency or balance after the flash loan cycle completes, risking insolvency.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn checked_price_reliance(accounts: &[AccountInfo]) -> ProgramResult {\n    let price_start = fetch_oracle_price();\n    // FIX: Re-verify price immediately after external interaction\n    invoke(&instruction::external_swap(), accounts)?;\n    let price_end = fetch_oracle_price();\n    assert_price_diff_is_small(price_start, price_end);\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Safe: Re-verification/Slippage Check. Re-checks the price/liquidity after the external interaction, enforcing slippage control.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn enforced_liquidity_check(accounts: &[AccountInfo], loan_amount: u64) -> ProgramResult {\n    // FIX: Asserting that the reserves are sufficient BEFORE granting the loan\n    assert_reserves_are_sufficient(loan_amount);\n    execute_arbitrage_logic(loan_amount);\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Safe: Liquidity/Solvency Check. Strictly asserts that the contract has sufficient reserves and collateral before processing the flash loan.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn strict_repayment_check(accounts: &[AccountInfo]) -> ProgramResult {\n    // FIX: Strict enforcement of loan repayment (Check) before granting profit (Effect)\n    assert_loan_repaid_in_full();\n    grant_profit();\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Safe: Strict Repayment Check. Adheres to CEI by strictly verifying the loan repayment before granting any profit or updating collateral status.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn reliance_on_twap_oracle(accounts: &[AccountInfo]) -> ProgramResult {\n    let twap_price = fetch_twap_oracle();\n    // FIX: Uses a secure Time-Weighted Average Price (TWAP) for calculating collateral or value\n    if twap_price > TARGET_PRICE { update_collateral(); }\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Safe: TWAP Reliance. Uses a secure Time-Weighted Average Price (TWAP) oracle, which is robust against single-block manipulation.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn checked_external_fee(accounts: &[AccountInfo]) -> ProgramResult {\n    let balance_before = get_balance();\n    invoke(&instruction::external_fee_service(), accounts)?;\n    let balance_after = get_balance();\n    // FIX: Validating that the final balance change matches the expected fee\n    assert_fee_is_expected(balance_before, balance_after);\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Safe: Checked External Fee. Validates the final balance change against the expected fee amount after the external CPI returns.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn strict_slippage_control(accounts: &[AccountInfo], min_out: u64) -> ProgramResult {\n    // FIX: Enforces a strict, mathematically sound slippage tolerance\n    execute_large_trade();\n    if actual_out < min_out { return Err(TradeError::Slippage); }\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Safe: Strict Slippage Control. Implements a strict validation check to ensure the trade price did not move beyond the acceptable limit.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn strict_asset_id_verification(accounts: &[AccountInfo]) -> ProgramResult {\n    // FIX: Strictly verifies the repayment asset ID against the expected collateral ID\n    if repayment_asset_id != EXPECTED_ASSET_A { return Err(LoanError::WrongAsset); }\n    repay_loan();\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Safe: Strict Asset ID Verification. Strictly verifies the asset ID used for loan repayment against the expected asset ID.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn logic_dependent_on_secure_twap(accounts: &[AccountInfo]) -> ProgramResult {\n    let secure_price = fetch_twap_oracle();\n    // FIX: Logic decision relies on a secure, non-volatile price source\n    if secure_price.is_sane { execute_high_value_logic(); }\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Safe: Logic Dependent on Secure TWAP. Logic relies on a secure, non-volatile price source (TWAP) that cannot be manipulated in the current transaction block.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn enforced_protocol_fee_check(accounts: &[AccountInfo]) -> ProgramResult {\n    // FIX: Calculates and enforces the mandatory protocol fee collection\n    let fee_due = calculate_protocol_fee();\n    assert_fee_collected(fee_due);\n    process_loan();\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Safe: Enforced Protocol Fee Check. Explicitly calculates and enforces the collection of the mandatory protocol fee from the flash loan profit.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Flash Loan Attacks or external liquidity/price exploitation vulnerabilities (OWASP V7).",
+        "input": "pub fn verified_final_balance(accounts: &[AccountInfo]) -> ProgramResult {\n    let final_balance = calculate_final_balance();\n    // FIX: Strict assertion that the final balance meets required minimum\n    assert!(final_balance >= REQUIRED_MINIMUM, \"Insolvency Risk\");\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V7 - Flash Loan Attacks\nAnalysis: Safe: Verified Final Balance. Implements a strict assertion to verify the final pool solvency after the flash loan cycle completes.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V7 - Flash Loan Attacks"
+    }
+]
