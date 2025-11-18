@@ -1,0 +1,142 @@
+[
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    fee_logic = Seq([\n        If(Txn.fee() > Int(1000000)).Then(\n            App.globalPut(Bytes(\"high_fee_flag\"), Int(1)))\n        ),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"record\"), fee_logic])",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Arbitrary Fee Abuse: Logic responds to (or records) excessively high transaction fees without validating the transaction's purpose, allowing DoS via inflated costs.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    complex_logic = Seq([\n        For(Int(0), Int(0), Int(10000)).Do(Log(Bytes(\"compute\"))),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"complex\"), complex_logic])",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Unnecessary Complex Computation: Executes a complex loop or calculation unnecessarily, consuming block resources and risking failure (DoS).",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    write_large_data = Seq([\n        App.globalPut(Bytes(\"user_data\"), Txn.application_args[1]),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"write_large\"), write_large_data])",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Uncontrolled Global State Write: Writes a large, unchecked data input to Global State, increasing state size and future transaction costs (DoS).",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    unbounded_loop = Seq([\n        For(Int(0), Int(0), Btoi(Txn.application_args[1])).Do(Log(Bytes(\"loop\"))),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"loop\"), unbounded_loop])",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Unbounded Loop based on Input: Executes a computational loop where the iteration count is derived directly from an unchecked user input (DoS).",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    create_many_local = Seq([\n        App.localPut(Txn.sender(), Bytes(\"data_1\"), Int(1)),\n        App.localPut(Txn.sender(), Bytes(\"data_2\"), Int(2)),\n        App.localPut(Txn.sender(), Bytes(\"data_3\"), Int(3)),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"create_many\"), create_many_local])",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Excessive Local State Creation: Function allows the unnecessary creation of multiple local state entries simultaneously, increasing storage costs and node load (DoS).",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    log_unbounded = Seq([\n        For(Int(0), Int(0), Btoi(Txn.application_args[1])).Do(Log(Bytes(\"msg\"))),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"log_many\"), log_unbounded])",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Unbounded Log Generation: Generates an arbitrary number of log messages based on unchecked user input (DoS).",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    inner_txn_spam = Seq([\n        For(Int(0), Int(0), Int(10)).Do(InnerTxnBuilder.Submit()),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"txn_spam\"), inner_txn_spam])",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Inner Transaction Spam: Generates an unnecessarily large number of inner transactions (max 16) within a single outer transaction (DoS).",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    uncontrolled_asset_creation = Seq([\n        InnerTxnBuilder.Begin(),\n        InnerTxnBuilder.SetFields({TxnField.type_enum: TxnType.AssetConfig}),\n        InnerTxnBuilder.Submit(),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"create_asset\"), uncontrolled_asset_creation])",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Uncontrolled Asset Creation: Allows any user to trigger asset configuration/creation without access control, wasting ALGO and block space (DoS).",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    large_loop_with_state = Seq([\n        For(Int(0), Int(0), Int(100)).Do(App.globalPut(Bytes(\"i\"), Btoi(Txn.application_args[1]))),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"complex_write\"), large_loop_with_state])",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Large Loop with State Write: Executes a large computational loop that unnecessarily writes to global state in every iteration, consuming compute and write budget.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    unbounded_scratch_space = Seq([\n        ScratchSlot(1).store(Int(1000)),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"use_scratch\"), unbounded_scratch_space])",
+        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Unbounded Scratch Space Usage: Excessive use of scratch space/slots for non-essential data, contributing to execution overhead (DoS).",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    fee_logic = Seq([\n        Assert(Txn.fee() < Int(10000)),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"record\"), fee_logic])",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Asserted Fee Limit: Implements an assertion to ensure the transaction fee is below a predefined safe maximum.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    complex_logic = Seq([\n        For(Int(0), Int(0), Int(10)).Do(Log(Bytes(\"compute\"))),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"complex\"), complex_logic])",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Fixed Bound Computation: Uses a fixed, small loop count for complex calculations, ensuring computation remains within safe limits.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    write_small_data = Seq([\n        Assert(Len(Txn.application_args[1]) < Int(32)),\n        App.globalPut(Bytes(\"user_data\"), Txn.application_args[1]),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"write_large\"), write_small_data])",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Controlled Global State Write: Implements assertion to limit the size of user-provided data written to Global State.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    fixed_loop = Seq([\n        For(Int(0), Int(0), Int(50)).Do(Log(Bytes(\"loop\"))),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"loop\"), fixed_loop])",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Fixed Bound Loop: Uses a constant, fixed iteration count for the computational loop, decoupling it from user input.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    create_single_local = Seq([\n        App.localPut(Txn.sender(), Bytes(\"data_status\"), Int(1)),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"create_many\"), create_single_local])",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Single Local State Creation: Restricts the creation of local state to a single, essential entry per transaction.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    bounded_log = Seq([\n        For(Int(0), Int(0), Int(5)).Do(Log(Bytes(\"msg\"))),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"log_many\"), bounded_log])",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Bounded Log Generation: Limits the number of log messages generated to a fixed, small number.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    inner_txn_safe = Seq([\n        For(Int(0), Int(0), Int(1)).Do(InnerTxnBuilder.Submit()),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"txn_spam\"), inner_txn_safe])",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Controlled Inner Transaction: Limits the number of inner transactions to the minimum necessary for the operation.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    controlled_asset_creation = Seq([\n        Assert(Txn.sender() == Global.creator_address()),\n        InnerTxnBuilder.Begin(),\n        InnerTxnBuilder.SetFields({TxnField.type_enum: TxnType.AssetConfig}),\n        InnerTxnBuilder.Submit(),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"create_asset\"), controlled_asset_creation])",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Controlled Asset Creation: Restricts asset configuration/creation to the application creator only.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    complex_write_safe = Seq([\n        For(Int(0), Int(0), Int(5)).Do(App.globalPut(Bytes(\"i\"), Btoi(Txn.application_args[1]))),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"complex_write\"), complex_write_safe])",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Bounded Write Loop: Limits the computational loop that involves state writing to a fixed, small number of iterations.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    },
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
+        "input": "def approval_program():\n    controlled_scratch_space = Seq([\n        ScratchSlot(1).store(Int(1)),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"use_scratch\"), controlled_scratch_space])",
+        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Controlled Scratch Space Usage: Uses only a minimal amount of scratch space necessary for the execution.",
+        "meta_platform": "Algorand",
+        "meta_vuln_type": "V10 - Denial of Service"
+    }
+]
