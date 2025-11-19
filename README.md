@@ -3,7 +3,11 @@
 
 
 🧠 LLM Contract Analyzer
+
+
 A structured dataset and framework for analyzing smart contracts using Large Language Models (LLMs)
+
+
 ________________________________________
 📌 Overview
 LLM Contract Analyzer is an open-source project focused on organizing smart contract security samples for training, evaluating, and benchmarking LLMs.
