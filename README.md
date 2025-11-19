@@ -94,12 +94,12 @@ The samples map traditional vulnerabilities to platform-specific implementations
 
 ## 🔬 Methodology
 
-Pattern Definition: Vulnerability patterns were rigorously derived from auditing reports and academic literature.
-Synthetic Generation: Samples were generated to isolate specific security flaws (Negative Samples) vs. secure code (Positive Samples).
-External Verification: Datasets collected from external sources are reviewed and verified before inclusion in the external_datasets directory.
-Static Analysis: A structural static analysis was performed to ensure code validity:
-PyTeal: Verified against valid Python AST.
-Rust: Verified for essential Anchor macros (#[program], Context).
+* Pattern Definition: Vulnerability patterns were rigorously derived from auditing reports and academic literature.
+* Synthetic Generation: Samples were generated to isolate specific security flaws (Negative Samples) vs. secure code (Positive Samples).
+* External Verification: Datasets collected from external sources are reviewed and verified before inclusion in the external_datasets directory.
+* Static Analysis: A structural static analysis was performed to ensure code validity:
+* PyTeal: Verified against valid Python AST.
+* Rust: Verified for essential Anchor macros (#[program], Context).
 
 ---
 
