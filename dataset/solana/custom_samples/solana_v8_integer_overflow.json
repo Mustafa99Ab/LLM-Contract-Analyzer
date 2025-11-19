@@ -1,142 +1,184 @@
 [
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn add_balance(balance: u64, amount: u64) -> u64 {\n    // No check... this will wrap on overflow\n    let new_balance = balance + amount;\n    return new_balance;\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unchecked Addition: The function uses standard addition (+) which may wrap on overflow in Rust release builds, leading to incorrect balances.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn claim_reward(total_reward: u64, amount: u64) -> u64 {\n    // This can underflow to a huge number\n    let new_total = total_reward - amount;\n    return new_total;\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unchecked Subtraction: The function uses standard subtraction (-) which may wrap on underflow, resulting in an excessively large result.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn calculate_cost(items: u64, price_per_item: u64) -> u64 {\n    // Multiplication overflows very quickly\n    let total_cost = items * price_per_item;\n    return total_cost;\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unchecked Multiplication: Multiplication is performed without checks, creating a high risk of overflow which invalidates the cost calculation.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn update_score(current_score: u64, points: u64) -> u64 {\n    // Simple, dangerous addition\n    return current_score + points;\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unsafe Accumulation: Points are added to the score using unchecked arithmetic, susceptible to overflow wrapping.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn apply_discount(total: u64, discount: u64) -> u64 {\n    // What if discount > total?\n    return total - discount;\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unsafe Discount Application: Subtracting a discount larger than the total will cause an underflow wrap, returning a very large value.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn calculate_mint_fee(level: u64, fee_rate: u64) -> u64 {\n    // Unchecked math\n    return level * fee_rate;\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unsafe Fee Calculation: Calculation relies on unchecked multiplication, potentially undercharging fees if overflow occurs.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn add_level(level: u32, increase: u32) -> u32 {\n    let new_level = level + increase;\n    return new_level;\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unchecked 32-bit Addition: Uses unchecked addition on u32 types, which also suffer from wrapping on overflow.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn decrease_stamina(stamina: u32, cost: u32) -> u32 {\n    let remaining_stamina = stamina - cost;\n    return remaining_stamina;\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unchecked 32-bit Subtraction: Decreasing values without checks can lead to underflow wrapping if the cost exceeds stamina.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn calculate_tax(amount: u32, tax_rate: u32) -> u32 {\n    let tax_amount = amount * tax_rate;\n    return tax_amount;\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unchecked 32-bit Multiplication: Simple multiplication does not account for potential overflow of the result.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn complex_calc(a: u64, b: u64, c: u64) -> u64 {\n    // The vulnerability can happen at any step\n    let result = (a + b) - c;\n    return result;\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unchecked Composite Math: Performs addition and subtraction in sequence without checks, risking overflow or underflow at either step.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn add_balance(balance: u64, amount: u64) -> u64 {\n    // Using checked_add prevents overflow\n    let new_balance = balance.checked_add(amount).unwrap_or(u64::MAX);\n    return new_balance;\n}",
-        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Checked Addition: Uses `checked_add` to handle potential overflow safely, defaulting to u64::MAX instead of wrapping.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn claim_reward(total_reward: u64, amount: u64) -> u64 {\n    // Using checked_sub prevents underflow\n    let new_total = total_reward.checked_sub(amount).unwrap_or(0);\n    return new_total;\n}",
-        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Checked Subtraction: Uses `checked_sub` to prevent underflow, safely defaulting to 0 if the amount exceeds the reward.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn calculate_cost(items: u64, price_per_item: u64) -> u64 {\n    // This is the correct, safe solution\n    let total_cost = items.checked_mul(price_per_item).unwrap_or(u64::MAX);\n    return total_cost;\n}",
-        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Checked Multiplication: Uses `checked_mul` to safely calculate cost, preventing overflow issues.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn update_score(current_score: u64, points: u64) -> u64 {\n    // Safe\n    return current_score.checked_add(points).unwrap_or(u64::MAX);\n}",
-        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe Score Update: Implements `checked_add` to ensure the score update does not wrap.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn apply_discount(total: u64, discount: u64) -> u64 {\n    // Will return 0 if discount is larger\n    return total.checked_sub(discount).unwrap_or(0);\n}",
-        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe Discount Application: Uses `checked_sub` to handle cases where the discount is larger than the total, returning 0.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn calculate_mint_fee(level: u64, fee_rate: u64) -> u64 {\n    // Safe\n    return level.checked_mul(fee_rate).unwrap_or(u64::MAX);\n}",
-        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe Fee Calculation: Uses `checked_mul` to ensure the fee calculation is accurate and safe from overflow.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn add_level(level: u32, increase: u32) -> u32 {\n    let new_level = level.checked_add(increase).unwrap_or(u32::MAX);\n    return new_level;\n}",
-        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe 32-bit Addition: Uses `checked_add` on u32 types to prevent overflow wrapping.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn decrease_stamina(stamina: u32, cost: u32) -> u32 {\n    let remaining_stamina = stamina.checked_sub(cost).unwrap_or(0);\n    return remaining_stamina;\n}",
-        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe 32-bit Subtraction: Uses `checked_sub` on u32 types to prevent underflow wrapping.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn calculate_tax(amount: u32, tax_rate: u32) -> u32 {\n    let tax_amount = amount.checked_mul(tax_rate).unwrap_or(u32::MAX);\n    return tax_amount;\n}",
-        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe 32-bit Multiplication: Uses `checked_mul` on u32 types to ensure tax calculation safety.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
-        "input": "fn complex_calc(a: u64, b: u64, c: u64) -> u64 {\n    // Must check each step\n    let result = a.checked_add(b).unwrap_or(u64::MAX)\n                  .checked_sub(c).unwrap_or(0);\n    return result;\n}",
-        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe Composite Math: Chains `checked_add` and `checked_sub` to ensure safety at every step of the calculation.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
-    }
+  {
+    "sample_id": "SOL_V8_VULN_001",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities (OWASP V8). Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_integer_math {\n    use super::*;\n\n    pub fn add_balance(\n        ctx: Context<AddBalance>,\n        amount: u64,\n    ) -> Result<()> {\n        let user = &ctx.accounts.user;\n        // VULNERABLE: Unchecked addition will wrap on overflow\n        let mut user_data = user.try_borrow_mut_data()?;\n        let user_state = UserState::try_from_slice_mut(&mut user_data)?;\n        let new_balance = user_state.balance + amount;\n        user_state.balance = new_balance;\n        emit!(BalanceAdded { amount, new_balance });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct AddBalance<'info> {\n    pub user: AccountInfo<'info>,\n}\n\n#[account]\npub struct UserState {\n    pub balance: u64,\n}\n\n#[event]\npub struct BalanceAdded {\n    pub amount: u64,\n    pub new_balance: u64,\n}",
+    "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow (Unchecked Addition)\nAnalysis: Uses standard addition (+) without overflow checks. If balance + amount exceeds u64::MAX, wraps to a small number instead of rejecting the transaction. Attacker can add large amounts, causing balance to wrap and lose funds.\nRisk Level: 🔴 CRITICAL\nRecommendation: Use checked_add: balance.checked_add(amount).ok_or(OverflowError)?",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Unchecked Addition"
+  },
+  {
+    "sample_id": "SOL_V8_VULN_002",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_integer_math {\n    use super::*;\n\n    pub fn claim_reward(\n        ctx: Context<ClaimReward>,\n        amount: u64,\n    ) -> Result<()> {\n        let vault = &ctx.accounts.vault;\n        // VULNERABLE: Unchecked subtraction will wrap on underflow\n        let mut vault_data = vault.try_borrow_mut_data()?;\n        let vault_state = VaultState::try_from_slice_mut(&mut vault_data)?;\n        let new_total = vault_state.total_rewards - amount;\n        vault_state.total_rewards = new_total;\n        emit!(RewardClaimed { amount, remaining: new_total });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct ClaimReward<'info> {\n    pub vault: AccountInfo<'info>,\n}\n\n#[account]\npub struct VaultState {\n    pub total_rewards: u64,\n}\n\n#[event]\npub struct RewardClaimed {\n    pub amount: u64,\n    pub remaining: u64,\n}",
+    "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Underflow (Unchecked Subtraction)\nAnalysis: Uses standard subtraction (-) without underflow checks. If amount > total_rewards, wraps to a huge number. Attacker can claim more than available, making remaining balance wrap to max u64::MAX.\nRisk Level: 🔴 CRITICAL\nRecommendation: Use checked_sub: total_rewards.checked_sub(amount).ok_or(InsufficientFunds)?",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Unchecked Subtraction"
+  },
+  {
+    "sample_id": "SOL_V8_VULN_003",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_integer_math {\n    use super::*;\n\n    pub fn calculate_cost(\n        ctx: Context<CalculateCost>,\n        items: u64,\n        price_per_item: u64,\n    ) -> Result<()> {\n        let order = &ctx.accounts.order;\n        // VULNERABLE: Unchecked multiplication overflows easily\n        let mut order_data = order.try_borrow_mut_data()?;\n        let order_state = OrderState::try_from_slice_mut(&mut order_data)?;\n        let total_cost = items * price_per_item;\n        order_state.total_cost = total_cost;\n        emit!(CostCalculated { items, price_per_item, total: total_cost });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct CalculateCost<'info> {\n    pub order: AccountInfo<'info>,\n}\n\n#[account]\npub struct OrderState {\n    pub total_cost: u64,\n}\n\n#[event]\npub struct CostCalculated {\n    pub items: u64,\n    pub price_per_item: u64,\n    pub total: u64,\n}",
+    "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow (Unchecked Multiplication)\nAnalysis: Multiplies items * price_per_item without overflow checks. Can overflow to small number. Attacker orders huge quantity at high price, cost wraps to tiny amount.\nRisk Level: 🔴 CRITICAL\nRecommendation: Use checked_mul: items.checked_mul(price_per_item).ok_or(OverflowError)?",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Unchecked Multiplication"
+  },
+  {
+    "sample_id": "SOL_V8_VULN_004",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_integer_math {\n    use super::*;\n\n    pub fn update_score(\n        ctx: Context<UpdateScore>,\n        points: u64,\n    ) -> Result<()> {\n        let player = &ctx.accounts.player;\n        // VULNERABLE: Unsafe score accumulation\n        let mut player_data = player.try_borrow_mut_data()?;\n        let player_state = PlayerState::try_from_slice_mut(&mut player_data)?;\n        player_state.score = player_state.score + points;\n        emit!(ScoreUpdated { points, new_score: player_state.score });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct UpdateScore<'info> {\n    pub player: AccountInfo<'info>,\n}\n\n#[account]\npub struct PlayerState {\n    pub score: u64,\n}\n\n#[event]\npub struct ScoreUpdated {\n    pub points: u64,\n    pub new_score: u64,\n}",
+    "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow (Unchecked Accumulation)\nAnalysis: Adds points to score without overflow protection. Repeated additions can overflow the score to 0 or small number.\nRisk Level: 🔴 CRITICAL\nRecommendation: Use checked_add: score.checked_add(points).ok_or(OverflowError)?",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Unchecked Accumulation"
+  },
+  {
+    "sample_id": "SOL_V8_VULN_005",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_integer_math {\n    use super::*;\n\n    pub fn apply_discount(\n        ctx: Context<ApplyDiscount>,\n        discount: u64,\n    ) -> Result<()> {\n        let cart = &ctx.accounts.cart;\n        // VULNERABLE: No check if discount > total\n        let mut cart_data = cart.try_borrow_mut_data()?;\n        let cart_state = CartState::try_from_slice_mut(&mut cart_data)?;\n        let final_price = cart_state.total - discount;\n        cart_state.total = final_price;\n        emit!(DiscountApplied { discount, final_price });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct ApplyDiscount<'info> {\n    pub cart: AccountInfo<'info>,\n}\n\n#[account]\npub struct CartState {\n    pub total: u64,\n}\n\n#[event]\npub struct DiscountApplied {\n    pub discount: u64,\n    pub final_price: u64,\n}",
+    "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Underflow (Unchecked Discount)\nAnalysis: Subtracts discount without checking if discount > total. If discount > total, underflows to huge number instead of rejecting.\nRisk Level: 🔴 CRITICAL\nRecommendation: Use checked_sub: total.checked_sub(discount).ok_or(InvalidDiscount)?",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Unchecked Discount Application"
+  },
+  {
+    "sample_id": "SOL_V8_VULN_006",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_integer_math {\n    use super::*;\n\n    pub fn calculate_fee(\n        ctx: Context<CalculateFee>,\n        amount: u64,\n        fee_rate: u64,\n    ) -> Result<()> {\n        let payment = &ctx.accounts.payment;\n        // VULNERABLE: Unchecked fee multiplication\n        let mut payment_data = payment.try_borrow_mut_data()?;\n        let payment_state = PaymentState::try_from_slice_mut(&mut payment_data)?;\n        let fee = amount * fee_rate;\n        payment_state.fee_collected = fee;\n        emit!(FeeCalculated { amount, fee_rate, fee });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct CalculateFee<'info> {\n    pub payment: AccountInfo<'info>,\n}\n\n#[account]\npub struct PaymentState {\n    pub fee_collected: u64,\n}\n\n#[event]\npub struct FeeCalculated {\n    pub amount: u64,\n    pub fee_rate: u64,\n    pub fee: u64,\n}",
+    "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow (Unchecked Fee Calculation)\nAnalysis: Multiplies amount * fee_rate without overflow checks. Can cause fee calculation to wrap to 0, undercharging or losing fee revenue.\nRisk Level: 🟠 HIGH\nRecommendation: Use checked_mul: amount.checked_mul(fee_rate).ok_or(OverflowError)?",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Unchecked Fee Calculation"
+  },
+  {
+    "sample_id": "SOL_V8_VULN_007",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_integer_math {\n    use super::*;\n\n    pub fn add_level(\n        ctx: Context<AddLevel>,\n        increase: u32,\n    ) -> Result<()> {\n        let character = &ctx.accounts.character;\n        // VULNERABLE: Unchecked 32-bit addition\n        let mut char_data = character.try_borrow_mut_data()?;\n        let char_state = CharacterState::try_from_slice_mut(&mut char_data)?;\n        let new_level = char_state.level + increase;\n        char_state.level = new_level;\n        emit!(LevelAdded { increase, new_level });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct AddLevel<'info> {\n    pub character: AccountInfo<'info>,\n}\n\n#[account]\npub struct CharacterState {\n    pub level: u32,\n}\n\n#[event]\npub struct LevelAdded {\n    pub increase: u32,\n    pub new_level: u32,\n}",
+    "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow (Unchecked 32-bit Addition)\nAnalysis: Adds increase to level using u32 without checks. Can overflow to small number. Attacker raises level massively, causing wrap to 0.\nRisk Level: 🔴 CRITICAL\nRecommendation: Use checked_add: level.checked_add(increase).ok_or(OverflowError)?",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Unchecked 32-bit Addition"
+  },
+  {
+    "sample_id": "SOL_V8_VULN_008",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_integer_math {\n    use super::*;\n\n    pub fn decrease_stamina(\n        ctx: Context<DecreaseStamina>,\n        cost: u32,\n    ) -> Result<()> {\n        let player = &ctx.accounts.player;\n        // VULNERABLE: Unchecked 32-bit subtraction\n        let mut player_data = player.try_borrow_mut_data()?;\n        let player_state = PlayerState::try_from_slice_mut(&mut player_data)?;\n        let remaining = player_state.stamina - cost;\n        player_state.stamina = remaining;\n        emit!(StaminaDecreased { cost, remaining });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct DecreaseStamina<'info> {\n    pub player: AccountInfo<'info>,\n}\n\n#[account]\npub struct PlayerState {\n    pub stamina: u32,\n}\n\n#[event]\npub struct StaminaDecreased {\n    pub cost: u32,\n    pub remaining: u32,\n}",
+    "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Underflow (Unchecked 32-bit Subtraction)\nAnalysis: Subtracts cost from stamina using u32 without checks. If cost > stamina, underflows to huge number instead of rejecting.\nRisk Level: 🔴 CRITICAL\nRecommendation: Use checked_sub: stamina.checked_sub(cost).ok_or(InsufficientStamina)?",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Unchecked 32-bit Subtraction"
+  },
+  {
+    "sample_id": "SOL_V8_VULN_009",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_integer_math {\n    use super::*;\n\n    pub fn calculate_tax(\n        ctx: Context<CalculateTax>,\n        amount: u32,\n        tax_rate: u32,\n    ) -> Result<()> {\n        let transaction = &ctx.accounts.transaction;\n        // VULNERABLE: Unchecked 32-bit multiplication\n        let mut tx_data = transaction.try_borrow_mut_data()?;\n        let tx_state = TransactionState::try_from_slice_mut(&mut tx_data)?;\n        let tax_amount = amount * tax_rate;\n        tx_state.tax = tax_amount;\n        emit!(TaxCalculated { amount, tax_rate, tax: tax_amount });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct CalculateTax<'info> {\n    pub transaction: AccountInfo<'info>,\n}\n\n#[account]\npub struct TransactionState {\n    pub tax: u32,\n}\n\n#[event]\npub struct TaxCalculated {\n    pub amount: u32,\n    pub tax_rate: u32,\n    pub tax: u32,\n}",
+    "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow (Unchecked 32-bit Multiplication)\nAnalysis: Multiplies amount * tax_rate using u32 without overflow checks. Can overflow to small number, undercharging tax.\nRisk Level: 🟠 HIGH\nRecommendation: Use checked_mul: amount.checked_mul(tax_rate).ok_or(OverflowError)?",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Unchecked 32-bit Multiplication"
+  },
+  {
+    "sample_id": "SOL_V8_VULN_010",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_integer_math {\n    use super::*;\n\n    pub fn complex_calc(\n        ctx: Context<ComplexCalc>,\n        a: u64,\n        b: u64,\n        c: u64,\n    ) -> Result<()> {\n        let calc = &ctx.accounts.calc;\n        // VULNERABLE: Multiple unchecked operations in sequence\n        let mut calc_data = calc.try_borrow_mut_data()?;\n        let calc_state = CalcState::try_from_slice_mut(&mut calc_data)?;\n        let result = (a + b) - c;\n        calc_state.result = result;\n        emit!(ComplexCalcDone { a, b, c, result });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct ComplexCalc<'info> {\n    pub calc: AccountInfo<'info>,\n}\n\n#[account]\npub struct CalcState {\n    pub result: u64,\n}\n\n#[event]\npub struct ComplexCalcDone {\n    pub a: u64,\n    pub b: u64,\n    pub c: u64,\n    pub result: u64,\n}",
+    "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow/Underflow (Unchecked Composite Math)\nAnalysis: Performs (a + b) - c without overflow/underflow checks at any step. Can overflow at addition or underflow at subtraction.\nRisk Level: 🔴 CRITICAL\nRecommendation: Check each step: a.checked_add(b)?.checked_sub(c)?",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Unchecked Composite Math"
+  }
+]
+[
+  {
+    "sample_id": "SOL_V8_SAFE_001",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod secure_integer_math {\n    use super::*;\n\n    pub fn add_balance(\n        ctx: Context<AddBalance>,\n        amount: u64,\n    ) -> Result<()> {\n        let user = &ctx.accounts.user;\n        // SECURE: Uses checked_add to prevent overflow\n        let mut user_data = user.try_borrow_mut_data()?;\n        let user_state = UserState::try_from_slice_mut(&mut user_data)?;\n        let new_balance = user_state.balance.checked_add(amount)\n            .ok_or(ProgramError::ArithmeticOverflow)?;\n        user_state.balance = new_balance;\n        emit!(BalanceAdded { amount, new_balance });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct AddBalance<'info> {\n    pub user: AccountInfo<'info>,\n}\n\n#[account]\npub struct UserState {\n    pub balance: u64,\n}\n\n#[event]\npub struct BalanceAdded {\n    pub amount: u64,\n    pub new_balance: u64,\n}",
+    "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe: Uses `checked_add` which returns None on overflow, then returns error instead of wrapping. Transaction is rejected if overflow would occur.\nRisk Level: ✅ LOW\nValidation: Addition checked for overflow before state update",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Checked Addition with Error Handling"
+  },
+  {
+    "sample_id": "SOL_V8_SAFE_002",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod secure_integer_math {\n    use super::*;\n\n    pub fn claim_reward(\n        ctx: Context<ClaimReward>,\n        amount: u64,\n    ) -> Result<()> {\n        let vault = &ctx.accounts.vault;\n        // SECURE: Uses checked_sub to prevent underflow\n        let mut vault_data = vault.try_borrow_mut_data()?;\n        let vault_state = VaultState::try_from_slice_mut(&mut vault_data)?;\n        let new_total = vault_state.total_rewards.checked_sub(amount)\n            .ok_or(ProgramError::InsufficientFunds)?;\n        vault_state.total_rewards = new_total;\n        emit!(RewardClaimed { amount, remaining: new_total });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct ClaimReward<'info> {\n    pub vault: AccountInfo<'info>,\n}\n\n#[account]\npub struct VaultState {\n    pub total_rewards: u64,\n}\n\n#[event]\npub struct RewardClaimed {\n    pub amount: u64,\n    pub remaining: u64,\n}",
+    "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe: Uses `checked_sub` which returns None on underflow, rejects transaction if amount > total_rewards instead of wrapping.\nRisk Level: ✅ LOW\nValidation: Subtraction checked for underflow before state update",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Checked Subtraction with Error Handling"
+  },
+  {
+    "sample_id": "SOL_V8_SAFE_003",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod secure_integer_math {\n    use super::*;\n\n    pub fn calculate_cost(\n        ctx: Context<CalculateCost>,\n        items: u64,\n        price_per_item: u64,\n    ) -> Result<()> {\n        let order = &ctx.accounts.order;\n        // SECURE: Uses checked_mul to prevent overflow\n        let mut order_data = order.try_borrow_mut_data()?;\n        let order_state = OrderState::try_from_slice_mut(&mut order_data)?;\n        let total_cost = items.checked_mul(price_per_item)\n            .ok_or(ProgramError::ArithmeticOverflow)?;\n        order_state.total_cost = total_cost;\n        emit!(CostCalculated { items, price_per_item, total: total_cost });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct CalculateCost<'info> {\n    pub order: AccountInfo<'info>,\n}\n\n#[account]\npub struct OrderState {\n    pub total_cost: u64,\n}\n\n#[event]\npub struct CostCalculated {\n    pub items: u64,\n    pub price_per_item: u64,\n    pub total: u64,\n}",
+    "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe: Uses `checked_mul` which detects overflow and returns None, rejecting transaction instead of wrapping result.\nRisk Level: ✅ LOW\nValidation: Multiplication checked for overflow before state update",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Checked Multiplication with Error Handling"
+  },
+  {
+    "sample_id": "SOL_V8_SAFE_004",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod secure_integer_math {\n    use super::*;\n\n    pub fn update_score(\n        ctx: Context<UpdateScore>,\n        points: u64,\n    ) -> Result<()> {\n        let player = &ctx.accounts.player;\n        // SECURE: Safe score accumulation with overflow check\n        let mut player_data = player.try_borrow_mut_data()?;\n        let player_state = PlayerState::try_from_slice_mut(&mut player_data)?;\n        let new_score = player_state.score.checked_add(points)\n            .ok_or(ProgramError::ArithmeticOverflow)?;\n        player_state.score = new_score;\n        emit!(ScoreUpdated { points, new_score });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct UpdateScore<'info> {\n    pub player: AccountInfo<'info>,\n}\n\n#[account]\npub struct PlayerState {\n    pub score: u64,\n}\n\n#[event]\npub struct ScoreUpdated {\n    pub points: u64,\n    pub new_score: u64,\n}",
+    "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe: Score accumulation protected with `checked_add` to prevent overflow wrapping.\nRisk Level: ✅ LOW\nValidation: Score addition protected from overflow",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Checked Accumulation"
+  },
+  {
+    "sample_id": "SOL_V8_SAFE_005",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod secure_integer_math {\n    use super::*;\n\n    pub fn apply_discount(\n        ctx: Context<ApplyDiscount>,\n        discount: u64,\n    ) -> Result<()> {\n        let cart = &ctx.accounts.cart;\n        // SECURE: Checked discount with underflow protection\n        let mut cart_data = cart.try_borrow_mut_data()?;\n        let cart_state = CartState::try_from_slice_mut(&mut cart_data)?;\n        let final_price = cart_state.total.checked_sub(discount)\n            .ok_or(ProgramError::InvalidArgument)?;\n        cart_state.total = final_price;\n        emit!(DiscountApplied { discount, final_price });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct ApplyDiscount<'info> {\n    pub cart: AccountInfo<'info>,\n}\n\n#[account]\npub struct CartState {\n    pub total: u64,\n}\n\n#[event]\npub struct DiscountApplied {\n    pub discount: u64,\n    pub final_price: u64,\n}",
+    "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe: Discount subtraction protected with `checked_sub`, rejects if discount > total instead of underflowing.\nRisk Level: ✅ LOW\nValidation: Discount subtraction checked for underflow",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Checked Discount Application"
+  },
+  {
+    "sample_id": "SOL_V8_SAFE_006",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod secure_integer_math {\n    use super::*;\n\n    pub fn calculate_fee(\n        ctx: Context<CalculateFee>,\n        amount: u64,\n        fee_rate: u64,\n    ) -> Result<()> {\n        let payment = &ctx.accounts.payment;\n        // SECURE: Fee calculation with overflow protection\n        let mut payment_data = payment.try_borrow_mut_data()?;\n        let payment_state = PaymentState::try_from_slice_mut(&mut payment_data)?;\n        let fee = amount.checked_mul(fee_rate)\n            .ok_or(ProgramError::ArithmeticOverflow)?;\n        payment_state.fee_collected = fee;\n        emit!(FeeCalculated { amount, fee_rate, fee });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct CalculateFee<'info> {\n    pub payment: AccountInfo<'info>,\n}\n\n#[account]\npub struct PaymentState {\n    pub fee_collected: u64,\n}\n\n#[event]\npub struct FeeCalculated {\n    pub amount: u64,\n    pub fee_rate: u64,\n    pub fee: u64,\n}",
+    "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe: Fee calculation protected with `checked_mul`, prevents overflow in fee computation.\nRisk Level: ✅ LOW\nValidation: Fee multiplication checked for overflow",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Checked Fee Calculation"
+  },
+  {
+    "sample_id": "SOL_V8_SAFE_007",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod secure_integer_math {\n    use super::*;\n\n    pub fn add_level(\n        ctx: Context<AddLevel>,\n        increase: u32,\n    ) -> Result<()> {\n        let character = &ctx.accounts.character;\n        // SECURE: 32-bit addition with overflow protection\n        let mut char_data = character.try_borrow_mut_data()?;\n        let char_state = CharacterState::try_from_slice_mut(&mut char_data)?;\n        let new_level = char_state.level.checked_add(increase)\n            .ok_or(ProgramError::ArithmeticOverflow)?;\n        char_state.level = new_level;\n        emit!(LevelAdded { increase, new_level });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct AddLevel<'info> {\n    pub character: AccountInfo<'info>,\n}\n\n#[account]\npub struct CharacterState {\n    pub level: u32,\n}\n\n#[event]\npub struct LevelAdded {\n    pub increase: u32,\n    pub new_level: u32,\n}",
+    "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe: 32-bit addition protected with `checked_add`, prevents overflow wrapping on u32.\nRisk Level: ✅ LOW\nValidation: 32-bit addition checked for overflow",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Checked 32-bit Addition"
+  },
+  {
+    "sample_id": "SOL_V8_SAFE_008",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod secure_integer_math {\n    use super::*;\n\n    pub fn decrease_stamina(\n        ctx: Context<DecreaseStamina>,\n        cost: u32,\n    ) -> Result<()> {\n        let player = &ctx.accounts.player;\n        // SECURE: 32-bit subtraction with underflow protection\n        let mut player_data = player.try_borrow_mut_data()?;\n        let player_state = PlayerState::try_from_slice_mut(&mut player_data)?;\n        let remaining = player_state.stamina.checked_sub(cost)\n            .ok_or(ProgramError::InsufficientFunds)?;\n        player_state.stamina = remaining;\n        emit!(StaminaDecreased { cost, remaining });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct DecreaseStamina<'info> {\n    pub player: AccountInfo<'info>,\n}\n\n#[account]\npub struct PlayerState {\n    pub stamina: u32,\n}\n\n#[event]\npub struct StaminaDecreased {\n    pub cost: u32,\n    pub remaining: u32,\n}",
+    "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe: 32-bit subtraction protected with `checked_sub`, prevents underflow wrapping on u32.\nRisk Level: ✅ LOW\nValidation: 32-bit subtraction checked for underflow",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Checked 32-bit Subtraction"
+  },
+  {
+    "sample_id": "SOL_V8_SAFE_009",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod secure_integer_math {\n    use super::*;\n\n    pub fn calculate_tax(\n        ctx: Context<CalculateTax>,\n        amount: u32,\n        tax_rate: u32,\n    ) -> Result<()> {\n        let transaction = &ctx.accounts.transaction;\n        // SECURE: 32-bit multiplication with overflow protection\n        let mut tx_data = transaction.try_borrow_mut_data()?;\n        let tx_state = TransactionState::try_from_slice_mut(&mut tx_data)?;\n        let tax_amount = amount.checked_mul(tax_rate)\n            .ok_or(ProgramError::ArithmeticOverflow)?;\n        tx_state.tax = tax_amount;\n        emit!(TaxCalculated { amount, tax_rate, tax: tax_amount });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct CalculateTax<'info> {\n    pub transaction: AccountInfo<'info>,\n}\n\n#[account]\npub struct TransactionState {\n    pub tax: u32,\n}\n\n#[event]\npub struct TaxCalculated {\n    pub amount: u32,\n    pub tax_rate: u32,\n    pub tax: u32,\n}",
+    "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe: 32-bit multiplication protected with `checked_mul`, prevents overflow wrapping on u32.\nRisk Level: ✅ LOW\nValidation: 32-bit multiplication checked for overflow",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Checked 32-bit Multiplication"
+  },
+  {
+    "sample_id": "SOL_V8_SAFE_010",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for Integer Overflow and Underflow vulnerabilities. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod secure_integer_math {\n    use super::*;\n\n    pub fn complex_calc(\n        ctx: Context<ComplexCalc>,\n        a: u64,\n        b: u64,\n        c: u64,\n    ) -> Result<()> {\n        let calc = &ctx.accounts.calc;\n        // SECURE: Multiple operations with checks at each step\n        let mut calc_data = calc.try_borrow_mut_data()?;\n        let calc_state = CalcState::try_from_slice_mut(&mut calc_data)?;\n        let sum = a.checked_add(b)\n            .ok_or(ProgramError::ArithmeticOverflow)?;\n        let result = sum.checked_sub(c)\n            .ok_or(ProgramError::InsufficientFunds)?;\n        calc_state.result = result;\n        emit!(ComplexCalcDone { a, b, c, result });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct ComplexCalc<'info> {\n    pub calc: AccountInfo<'info>,\n}\n\n#[account]\npub struct CalcState {\n    pub result: u64,\n}\n\n#[event]\npub struct ComplexCalcDone {\n    pub a: u64,\n    pub b: u64,\n    pub c: u64,\n    pub result: u64,\n}",
+    "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe: Composite math with checks at every step - checked_add then checked_sub, preventing overflow/underflow at either operation.\nRisk Level: ✅ LOW\nValidation: Each arithmetic operation protected from overflow/underflow",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V8 - Integer Overflow and Underflow",
+    "meta_pattern": "Checked Composite Math"
+  }
 ]
