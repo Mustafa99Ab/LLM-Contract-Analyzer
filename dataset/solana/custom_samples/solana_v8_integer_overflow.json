@@ -1,62 +1,142 @@
 [
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn add_balance(balance: u64, amount: u64) -> u64 {\n    // No check... this will wrap on overflow\n    let new_balance = balance + amount;\n    return new_balance;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn add_balance(balance: u64, amount: u64) -> u64 {\n    // No check... this will wrap on overflow\n    let new_balance = balance + amount;\n    return new_balance;\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unchecked Addition: The function uses standard addition (+) which may wrap on overflow in Rust release builds, leading to incorrect balances.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn claim_reward(total_reward: u64, amount: u64) -> u64 {\n    // This can underflow to a huge number\n    let new_total = total_reward - amount;\n    return new_total;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn claim_reward(total_reward: u64, amount: u64) -> u64 {\n    // This can underflow to a huge number\n    let new_total = total_reward - amount;\n    return new_total;\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unchecked Subtraction: The function uses standard subtraction (-) which may wrap on underflow, resulting in an excessively large result.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn calculate_cost(items: u64, price_per_item: u64) -> u64 {\n    // Multiplication overflows very quickly\n    let total_cost = items * price_per_item;\n    return total_cost;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn calculate_cost(items: u64, price_per_item: u64) -> u64 {\n    // Multiplication overflows very quickly\n    let total_cost = items * price_per_item;\n    return total_cost;\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unchecked Multiplication: Multiplication is performed without checks, creating a high risk of overflow which invalidates the cost calculation.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn update_score(current_score: u64, points: u64) -> u64 {\n    // Simple, dangerous addition\n    return current_score + points;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn update_score(current_score: u64, points: u64) -> u64 {\n    // Simple, dangerous addition\n    return current_score + points;\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unsafe Accumulation: Points are added to the score using unchecked arithmetic, susceptible to overflow wrapping.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn apply_discount(total: u64, discount: u64) -> u64 {\n    // What if discount > total?\n    return total - discount;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn apply_discount(total: u64, discount: u64) -> u64 {\n    // What if discount > total?\n    return total - discount;\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unsafe Discount Application: Subtracting a discount larger than the total will cause an underflow wrap, returning a very large value.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn calculate_mint_fee(level: u64, fee_rate: u64) -> u64 {\n    // Unchecked math\n    return level * fee_rate;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn calculate_mint_fee(level: u64, fee_rate: u64) -> u64 {\n    // Unchecked math\n    return level * fee_rate;\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unsafe Fee Calculation: Calculation relies on unchecked multiplication, potentially undercharging fees if overflow occurs.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn add_level(level: u32, increase: u32) -> u32 {\n    let new_level = level + increase;\n    return new_level;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn add_level(level: u32, increase: u32) -> u32 {\n    let new_level = level + increase;\n    return new_level;\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unchecked 32-bit Addition: Uses unchecked addition on u32 types, which also suffer from wrapping on overflow.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn decrease_stamina(stamina: u32, cost: u32) -> u32 {\n    let remaining_stamina = stamina - cost;\n    return remaining_stamina;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn decrease_stamina(stamina: u32, cost: u32) -> u32 {\n    let remaining_stamina = stamina - cost;\n    return remaining_stamina;\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unchecked 32-bit Subtraction: Decreasing values without checks can lead to underflow wrapping if the cost exceeds stamina.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn calculate_tax(amount: u32, tax_rate: u32) -> u32 {\n    let tax_amount = amount * tax_rate;\n    return tax_amount;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn calculate_tax(amount: u32, tax_rate: u32) -> u32 {\n    let tax_amount = amount * tax_rate;\n    return tax_amount;\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unchecked 32-bit Multiplication: Simple multiplication does not account for potential overflow of the result.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn complex_calc(a: u64, b: u64, c: u64) -> u64 {\n    // The vulnerability can happen at any step\n    let result = (a + b) - c;\n    return result;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVulnerable (Integer Overflow and Underflow (V8))<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn complex_calc(a: u64, b: u64, c: u64) -> u64 {\n    // The vulnerability can happen at any step\n    let result = (a + b) - c;\n    return result;\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Unchecked Composite Math: Performs addition and subtraction in sequence without checks, risking overflow or underflow at either step.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn add_balance(balance: u64, amount: u64) -> u64 {\n    // Using checked_add prevents overflow\n    let new_balance = balance.checked_add(amount).unwrap_or(u64::MAX);\n    return new_balance;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn add_balance(balance: u64, amount: u64) -> u64 {\n    // Using checked_add prevents overflow\n    let new_balance = balance.checked_add(amount).unwrap_or(u64::MAX);\n    return new_balance;\n}",
+        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Checked Addition: Uses `checked_add` to handle potential overflow safely, defaulting to u64::MAX instead of wrapping.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn claim_reward(total_reward: u64, amount: u64) -> u64 {\n    // Using checked_sub prevents underflow\n    let new_total = total_reward.checked_sub(amount).unwrap_or(0);\n    return new_total;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn claim_reward(total_reward: u64, amount: u64) -> u64 {\n    // Using checked_sub prevents underflow\n    let new_total = total_reward.checked_sub(amount).unwrap_or(0);\n    return new_total;\n}",
+        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Checked Subtraction: Uses `checked_sub` to prevent underflow, safely defaulting to 0 if the amount exceeds the reward.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn calculate_cost(items: u64, price_per_item: u64) -> u64 {\n    // This is the correct, safe solution\n    let total_cost = items.checked_mul(price_per_item).unwrap_or(u64::MAX);\n    return total_cost;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn calculate_cost(items: u64, price_per_item: u64) -> u64 {\n    // This is the correct, safe solution\n    let total_cost = items.checked_mul(price_per_item).unwrap_or(u64::MAX);\n    return total_cost;\n}",
+        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Checked Multiplication: Uses `checked_mul` to safely calculate cost, preventing overflow issues.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn update_score(current_score: u64, points: u64) -> u64 {\n    // Safe\n    return current_score.checked_add(points).unwrap_or(u64::MAX);\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn update_score(current_score: u64, points: u64) -> u64 {\n    // Safe\n    return current_score.checked_add(points).unwrap_or(u64::MAX);\n}",
+        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe Score Update: Implements `checked_add` to ensure the score update does not wrap.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn apply_discount(total: u64, discount: u64) -> u64 {\n    // Will return 0 if discount is larger\n    return total.checked_sub(discount).unwrap_or(0);\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn apply_discount(total: u64, discount: u64) -> u64 {\n    // Will return 0 if discount is larger\n    return total.checked_sub(discount).unwrap_or(0);\n}",
+        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe Discount Application: Uses `checked_sub` to handle cases where the discount is larger than the total, returning 0.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn calculate_mint_fee(level: u64, fee_rate: u64) -> u64 {\n    // Safe\n    return level.checked_mul(fee_rate).unwrap_or(u64::MAX);\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn calculate_mint_fee(level: u64, fee_rate: u64) -> u64 {\n    // Safe\n    return level.checked_mul(fee_rate).unwrap_or(u64::MAX);\n}",
+        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe Fee Calculation: Uses `checked_mul` to ensure the fee calculation is accurate and safe from overflow.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn add_level(level: u32, increase: u32) -> u32 {\n    let new_level = level.checked_add(increase).unwrap_or(u32::MAX);\n    return new_level;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn add_level(level: u32, increase: u32) -> u32 {\n    let new_level = level.checked_add(increase).unwrap_or(u32::MAX);\n    return new_level;\n}",
+        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe 32-bit Addition: Uses `checked_add` on u32 types to prevent overflow wrapping.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn decrease_stamina(stamina: u32, cost: u32) -> u32 {\n    let remaining_stamina = stamina.checked_sub(cost).unwrap_or(0);\n    return remaining_stamina;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn decrease_stamina(stamina: u32, cost: u32) -> u32 {\n    let remaining_stamina = stamina.checked_sub(cost).unwrap_or(0);\n    return remaining_stamina;\n}",
+        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe 32-bit Subtraction: Uses `checked_sub` on u32 types to prevent underflow wrapping.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn calculate_tax(amount: u32, tax_rate: u32) -> u32 {\n    let tax_amount = amount.checked_mul(tax_rate).unwrap_or(u32::MAX);\n    return tax_amount;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn calculate_tax(amount: u32, tax_rate: u32) -> u32 {\n    let tax_amount = amount.checked_mul(tax_rate).unwrap_or(u32::MAX);\n    return tax_amount;\n}",
+        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe 32-bit Multiplication: Uses `checked_mul` on u32 types to ensure tax calculation safety.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     },
     {
-        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n<SYS> You are a smart contract security analyzer. You receive smart contract written in Rust as input and answer with the vulnerability identified if exist. </SYS><|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode Snippet:\n\nfn complex_calc(a: u64, b: u64, c: u64) -> u64 {\n    // Must check each step\n    let result = a.checked_add(b).unwrap_or(u64::MAX)\n                  .checked_sub(c).unwrap_or(0);\n    return result;\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSafe<|eot_id|>"
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Integer Overflow and Underflow vulnerabilities (OWASP V8).",
+        "input": "fn complex_calc(a: u64, b: u64, c: u64) -> u64 {\n    // Must check each step\n    let result = a.checked_add(b).unwrap_or(u64::MAX)\n                  .checked_sub(c).unwrap_or(0);\n    return result;\n}",
+        "output": "Status: SAFE\nVulnerability: V8 - Integer Overflow and Underflow\nAnalysis: Safe Composite Math: Chains `checked_add` and `checked_sub` to ensure safety at every step of the calculation.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V8 - Integer Overflow and Underflow"
     }
 ]
