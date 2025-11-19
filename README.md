@@ -10,23 +10,43 @@ A structured dataset and framework for analyzing smart contracts using Large Lan
 
 ________________________________________
 📌 Overview
+
 LLM Contract Analyzer is an open-source project focused on organizing smart contract security samples for training, evaluating, and benchmarking LLMs.
+
 The dataset is designed to help models detect logic bugs, security vulnerabilities, and misconfigurations across different blockchain platforms.
+
+
 This repository currently includes:
+
 •	Organized JSON datasets
+
 •	Two supported platforms: Solana and Algorand
+
 •	Classification by vulnerability type
+
 •	Handcrafted custom samples
+
 •	Future support for additional platforms
+
 ________________________________________
+
+
 🏛️ Academic Affiliation
+
 This project is part of research conducted at:
+
 HABES Lab — Hardware Assisted and Blockchain Empowered Security Lab
+
 Computer Science Department
+
 University of Salerno, Italy
+
 https://habes.cs.unisa.it
+
 ________________________________________
+
 📁 Repository Structure
+
 LLM-Contract-Analyzer/
 │
 ├── algorand/
@@ -40,29 +60,38 @@ LLM-Contract-Analyzer/
 │       ├── solana_v1_access_control.json
 │       ├── solana_v2_oracle_manipulation.json
 │       └── ...Each JSON file contains:
+
+
 •	instruction → The task for the LLM
+
 •	input → Smart contract code
+
 •	output → Vulnerability classification & explanation
+
 •	meta_platform → Blockchain platform
+
 •	meta_vuln_type → Vulnerability type
+
 ________________________________________
+
 
 📊 Vulnerability Taxonomy
+
 The samples map traditional vulnerabilities to platform-specific implementations:
+
 ID	Vulnerability Category	Solana Context (Rust/Anchor)	Algorand Context (PyTeal)
+
 V1	Access Control	Missing Signer checks, Owner validation	Unchecked Sender, RekeyTo logic
+
 V2	Oracle Manipulation	Unverified Pyth feeds, Stale prices	N/A (Architecture dependent)
+
 V5	Reentrancy	CPI state inconsistencies	N/A (Atomic Transfers mitigate this)
+
 V6	Unchecked Calls	Unverified CPI calls	Unchecked Inner Transactions
+
 V8	Integer Issues	Overflow/Underflow	Mathematical errors in TEAL
+
 V10	Denial of Service	PDA collisions, Compute Budget	Dynamic Fee abuse
-
-
-
-________________________________________
-
-
-
 
 ________________________________________
 🎯 Project Goals
