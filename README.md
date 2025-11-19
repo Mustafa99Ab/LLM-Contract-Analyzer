@@ -33,28 +33,36 @@ University of Salerno, Italy
 ## 📁 Repository Structure
 
 ```
-LLM-Contract-Analyzer/
-│
+import os
+
+# Cell 1: Create the README.md file
+readme_content = r"""# Smart Contract Vulnerability Dataset (Non-EVM)
+
+## Overview
+This repository contains a curated dataset of smart contract vulnerabilities specifically tailored for non-EVM blockchains: **Solana (Rust/Anchor)** and **Algorand (PyTeal)**.
+
+Unlike Ethereum (EVM), labeled datasets for these emerging chains are scarce. This dataset was synthetically generated and structurally validated to cover critical vulnerability patterns inspired by the **OWASP Smart Contract Top 10 (2025)** and adapted to the specific architecture of each chain.
+
+## Dataset Structure
+The data is organized by blockchain platform and source type to facilitate Large Language Model (LLM) fine-tuning and evaluation. The `custom_samples` directories contain the curated examples generated for this research.
+
+```text
+dataset/
 ├── algorand/
-│   ├── algorand_v10_dos.json
-│   ├── algorand_v1_access_control.json
-│   ├── algorand_v3_logic_errors.json
-│   ├── algorand_v6_unchecked_calls.json
-│   └── samples_custom/
-│
+│   └── custom_samples/       # PyTeal samples tailored to OWASP categories
+│       ├── algorand_v1_access_control.json
+│       ├── algorand_v3_logic_errors.json
+│       ├── algorand_v6_unchecked_calls.json
+│       ├── algorand_v8_integer_overflow.json
+│       └── algorand_v10_dos.json
 ├── solana/
-│   ├── solana_v10_dos.json
-│   ├── solana_v3_logic_errors.json
-│   ├── solana_v4_input_validation.json
-│   ├── solana_v6_unchecked_calls.json
-│   └── samples_custom/
-│
-├── ethereum/      (coming soon)
-├── cosmos/        (coming soon)
-├── near/          (coming soon)
-├── aptos/         (coming soon)
-│
-└── README.md
+│   └── custom_samples/       # Rust (Anchor) samples tailored to OWASP categories
+│       ├── solana_v1_access_control.json
+│       ├── solana_v2_oracle_manipulation.json
+│       ├── solana_v3_logic_errors.json
+│       ├── solana_v5_reentrancy.json
+│       ├── solana_v6_unchecked_calls.json
+│       └── ... (complete set v1-v10)
 ```
 
 Each JSON file contains:
