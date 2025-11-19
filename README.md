@@ -1,4 +1,3 @@
-
 <img width="762" height="284" alt="Logo-HABES_SfondoTrasparente" src="https://github.com/user-attachments/assets/3a31c595-c60b-47d7-9967-3a7ef3004921" />
 
 ---
@@ -11,29 +10,36 @@ A structured dataset and framework for analyzing smart contracts using Large Lan
 
 ## 📌 Overview
 
-LLM Contract Analyzer is an open-source project focused on organizing smart contract security samples for training, evaluating, and benchmarking LLMs. The dataset is designed to help models detect logic bugs, security vulnerabilities, and misconfigurations across different blockchain platforms (Non-EVM).
+**LLM Contract Analyzer** is an academic research project developed as part of a bachelor thesis focused on smart contract security and AI-assisted vulnerability detection.
+The goal is to build a high-quality, structured dataset that helps LLMs detect logic bugs, security vulnerabilities, and misconfigurations across multiple non-EVM blockchain platforms.
 
 This repository currently includes:
-* ✅ Organized JSON datasets
-* ✅ Two supported platforms: **Solana** and **Algorand**
-* ✅ Classification by vulnerability type (OWASP Top 10)
-* ✅ Handcrafted & Validated custom samples
-* ✅ Verified external datasets
+
+* Organized JSON datasets
+* Two supported platforms: **Solana** and **Algorand**
+* Samples categorized by OWASP-aligned vulnerability types
+* Handcrafted and validated custom samples
+* Verified external datasets (audits, benchmarks, reports)
+
+The project will remain **open-source** to encourage collaboration from researchers, students, and developers.
 
 ---
 
 ## 🏛️ Academic Affiliation
-This project is part of research conducted at:
+
+This thesis project is conducted under the supervision of the:
+
 **HABES Lab — Hardware Assisted and Blockchain Empowered Security Lab**
-*Department of Computer Science, University of Salerno, Italy*
+Department of Computer Science
+University of Salerno, Italy
 [https://habes.cs.unisa.it](https://habes.cs.unisa.it)
 
+Although the author is not physically part of the laboratory, the project is supervised by the professor responsible for the HABES Lab.
 
 ---
 
 ## 📁 Repository Structure
 
-```
 ```text
 LLM-Contract-Analyzer/
 ├── algorand/
@@ -62,7 +68,7 @@ LLM-Contract-Analyzer/
 
 Each JSON file contains:
 
-* **instruction** → The task for the LLM
+* **instruction** → Task for the LLM
 * **input** → Smart contract code
 * **output** → Vulnerability classification & explanation
 * **meta_platform** → Blockchain platform
@@ -70,63 +76,52 @@ Each JSON file contains:
 
 ---
 
----
-
 ## 📊 Vulnerability Taxonomy
-The samples map traditional vulnerabilities to platform-specific implementations. Note that some vulnerabilities (like Reentrancy) manifest differently or are not applicable in Algorand due to its atomic execution model.
 
-| ID | Vulnerability Category | Solana Context (Rust/Anchor) | Algorand Context (PyTeal) |
-|----|------------------------|------------------------------|---------------------------|
-| **V1** | Access Control | Missing `Signer` checks, Owner validation | Unchecked `Sender`, `RekeyTo` logic |
-| **V2** | Price Oracle Manipulation | Unverified `Pyth` feeds, Stale prices | N/A (Architecture dependent) |
-| **V3** | Logic Errors | Business logic flaws, incorrect math assumptions | Logic flaws in state transitions |
-| **V4** | Input Validation | Account Type Confusion, Missing Data Checks | N/A (Strongly typed / Structural) |
-| **V5** | Reentrancy | CPI state inconsistencies | N/A (Atomic Transfers mitigate this) |
-| **V6** | Unchecked External Calls | Unverified CPI calls | Unchecked Inner Transactions |
-| **V7** | Flash Loan Attacks | Spot price manipulation in AMMs | N/A (Atomic groups mitigate typical exploits) |
-| **V8** | Integer Issues | Overflow/Underflow | Mathematical errors in TEAL |
-| **V9** | Insecure Randomness | Predictable seeds (Clock/Slot) | N/A (VRF is standard) |
-| **V10**| Denial of Service (DoS)| PDA collisions, Compute Budget | Dynamic Fee abuse |
+The samples map traditional vulnerability classes to platform-specific implementations.
+Some vulnerabilities (e.g., reentrancy) appear only in Solana due to Algorand’s atomic model.
 
----
+| ID      | Vulnerability Category | Solana (Rust/Anchor)           | Algorand (PyTeal)               |
+| ------- | ---------------------- | ------------------------------ | ------------------------------- |
+| **V1**  | Access Control         | Missing `Signer`, owner checks | Unchecked `Sender`, Rekey logic |
+| **V2**  | Oracle Manipulation    | Unverified Pyth feeds          | N/A                             |
+| **V3**  | Logic Errors           | Incorrect business logic       | State transition flaws          |
+| **V4**  | Input Validation       | Missing account/type checks    | Mostly structural (N/A)         |
+| **V5**  | Reentrancy             | CPI inconsistencies            | N/A                             |
+| **V6**  | Unchecked Calls        | Unverified CPI calls           | Unchecked inner transactions    |
+| **V7**  | Flash Loans            | AMM price manipulation         | N/A                             |
+| **V8**  | Integer Issues         | Overflow/Underflow             | Math errors in TEAL             |
+| **V9**  | Insecure Randomness    | Predictable seeds              | N/A                             |
+| **V10** | DoS                    | PDA collisions, compute budget | Dynamic fee abuse               |
 
 ---
 
 ## 🔬 Methodology
 
-* Pattern Definition: Vulnerability patterns were rigorously derived from auditing reports and academic literature.
-* Synthetic Generation: Samples were generated to isolate specific security flaws (Negative Samples) vs. secure code (Positive Samples).
-* External Verification: Datasets collected from external sources are reviewed and verified before inclusion in the external_datasets directory.
-* Static Analysis: A structural static analysis was performed to ensure code validity:
-* PyTeal: Verified against valid Python AST.
-* Rust: Verified for essential Anchor macros (#[program], Context).
+* **Pattern Definition**: Extracted from security audits and academic literature
+* **Synthetic Samples**: Generated to isolate specific flaws
+* **External Verification**: Third-party datasets reviewed before inclusion
+* **Static Analysis**:
+
+  * PyTeal → validated through Python AST
+  * Rust/Anchor → validated for key macros and structure
 
 ---
-
 
 ## 🎯 Project Goals
 
-* Build a unified, high-quality dataset for LLM security analysis
-* Enable academic and industry research on AI-assisted auditing
-* Provide consistent benchmarks across blockchain platforms
-* Expand the dataset with multi-platform support
+* Provide a high-quality academic dataset for LLM security analysis
+* Support thesis research and reproducible experiments
+* Enable collaboration between students and researchers
+* Expand vulnerability coverage and platform diversity
 
 ---
 
-🔧 Usage
-You can load the dataset in Python/Colab for training frameworks (TRL, Axolotl):
-
-* Google Colab
-* Python scripts
-* Jupyter / VS Code
-* LLM training frameworks (TRL, Axolotl, DSPy…)
-
-**Example (Python):**
+## 🔧 Usage Example
 
 ```python
 import json
 
-# Load Solana Logic Errors dataset
 with open("solana/custom_samples/solana_v3_logic_errors.json", "r") as f:
     samples = json.load(f)
 
@@ -154,23 +149,19 @@ print(samples[0])
 
 ## 🤝 Contributing
 
-Researchers and developers are welcome to contribute by:
+This repository is open for academic and community contributions.
+You may contribute by:
 
 * Adding new smart contract samples
 * Proposing new platforms
 * Improving vulnerability labels
 * Reporting dataset issues
 
-Open a Pull Request or Issue anytime.
+Open a Pull Request or Issue at any time.
 
 ---
 
-## 📜 License
+## 🏅 Acknowledgements
 
-This project is licensed under the **MIT License**.
-
----
-
-## ⭐ Acknowledgements
-
-Special thanks to the HABES Lab research group and the blockchain security community for supporting open-source datasets.
+This project is part of an undergraduate thesis supervised by the HABES Lab at the University of Salerno.
+Special thanks to the supervising professor for guidance and academic support.
