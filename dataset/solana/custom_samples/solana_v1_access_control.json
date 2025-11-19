@@ -1,164 +1,185 @@
 [
   {
     "sample_id": "SOL_AC_VULN_001",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn change_fee(accounts: &[AccountInfo], new_fee: u64) -> ProgramResult {\n    let config = &accounts[0];\n    // (VULN: no signer check, anyone can modify config)\n    let mut data = config.try_borrow_mut_data()?;\n    data[0] = new_fee as u8;\n    Ok(())\n}",
-    "output": "Status: VULNERABLE\nDescription: No signer validation is performed, allowing unauthorized fee modification.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_contract {\n    use super::*;\n\n    pub fn update_authority(\n        ctx: Context<UpdateAuthority>,\n        new_authority: Pubkey,\n    ) -> Result<()> {\n        let config = &mut ctx.accounts.config;\n        // VULNERABLE: No validation of caller identity\n        // No check that the signer is the current authority\n        config.authority = new_authority;\n        emit!(AuthorityChanged {\n            old_authority: config.authority,\n            new_authority,\n        });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct UpdateAuthority<'info> {\n    #[account(mut)]\n    pub config: Account<'info, Config>,\n    pub signer: Signer<'info>,\n}\n\n#[account]\npub struct Config {\n    pub authority: Pubkey,\n    pub vault_balance: u64,\n}",
+    "output": "Status: VULNERABLE\nVulnerability Type: Access Control - Missing Authority Validation\nDescription: The update_authority function modifies the contract configuration without verifying that the transaction signer is the current authority. Any user can call this function and change the authority, leading to complete loss of control over the contract.\nRisk Level: CRITICAL\nRecommendation: Add a check: require config.authority == signer.key()",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "Missing Owner/Authority Check"
   },
   {
     "sample_id": "SOL_AC_VULN_002",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn admin_only_reset(accounts: &[AccountInfo]) -> ProgramResult {\n    let cfg = &accounts[0];\n    let caller = &accounts[1];\n    // (VULN: checks signer, but doesn't ensure caller is admin)\n    if !caller.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    cfg.try_borrow_mut_data()?.fill(0);\n    Ok(())\n}",
-    "output": "Status: VULNERABLE\nDescription: Signature is validated but the function does not verify that the signer is the admin.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_contract {\n    use super::*;\n\n    pub fn withdraw_funds(\n        ctx: Context<WithdrawFunds>,\n        amount: u64,\n    ) -> Result<()> {\n        let vault = &ctx.accounts.vault;\n        let user = &ctx.accounts.user;\n        // VULNERABLE: Only checks if user signed, not if user owns the vault\n        if !user.is_signer {\n            return Err(ProgramError::MissingRequiredSignature.into());\n        }\n        // No validation that user.key() == vault.owner\n        **vault.try_borrow_mut_lamports()? -= amount;\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct WithdrawFunds<'info> {\n    #[account(mut)]\n    pub vault: AccountInfo<'info>,\n    pub user: Signer<'info>,\n    pub system_program: Program<'info, System>,\n}",
+    "output": "Status: VULNERABLE\nVulnerability Type: Access Control - Missing Owner Validation\nDescription: The function validates that the user is a signer but does not verify that the user owns the vault account. An arbitrary signer could withdraw funds from any vault in the network.\nRisk Level: CRITICAL\nRecommendation: Verify owner: if vault.owner != self.program_id() { return Err(...) }",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "Missing Owner Check"
   },
   {
     "sample_id": "SOL_AC_VULN_003",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn delegate_tokens(accounts: &[AccountInfo]) -> ProgramResult {\n    let source = &accounts[0];\n    // (VULN: missing check that source.is_signer)\n    // (VULN: missing check that source.owner == program_id)\n    Ok(())\n}",
-    "output": "Status: VULNERABLE\nDescription: Fails to verify both ownership and signer authority before delegating tokens.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_contract {\n    use super::*;\n\n    pub fn close_account(\n        ctx: Context<CloseAccount>,\n    ) -> Result<()> {\n        let account_to_close = &ctx.accounts.account_to_close;\n        let recipient = &ctx.accounts.recipient;\n        // VULNERABLE: No signer check, no ownership validation\n        let lamports = account_to_close.lamports();\n        **account_to_close.try_borrow_mut_lamports()? -= lamports;\n        **recipient.try_borrow_mut_lamports()? += lamports;\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct CloseAccount<'info> {\n    #[account(mut)]\n    pub account_to_close: AccountInfo<'info>,\n    #[account(mut)]\n    pub recipient: AccountInfo<'info>,\n}",
+    "output": "Status: VULNERABLE\nVulnerability Type: Access Control - Missing Signer and Owner Checks\nDescription: The close_account function allows anyone to close any account and transfer its funds to a recipient. There are no validations for signer status or account ownership.\nRisk Level: CRITICAL\nRecommendation: Add signer and owner checks before modifying account state",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "Missing Signer Check + Missing Owner Check"
   },
   {
     "sample_id": "SOL_AC_VULN_004",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn update_whitelist(accounts: &[AccountInfo], entry: Pubkey) -> ProgramResult {\n    let list = &accounts[0];\n    // (VULN: anyone can modify the whitelist)\n    list.try_borrow_mut_data()?[..32].copy_from_slice(entry.as_ref());\n    Ok(())\n}",
-    "output": "Status: VULNERABLE\nDescription: No signer or authority check allows arbitrary whitelist updates.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_contract {\n    use super::*;\n\n    pub fn transfer_ownership(\n        ctx: Context<TransferOwnership>,\n        new_owner: Pubkey,\n    ) -> Result<()> {\n        let asset = &mut ctx.accounts.asset;\n        let caller = &ctx.accounts.caller;\n        // VULNERABLE: Signer check only, missing owner validation\n        if !caller.is_signer {\n            return Err(ProgramError::MissingRequiredSignature.into());\n        }\n        // No check: if asset.owner != caller.key() { return Err(...) }\n        asset.owner = new_owner;\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct TransferOwnership<'info> {\n    #[account(mut)]\n    pub asset: Account<'info, Asset>,\n    pub caller: Signer<'info>,\n}\n\n#[account]\npub struct Asset {\n    pub owner: Pubkey,\n    pub value: u64,\n}",
+    "output": "Status: VULNERABLE\nVulnerability Type: Access Control - Incomplete Permission Validation\nDescription: Although the function checks if the caller signed the transaction, it does not verify that the caller is the current owner of the asset. Any signer can transfer ownership of any asset.\nRisk Level: CRITICAL\nRecommendation: Add owner verification: require!(asset.owner == caller.key(), ...)",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "Signer Check Only"
   },
   {
     "sample_id": "SOL_AC_VULN_005",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn mint_nft(accounts: &[AccountInfo]) -> ProgramResult {\n    let mint = &accounts[0];\n    let authority = &accounts[1];\n    // (VULN: does not ensure authority.key == stored_mint_authority)\n    if !authority.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    Ok(())\n}",
-    "output": "Status: VULNERABLE\nDescription: Checks for signature only, but does not validate mint authority key.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_contract {\n    use super::*;\n\n    pub fn mint_tokens(\n        ctx: Context<MintTokens>,\n        amount: u64,\n    ) -> Result<()> {\n        let mint_account = &ctx.accounts.mint;\n        let authority = &ctx.accounts.authority;\n        // VULNERABLE: Only checks signer, not if authority matches stored mint_authority\n        if !authority.is_signer {\n            return Err(ProgramError::MissingRequiredSignature.into());\n        }\n        // Missing: if authority.key() != mint_account.mint_authority { return Err(...) }\n        ctx.accounts.token_account.amount += amount;\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct MintTokens<'info> {\n    pub mint: Account<'info, Mint>,\n    #[account(mut)]\n    pub token_account: Account<'info, TokenAccount>,\n    pub authority: Signer<'info>,\n}\n\n#[account]\npub struct Mint {\n    pub mint_authority: Pubkey,\n    pub total_supply: u64,\n}\n\n#[account]\npub struct TokenAccount {\n    pub amount: u64,\n    pub owner: Pubkey,\n}",
+    "output": "Status: VULNERABLE\nVulnerability Type: Access Control - Authority Mismatch\nDescription: The mint_tokens function validates that a signer exists but does not verify that the signer's public key matches the stored mint_authority. An unauthorized signer can mint unlimited tokens.\nRisk Level: CRITICAL\nRecommendation: Add authority check: require!(authority.key() == mint_account.mint_authority, ...)",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "Authority Key Mismatch"
   },
   {
     "sample_id": "SOL_AC_VULN_006",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn cpi_to_danger(accounts: &[AccountInfo]) -> ProgramResult {\n    let program = &accounts[0];\n    // (VULN: no validation of trusted target program)\n    solana_program::program::invoke(&Instruction{\n        program_id: *program.key,\n        accounts: vec![],\n        data: vec![1,2,3]\n    }, accounts)?;\n    Ok(())\n}",
-    "output": "Status: VULNERABLE\nDescription: Permits arbitrary CPI calls without validating the target program's public key.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_contract {\n    use super::*;\n\n    pub fn execute_cpi(\n        ctx: Context<ExecuteCpi>,\n        instruction_data: Vec<u8>,\n    ) -> Result<()> {\n        let target_program = &ctx.accounts.target_program;\n        let invoker = &ctx.accounts.invoker;\n        // VULNERABLE: No validation of target_program identity\n        if !invoker.is_signer {\n            return Err(ProgramError::MissingRequiredSignature.into());\n        }\n        // Missing: if target_program.key() != expected_program { return Err(...) }\n        // This allows calling arbitrary programs\n        let instruction = Instruction {\n            program_id: *target_program.key,\n            accounts: vec![],\n            data: instruction_data,\n        };\n        invoke(&instruction, &[target_program.to_account_info()])?;\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct ExecuteCpi<'info> {\n    pub target_program: AccountInfo<'info>,\n    pub invoker: Signer<'info>,\n}",
+    "output": "Status: VULNERABLE\nVulnerability Type: Access Control - Untrusted CPI Target\nDescription: The function allows Cross-Program Invocation (CPI) to arbitrary program addresses without validating the target program. This enables attackers to redirect calls to malicious programs.\nRisk Level: CRITICAL\nRecommendation: Whitelist trusted program IDs and verify: require!(target_program.key() == TRUSTED_PROGRAM_ID, ...)",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "Untrusted CPI Target"
   },
   {
     "sample_id": "SOL_AC_VULN_007",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn unlock_funds(accounts: &[AccountInfo]) -> ProgramResult {\n    let wallet = &accounts[0];\n    // (VULN: missing signer check, missing owner check)\n    Ok(())\n}",
-    "output": "Status: VULNERABLE\nDescription: Lacks both signer and owner validation before unlocking funds.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_contract {\n    use super::*;\n\n    pub fn unlock_treasury(\n        ctx: Context<UnlockTreasury>,\n    ) -> Result<()> {\n        let treasury = &mut ctx.accounts.treasury;\n        let requester = &ctx.accounts.requester;\n        // VULNERABLE: No validation whatsoever\n        treasury.locked = false;\n        treasury.last_unlock_time = Clock::get()?.unix_timestamp;\n        emit!(TreasuryUnlocked {\n            unlocker: requester.key(),\n        });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct UnlockTreasury<'info> {\n    #[account(mut)]\n    pub treasury: Account<'info, Treasury>,\n    pub requester: AccountInfo<'info>,\n}\n\n#[account]\npub struct Treasury {\n    pub locked: bool,\n    pub last_unlock_time: i64,\n    pub admin: Pubkey,\n}",
+    "output": "Status: VULNERABLE\nVulnerability Type: Access Control - Complete Missing Validation\nDescription: The unlock_treasury function has no signer check or owner validation. Any account can unlock the treasury regardless of permissions.\nRisk Level: CRITICAL\nRecommendation: Add signer check and require caller to be admin: require!(requester.is_signer && requester.key() == treasury.admin, ...)",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "No Signer Check + No Owner Check"
   },
   {
     "sample_id": "SOL_AC_VULN_008",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn rotate_key(accounts: &[AccountInfo], new_key: Pubkey) -> ProgramResult {\n    let storage = &accounts[0];\n    let signer = &accounts[1];\n    // (VULN: relies only on signer, never checks signer.key == authorized_key)\n    if !signer.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    storage.try_borrow_mut_data()?[..32].copy_from_slice(new_key.as_ref());\n    Ok(())\n}",
-    "output": "Status: VULNERABLE\nDescription: Fails to validate that the signer is the authorized key being rotated.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_contract {\n    use super::*;\n\n    pub fn burn_tokens(\n        ctx: Context<BurnTokens>,\n        amount: u64,\n    ) -> Result<()> {\n        let token_account = &mut ctx.accounts.token_account;\n        let caller = &ctx.accounts.caller;\n        // VULNERABLE: Checks signer but not account ownership\n        if !caller.is_signer {\n            return Err(ProgramError::MissingRequiredSignature.into());\n        }\n        // Missing check: if token_account.owner != caller.key() { return Err(...) }\n        token_account.amount = token_account.amount.saturating_sub(amount);\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct BurnTokens<'info> {\n    #[account(mut)]\n    pub token_account: Account<'info, TokenAccount>,\n    pub caller: Signer<'info>,\n}\n\n#[account]\npub struct TokenAccount {\n    pub amount: u64,\n    pub owner: Pubkey,\n    pub decimals: u8,\n}",
+    "output": "Status: VULNERABLE\nVulnerability Type: Access Control - Account Ownership Not Validated\nDescription: While the function ensures the caller is a signer, it does not verify that the caller owns the token account being burned. Any signer can burn tokens from any account.\nRisk Level: CRITICAL\nRecommendation: Verify token account ownership: require!(token_account.owner == caller.key(), ...)",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "Missing Token Account Owner Check"
   },
   {
     "sample_id": "SOL_AC_VULN_009",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn set_mod_flag(accounts: &[AccountInfo]) -> ProgramResult {\n    let module = &accounts[0];\n    // (VULN: no restrictions, global module flag can be toggled)\n    module.try_borrow_mut_data()?[0] = 1;\n    Ok(())\n}",
-    "output": "Status: VULNERABLE\nDescription: Modifies protected module flags without verifying signer or owner authority.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_contract {\n    use super::*;\n\n    pub fn freeze_account(\n        ctx: Context<FreezeAccount>,\n    ) -> Result<()> {\n        let account_to_freeze = &mut ctx.accounts.account_to_freeze;\n        let authority = &ctx.accounts.authority;\n        // VULNERABLE: No validation of authority identity\n        if !authority.is_signer {\n            return Err(ProgramError::MissingRequiredSignature.into());\n        }\n        // Missing: Verify authority.key() == stored_freeze_authority\n        account_to_freeze.frozen = true;\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct FreezeAccount<'info> {\n    #[account(mut)]\n    pub account_to_freeze: Account<'info, FreezeableAccount>,\n    pub authority: Signer<'info>,\n}\n\n#[account]\npub struct FreezeableAccount {\n    pub frozen: bool,\n    pub freeze_authority: Pubkey,\n    pub data: Vec<u8>,\n}",
+    "output": "Status: VULNERABLE\nVulnerability Type: Access Control - Authority Identity Mismatch\nDescription: The freeze_account function accepts any signer without verifying that the signer is the designated freeze_authority. Any signer can freeze arbitrary accounts.\nRisk Level: CRITICAL\nRecommendation: Validate authority: require!(authority.key() == account_to_freeze.freeze_authority, ...)",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "Freeze Authority Mismatch"
   },
   {
     "sample_id": "SOL_AC_VULN_010",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn revoke_access(accounts: &[AccountInfo]) -> ProgramResult {\n    let target = &accounts[0];\n    let caller = &accounts[1];\n    // (VULN: checks signature but does not check caller's role or key)\n    if !caller.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    target.try_borrow_mut_data()?[0] = 0;\n    Ok(())\n}",
-    "output": "Status: VULNERABLE\nDescription: Revokes access without ensuring the signer has the required role or authority.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod vulnerable_contract {\n    use super::*;\n\n    pub fn revoke_role(\n        ctx: Context<RevokeRole>,\n        role_id: u8,\n    ) -> Result<()> {\n        let access_control = &mut ctx.accounts.access_control;\n        let admin = &ctx.accounts.admin;\n        // VULNERABLE: Only checks if admin is a signer, not if admin is actual admin\n        if !admin.is_signer {\n            return Err(ProgramError::MissingRequiredSignature.into());\n        }\n        // Missing check: if admin.key() != access_control.admin { return Err(...) }\n        let target = &mut ctx.accounts.target;\n        target.roles &= !(1 << role_id);\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct RevokeRole<'info> {\n    #[account(mut)]\n    pub access_control: Account<'info, AccessControl>,\n    #[account(mut)]\n    pub target: Account<'info, RoleHolder>,\n    pub admin: Signer<'info>,\n}\n\n#[account]\npub struct AccessControl {\n    pub admin: Pubkey,\n}\n\n#[account]\npub struct RoleHolder {\n    pub roles: u8,\n    pub owner: Pubkey,\n}",
+    "output": "Status: VULNERABLE\nVulnerability Type: Access Control - Role Validation Missing\nDescription: The revoke_role function verifies that a signer exists but does not check if that signer is the actual admin. Any signer can revoke roles from any account.\nRisk Level: CRITICAL\nRecommendation: Add admin check: require!(admin.key() == access_control.admin, ...)",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "Missing Admin Role Check"
   }
 ]
+
 [
   {
     "sample_id": "SOL_AC_SAFE_001",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn set_config(accounts: &[AccountInfo], value: u8) -> ProgramResult {\n    let cfg = &accounts[0];\n    let admin = &accounts[1];\n    if !admin.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    let stored = Pubkey::new_from_array(cfg.try_borrow_data()?[..32].try_into().unwrap());\n    if admin.key != &stored {\n        return Err(ProgramError::IllegalOwner);\n    }\n    cfg.try_borrow_mut_data()?[32] = value;\n    Ok(())\n}",
-    "output": "Status: SAFE\nDescription: Validates both signer and admin identity before modifying configuration.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod secure_contract {\n    use super::*;\n\n    pub fn update_authority(\n        ctx: Context<UpdateAuthority>,\n        new_authority: Pubkey,\n    ) -> Result<()> {\n        let config = &mut ctx.accounts.config;\n        let current_authority = &ctx.accounts.current_authority;\n        // SECURE: Validates signer is the current authority\n        require!(\n            current_authority.key() == config.authority,\n            ProgramError::IllegalOwner\n        );\n        require!(\n            current_authority.is_signer,\n            ProgramError::MissingRequiredSignature\n        );\n        config.authority = new_authority;\n        emit!(AuthorityChanged {\n            old_authority: config.authority,\n            new_authority,\n        });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct UpdateAuthority<'info> {\n    #[account(mut)]\n    pub config: Account<'info, Config>,\n    pub current_authority: Signer<'info>,\n}\n\n#[account]\npub struct Config {\n    pub authority: Pubkey,\n    pub vault_balance: u64,\n}",
+    "output": "Status: SAFE\nVulnerability Type: N/A - Access Control Properly Implemented\nDescription: The update_authority function validates both that the signer exists and that the signer's public key matches the stored authority before modifying the configuration. Only the current authority can update to a new authority.\nRisk Level: LOW\nValidation: Proper signer + authority key matching implemented",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "Authority Validation with Key Match"
   },
   {
     "sample_id": "SOL_AC_SAFE_002",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn secure_withdraw(program_id: &Pubkey, accounts: &[AccountInfo], amount: u64) -> ProgramResult {\n    let vault = &accounts[0];\n    let owner = &accounts[1];\n    if vault.owner != program_id {\n        return Err(ProgramError::IncorrectProgramId);\n    }\n    if !owner.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    if owner.key != &vault.owner {\n        return Err(ProgramError::IllegalOwner);\n    }\n    Ok(())\n}",
-    "output": "Status: SAFE\nDescription: Ensures program ownership and owner signature before withdrawal.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod secure_contract {\n    use super::*;\n\n    pub fn withdraw_funds(\n        ctx: Context<WithdrawFunds>,\n        amount: u64,\n    ) -> Result<()> {\n        let vault = &ctx.accounts.vault;\n        let user = &ctx.accounts.user;\n        let program_id = &ctx.accounts.program_id;\n        // SECURE: Validates both ownership and signer status\n        require!(\n            vault.owner == program_id.key(),\n            ProgramError::IncorrectProgramId\n        );\n        require!(\n            user.is_signer,\n            ProgramError::MissingRequiredSignature\n        );\n        // Verify user is the vault owner\n        let vault_data = &vault.data.borrow();\n        let owner = Pubkey::new_from_array(\n            vault_data[..32].try_into().unwrap()\n        );\n        require!(\n            owner == user.key(),\n            ProgramError::IllegalOwner\n        );\n        **vault.try_borrow_mut_lamports()? -= amount;\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct WithdrawFunds<'info> {\n    #[account(mut)]\n    pub vault: AccountInfo<'info>,\n    pub user: Signer<'info>,\n    pub program_id: UncheckedAccount<'info>,\n    pub system_program: Program<'info, System>,\n}",
+    "output": "Status: SAFE\nVulnerability Type: N/A - Comprehensive Access Control\nDescription: The withdraw_funds function validates program ownership, signer status, and vault owner identity before executing the withdrawal. Only the vault owner can withdraw funds.\nRisk Level: LOW\nValidation: Program owner check + signer validation + vault owner match",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "Owner Check + Signer Check + Owner Identity Validation"
   },
   {
     "sample_id": "SOL_AC_SAFE_003",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn secure_upgrade(accounts: &[AccountInfo], expected_admin: Pubkey) -> ProgramResult {\n    let admin = &accounts[0];\n    if !admin.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    if admin.key != &expected_admin {\n        return Err(ProgramError::IllegalOwner);\n    }\n    Ok(())\n}",
-    "output": "Status: SAFE\nDescription: Restricts upgrade functionality to a specific admin key.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod secure_contract {\n    use super::*;\n\n    pub fn close_account(\n        ctx: Context<CloseAccount>,\n    ) -> Result<()> {\n        let account_to_close = &ctx.accounts.account_to_close;\n        let recipient = &ctx.accounts.recipient;\n        let owner = &ctx.accounts.owner;\n        // SECURE: Validates signer and account ownership\n        require!(\n            owner.is_signer,\n            ProgramError::MissingRequiredSignature\n        );\n        require!(\n            account_to_close.owner == ctx.program_id,\n            ProgramError::IncorrectProgramId\n        );\n        // Verify owner is authorized to close this account\n        let account_data = &account_to_close.data.borrow();\n        let account_owner = Pubkey::new_from_array(\n            account_data[..32].try_into().unwrap()\n        );\n        require!(\n            account_owner == owner.key(),\n            ProgramError::IllegalOwner\n        );\n        let lamports = account_to_close.lamports();\n        **account_to_close.try_borrow_mut_lamports()? -= lamports;\n        **recipient.try_borrow_mut_lamports()? += lamports;\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct CloseAccount<'info> {\n    #[account(mut)]\n    pub account_to_close: AccountInfo<'info>,\n    #[account(mut)]\n    pub recipient: AccountInfo<'info>,\n    pub owner: Signer<'info>,\n}",
+    "output": "Status: SAFE\nVulnerability Type: N/A - Full Authorization Checks\nDescription: The close_account function enforces signer validation, program ownership check, and account owner identity verification before closing the account. Only the authorized account owner can close the account.\nRisk Level: LOW\nValidation: Signer + program owner + account owner identity all verified",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "Signer Check + Owner Check + Owner Identity Match"
   },
   {
     "sample_id": "SOL_AC_SAFE_004",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn secure_freeze(accounts: &[AccountInfo]) -> ProgramResult {\n    let acct = &accounts[0];\n    let authority = &accounts[1];\n    let stored = Pubkey::new_from_array(acct.try_borrow_data()?[..32].try_into().unwrap());\n    if !authority.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    if authority.key != &stored {\n        return Err(ProgramError::IllegalOwner);\n    }\n    Ok(())\n}",
-    "output": "Status: SAFE\nDescription: Ensures freeze operation is performed only by the configured authority.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod secure_contract {\n    use super::*;\n\n    pub fn transfer_ownership(\n        ctx: Context<TransferOwnership>,\n        new_owner: Pubkey,\n    ) -> Result<()> {\n        let asset = &mut ctx.accounts.asset;\n        let caller = &ctx.accounts.caller;\n        // SECURE: Validates both signer and asset owner identity\n        require!(\n            caller.is_signer,\n            ProgramError::MissingRequiredSignature\n        );\n        require!(\n            asset.owner == caller.key(),\n            ProgramError::IllegalOwner\n        );\n        asset.owner = new_owner;\n        emit!(OwnershipTransferred {\n            asset: ctx.accounts.asset.key(),\n            old_owner: caller.key(),\n            new_owner,\n        });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct TransferOwnership<'info> {\n    #[account(mut)]\n    pub asset: Account<'info, Asset>,\n    pub caller: Signer<'info>,\n}\n\n#[account]\npub struct Asset {\n    pub owner: Pubkey,\n    pub value: u64,\n}",
+    "output": "Status: SAFE\nVulnerability Type: N/A - Proper Ownership Transfer Control\nDescription: The transfer_ownership function validates that the caller is a signer and confirms the caller is the current asset owner before allowing ownership transfer. Only the current owner can transfer the asset.\nRisk Level: LOW\nValidation: Signer check + owner identity verification",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "Signer Check + Owner Match"
   },
   {
     "sample_id": "SOL_AC_SAFE_005",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn secure_nft_mint(accounts: &[AccountInfo]) -> ProgramResult {\n    let mint = &accounts[0];\n    let signer = &accounts[1];\n    let stored_auth = Pubkey::new_from_array(mint.try_borrow_data()?[0..32].try_into().unwrap());\n    if !signer.is_signer || signer.key != &stored_auth {\n        return Err(ProgramError::IllegalOwner);\n    }\n    Ok(())\n}",
-    "output": "Status: SAFE\nDescription: Enforces strict mint authority validation before minting NFT tokens.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\nconst MINT_AUTHORITY_SEED: &[u8] = b\"mint_authority\";\n\n#[program]\npub mod secure_contract {\n    use super::*;\n\n    pub fn mint_tokens(\n        ctx: Context<MintTokens>,\n        amount: u64,\n    ) -> Result<()> {\n        let mint_account = &ctx.accounts.mint;\n        let authority = &ctx.accounts.authority;\n        // SECURE: Validates signer and verifies mint authority identity\n        require!(\n            authority.is_signer,\n            ProgramError::MissingRequiredSignature\n        );\n        require!(\n            authority.key() == mint_account.mint_authority,\n            ProgramError::IllegalOwner\n        );\n        ctx.accounts.token_account.amount = ctx.accounts.token_account\n            .amount.checked_add(amount)\n            .ok_or(ProgramError::InvalidArgument)?;\n        mint_account.total_supply = mint_account.total_supply\n            .checked_add(amount)\n            .ok_or(ProgramError::InvalidArgument)?;\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct MintTokens<'info> {\n    pub mint: Account<'info, Mint>,\n    #[account(mut)]\n    pub token_account: Account<'info, TokenAccount>,\n    pub authority: Signer<'info>,\n}\n\n#[account]\npub struct Mint {\n    pub mint_authority: Pubkey,\n    pub total_supply: u64,\n}\n\n#[account]\npub struct TokenAccount {\n    pub amount: u64,\n    pub owner: Pubkey,\n}",
+    "output": "Status: SAFE\nVulnerability Type: N/A - Proper Mint Authority Validation\nDescription: The mint_tokens function enforces that the signer is the designated mint authority before allowing token minting. The authority's public key must match the stored mint_authority.\nRisk Level: LOW\nValidation: Signer check + mint authority key verification",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "Authority Key Verification"
   },
   {
     "sample_id": "SOL_AC_SAFE_006",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn secure_initialize(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    let acct = &accounts[0];\n    if acct.owner != program_id {\n        return Err(ProgramError::IncorrectProgramId);\n    }\n    Ok(())\n}",
-    "output": "Status: SAFE\nDescription: Validates that the initialized account belongs to the program.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\nconst TRUSTED_PROGRAM: &str = \"11111111111111111111111111111111\";\n\n#[program]\npub mod secure_contract {\n    use super::*;\n\n    pub fn execute_cpi(\n        ctx: Context<ExecuteCpi>,\n        instruction_data: Vec<u8>,\n    ) -> Result<()> {\n        let target_program = &ctx.accounts.target_program;\n        let invoker = &ctx.accounts.invoker;\n        // SECURE: Validates signer and verifies target program identity\n        require!(\n            invoker.is_signer,\n            ProgramError::MissingRequiredSignature\n        );\n        // Whitelist check - only allow trusted programs\n        let trusted_programs = [\n            \"11111111111111111111111111111111\",\n            \"22222222222222222222222222222222\",\n        ];\n        let target_key_str = target_program.key().to_string();\n        require!(\n            trusted_programs.contains(&target_key_str.as_str()),\n            ProgramError::InvalidAccountData\n        );\n        let instruction = Instruction {\n            program_id: *target_program.key,\n            accounts: vec![],\n            data: instruction_data,\n        };\n        invoke(&instruction, &[target_program.to_account_info()])?;\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct ExecuteCpi<'info> {\n    pub target_program: AccountInfo<'info>,\n    pub invoker: Signer<'info>,\n}",
+    "output": "Status: SAFE\nVulnerability Type: N/A - Trusted CPI Target Validation\nDescription: The execute_cpi function validates the signer and enforces a whitelist of trusted program IDs. Only whitelisted programs can be invoked through CPI, preventing arbitrary program calls.\nRisk Level: LOW\nValidation: Signer check + CPI target whitelist verification",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "CPI Target Whitelist Validation"
   },
   {
     "sample_id": "SOL_AC_SAFE_007",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn secure_rotation(accounts: &[AccountInfo], expected_admin: Pubkey, new_key: Pubkey) -> ProgramResult {\n    let cfg = &accounts[0];\n    let signer = &accounts[1];\n    if !signer.is_signer || signer.key != &expected_admin {\n        return Err(ProgramError::IllegalOwner);\n    }\n    cfg.try_borrow_mut_data()?[..32].copy_from_slice(new_key.as_ref());\n    Ok(())\n}",
-    "output": "Status: SAFE\nDescription: Key rotation is restricted strictly to the expected admin.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod secure_contract {\n    use super::*;\n\n    pub fn unlock_treasury(\n        ctx: Context<UnlockTreasury>,\n    ) -> Result<()> {\n        let treasury = &mut ctx.accounts.treasury;\n        let requester = &ctx.accounts.requester;\n        // SECURE: Validates both signer status and admin authorization\n        require!(\n            requester.is_signer,\n            ProgramError::MissingRequiredSignature\n        );\n        require!(\n            requester.key() == treasury.admin,\n            ProgramError::IllegalOwner\n        );\n        treasury.locked = false;\n        treasury.last_unlock_time = Clock::get()?.unix_timestamp;\n        emit!(TreasuryUnlocked {\n            unlocker: requester.key(),\n            timestamp: treasury.last_unlock_time,\n        });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct UnlockTreasury<'info> {\n    #[account(mut)]\n    pub treasury: Account<'info, Treasury>,\n    pub requester: Signer<'info>,\n}\n\n#[account]\npub struct Treasury {\n    pub locked: bool,\n    pub last_unlock_time: i64,\n    pub admin: Pubkey,\n}",
+    "output": "Status: SAFE\nVulnerability Type: N/A - Proper Treasury Admin Control\nDescription: The unlock_treasury function enforces both signer validation and admin identity verification. Only the designated admin can unlock the treasury.\nRisk Level: LOW\nValidation: Signer check + admin identity verification",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "Signer Check + Admin Match"
   },
   {
     "sample_id": "SOL_AC_SAFE_008",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn secure_cpi(accounts: &[AccountInfo], expected_program: Pubkey) -> ProgramResult {\n    let target = &accounts[0];\n    if target.key != &expected_program {\n        return Err(ProgramError::InvalidAccountData);\n    }\n    Ok(())\n}",
-    "output": "Status: SAFE\nDescription: Ensures CPI is executed only against a trusted program ID.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod secure_contract {\n    use super::*;\n\n    pub fn burn_tokens(\n        ctx: Context<BurnTokens>,\n        amount: u64,\n    ) -> Result<()> {\n        let token_account = &mut ctx.accounts.token_account;\n        let caller = &ctx.accounts.caller;\n        // SECURE: Validates signer and token account ownership\n        require!(\n            caller.is_signer,\n            ProgramError::MissingRequiredSignature\n        );\n        require!(\n            token_account.owner == caller.key(),\n            ProgramError::IllegalOwner\n        );\n        require!(\n            token_account.amount >= amount,\n            ProgramError::InsufficientFunds\n        );\n        token_account.amount = token_account.amount\n            .checked_sub(amount)\n            .ok_or(ProgramError::InvalidArgument)?;\n        emit!(TokensBurned {\n            owner: caller.key(),\n            amount,\n            new_balance: token_account.amount,\n        });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct BurnTokens<'info> {\n    #[account(mut)]\n    pub token_account: Account<'info, TokenAccount>,\n    pub caller: Signer<'info>,\n}\n\n#[account]\npub struct TokenAccount {\n    pub amount: u64,\n    pub owner: Pubkey,\n    pub decimals: u8,\n}",
+    "output": "Status: SAFE\nVulnerability Type: N/A - Proper Token Burn Authorization\nDescription: The burn_tokens function validates that the caller is a signer and confirms the caller owns the token account before burning tokens. Only token owners can burn their own tokens.\nRisk Level: LOW\nValidation: Signer check + token account owner verification",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "Signer Check + Account Owner Match"
   },
   {
     "sample_id": "SOL_AC_SAFE_009",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn secure_unlock(accounts: &[AccountInfo]) -> ProgramResult {\n    let acct = &accounts[0];\n    let user = &accounts[1];\n    if !user.is_signer || user.key != &acct.owner {\n        return Err(ProgramError::IllegalOwner);\n    }\n    Ok(())\n}",
-    "output": "Status: SAFE\nDescription: Unlock operation requires both signature and ownership validation.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod secure_contract {\n    use super::*;\n\n    pub fn freeze_account(\n        ctx: Context<FreezeAccount>,\n    ) -> Result<()> {\n        let account_to_freeze = &mut ctx.accounts.account_to_freeze;\n        let authority = &ctx.accounts.authority;\n        // SECURE: Validates signer and freeze authority identity\n        require!(\n            authority.is_signer,\n            ProgramError::MissingRequiredSignature\n        );\n        require!(\n            authority.key() == account_to_freeze.freeze_authority,\n            ProgramError::IllegalOwner\n        );\n        require!(\n            !account_to_freeze.frozen,\n            ProgramError::InvalidAccountData\n        );\n        account_to_freeze.frozen = true;\n        emit!(AccountFrozen {\n            account: ctx.accounts.account_to_freeze.key(),\n            frozen_by: authority.key(),\n            timestamp: Clock::get()?.unix_timestamp,\n        });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct FreezeAccount<'info> {\n    #[account(mut)]\n    pub account_to_freeze: Account<'info, FreezeableAccount>,\n    pub authority: Signer<'info>,\n}\n\n#[account]\npub struct FreezeableAccount {\n    pub frozen: bool,\n    pub freeze_authority: Pubkey,\n    pub data: Vec<u8>,\n}",
+    "output": "Status: SAFE\nVulnerability Type: N/A - Proper Freeze Authority Control\nDescription: The freeze_account function enforces signer validation and verifies that the signer is the designated freeze_authority before freezing an account. Only the authorized freeze authority can freeze accounts.\nRisk Level: LOW\nValidation: Signer check + freeze authority identity verification",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "Freeze Authority Identity Match"
   },
   {
     "sample_id": "SOL_AC_SAFE_010",
-    "instruction": "You are a smart contract security analyzer...",
-    "input": "pub fn secure_role_revoke(accounts: &[AccountInfo], admin_pk: Pubkey) -> ProgramResult {\n    let role_store = &accounts[0];\n    let signer = &accounts[1];\n    if !signer.is_signer || signer.key != &admin_pk {\n        return Err(ProgramError::IllegalOwner);\n    }\n    role_store.try_borrow_mut_data()?[0] = 0;\n    Ok(())\n}",
-    "output": "Status: SAFE\nDescription: Role revocation is restricted to a verified admin signer.",
+    "instruction": "You are a smart contract security analyzer for Solana. Analyze the following Rust/Anchor smart contract code for access control vulnerabilities. Identify if the code properly validates account ownership, signer status, and authority permissions before executing state-modifying operations. Output your assessment.",
+    "input": "use anchor_lang::prelude::*;\n\n#[program]\npub mod secure_contract {\n    use super::*;\n\n    pub fn revoke_role(\n        ctx: Context<RevokeRole>,\n        role_id: u8,\n    ) -> Result<()> {\n        let access_control = &ctx.accounts.access_control;\n        let admin = &ctx.accounts.admin;\n        let target = &mut ctx.accounts.target;\n        // SECURE: Validates signer and admin identity\n        require!(\n            admin.is_signer,\n            ProgramError::MissingRequiredSignature\n        );\n        require!(\n            admin.key() == access_control.admin,\n            ProgramError::IllegalOwner\n        );\n        require!(\n            role_id < 8,\n            ProgramError::InvalidArgument\n        );\n        require!(\n            (target.roles & (1 << role_id)) != 0,\n            ProgramError::InvalidAccountData\n        );\n        target.roles &= !(1 << role_id);\n        emit!(RoleRevoked {\n            target: target.key(),\n            role_id,\n            revoked_by: admin.key(),\n        });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct RevokeRole<'info> {\n    pub access_control: Account<'info, AccessControl>,\n    #[account(mut)]\n    pub target: Account<'info, RoleHolder>,\n    pub admin: Signer<'info>,\n}\n\n#[account]\npub struct AccessControl {\n    pub admin: Pubkey,\n}\n\n#[account]\npub struct RoleHolder {\n    pub roles: u8,\n    pub owner: Pubkey,\n}",
+    "output": "Status: SAFE\nVulnerability Type: N/A - Proper Role-Based Access Control\nDescription: The revoke_role function enforces signer validation and verifies that the signer is the designated admin before revoking any role. Only the admin can revoke roles from other accounts.\nRisk Level: LOW\nValidation: Signer check + admin identity verification + role validation",
     "meta_platform": "Solana",
-    "meta_vuln_type": "V1 - Access Control"
+    "meta_vuln_type": "V1 - Access Control",
+    "meta_pattern": "Admin Role Verification"
   }
 ]
