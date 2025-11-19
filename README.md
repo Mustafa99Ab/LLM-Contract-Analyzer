@@ -63,16 +63,14 @@ Each JSON file contains:
 ---
 
 ---
-Methodology
-Pattern Definition: Vulnerability patterns were rigorously derived from auditing reports, platform documentation (Anchor Lang docs, Algorand Dev Portal), and academic literature on blockchain security.
 
-Synthetic Generation: Samples were generated to isolate specific security flaws (Negative Samples) and paired with their secure counterparts (Positive Samples).
+## Methodology 🔬
 
-Verification: A structural static analysis (Syntax Check) was performed to ensure code validity:
-
-PyTeal: Verified against valid Python/PyTeal AST structure.
-
-Rust: Verified for essential Anchor framework macros (e.g., #[program], Context).
+1.  **🧩 Pattern Definition:** Vulnerability patterns were rigorously derived from auditing reports, platform documentation (Anchor Lang docs, Algorand Dev Portal), and academic literature on blockchain security.
+2.  **🤖 Synthetic Generation:** Samples were generated to isolate specific security flaws (Negative Samples ❌) and paired with their secure counterparts (Positive Samples ✅).
+3.  **✅ Verification:** A structural static analysis (Syntax Check) was performed to ensure code validity:
+    * **🐍 PyTeal:** Verified against valid Python/PyTeal AST structure.
+    * **🦀 Rust:** Verified for essential Anchor framework macros (e.g., `#[program]`, `Context`).
 
 ---
 
