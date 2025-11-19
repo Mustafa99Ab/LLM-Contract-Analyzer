@@ -63,6 +63,26 @@ Each JSON file contains:
 ---
 
 ---
+## Vulnerability Taxonomy 🗂️
+
+The samples map traditional vulnerabilities to platform-specific implementations. Note that some vulnerabilities (like Reentrancy) manifest differently or are not applicable in Algorand due to its atomic execution model.
+
+| ID | Vulnerability Category | Solana Context (Rust/Anchor) 🦀 | Algorand Context (PyTeal) 🐍 |
+| :--- | :--- | :--- | :--- |
+| **V1** | Access Control | Missing `Signer` checks, `Owner` validation gaps | Unchecked `Sender`, `RekeyTo` unauthorized logic |
+| **V2** | Oracle Manipulation | Unverified `Pyth`/`Switchboard` feeds, Stale prices | N/A (Architecture dependent / Logic) |
+| **V3** | Logic Errors | Business logic flaws, incorrect math assumptions | Logic flaws in state transitions |
+| **V4** | Input Validation | Missing checks on account data/types | Missing size/type checks on transaction args |
+| **V5** | Reentrancy | Cross-Program Invocation (CPI) state inconsistencies | N/A (Mitigated by Atomic Transfers) |
+| **V6** | Unchecked Calls | Unverified CPI calls to malicious programs | Unchecked Inner Transactions or `RekeyTo` |
+| **V7** | Flash Loan Attacks | Spot price manipulation in AMMs | N/A (Atomic groups mitigate typical exploits) |
+| **V8** | Integer Issues | Integer Overflow/Underflow (wrapping) | Mathematical errors in TEAL logic |
+| **V9** | Insecure Randomness | Predictable seeds (Clock/Slot) | N/A (VRF is standard) |
+| **V10**| Denial of Service (DoS)| PDA collisions, Compute Budget exhaustion | Dynamic Fee abuse, Resource exhaustion |
+
+---
+
+---
 
 ## Methodology 🔬
 
