@@ -1,142 +1,164 @@
 [
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn update_admin(accounts: &[AccountInfo], new_admin_key: Pubkey) -> ProgramResult {\n    let config_account = &accounts[0];\n    let mut data = config_account.try_borrow_mut_data()?;\n    // (VULN: No check that the signer is the current admin)\n    data[..32].copy_from_slice(new_admin_key.as_ref());\n    Ok(()) \n}",
-        "output": "Status: VULNERABLE\nDescription: Missing Signer Check: The function allows updating the admin key without verifying if the current admin signed the transaction.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn withdraw_fees(accounts: &[AccountInfo], amount: u64) -> ProgramResult {\n    let vault_account = &accounts[0];\n    let recipient_account = &accounts[1];\n    // (VULN: No check that vault_account.owner == program_id)\n    // ... (Execute withdrawal)\n    Ok(()) \n}",
-        "output": "Status: VULNERABLE\nDescription: Missing Owner Check: The function allows withdrawing fees from a vault account without verifying that the vault is owned by the program.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn close_user_account(accounts: &[AccountInfo]) -> ProgramResult {\n    let user_account = &accounts[0];\n    let recipient = &accounts[1];\n    // (VULN: No check that the account owner (recipient) is the signer)\n    // ... (Transfer balance and close account)\n    Ok(()) \n}",
-        "output": "Status: VULNERABLE\nDescription: Missing Signer Check: Allows closing a user account and transferring funds to a recipient without verifying the recipient's signature.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn freeze_account(accounts: &[AccountInfo]) -> ProgramResult {\n    let account_to_freeze = &accounts[0];\n    let authority = &accounts[1];\n    // (VULN: Only checks if signer, not if authority.key is the correct authority)\n    if !authority.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    Ok(()) \n}",
-        "output": "Status: VULNERABLE\nDescription: Missing Key Check: Checks for a signature but fails to verify that the signer's public key matches the stored freeze authority.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn mint_tokens(accounts: &[AccountInfo], amount: u64) -> ProgramResult {\n    let mint_authority = &accounts[0];\n    // (VULN: No check that mint_authority.is_signer)\n    // ... (Execute mint)\n    Ok(()) \n}",
-        "output": "Status: VULNERABLE\nDescription: Missing Signer Check: Allows minting new tokens without verifying the signature of the mint authority.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn set_protocol_fee(accounts: &[AccountInfo], new_fee: u64) -> ProgramResult {\n    let config_account = &accounts[0];\n    // (VULN: No check that the signer is the admin)\n    // ... (Update fee)\n    Ok(()) \n}",
-        "output": "Status: VULNERABLE\nDescription: Missing Signer Check: Updates protocol fees without verifying that the transaction is signed by the admin.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn initialize_data(accounts: &[AccountInfo]) -> ProgramResult {\n    let data_account = &accounts[0];\n    // (VULN: Anyone can pass an account not owned by this program)\n    // ... (Write initial data)\n    Ok(()) \n}",
-        "output": "Status: VULNERABLE\nDescription: Missing Owner Check: Initializes a data account without verifying that the account is owned by the executing program.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn update_sensitive_data(accounts: &[AccountInfo], new_data: Vec<u8>) -> ProgramResult {\n    let data_account = &accounts[0];\n    let user_signer = &accounts[1];\n    if !user_signer.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    // (VULN: Did not check if user_signer.key == data_account.owner)\n    Ok(()) \n}",
-        "output": "Status: VULNERABLE\nDescription: Missing Key Check: Verifies signature but fails to check if the signer is the actual owner of the data account.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn insecure_cpi(accounts: &[AccountInfo]) -> ProgramResult {\n    let target_program = &accounts[0];\n    // (VULN: No check that target_program.key is the trusted program)\n    // ... (Execute CPI)\n    Ok(()) \n}",
-        "output": "Status: VULNERABLE\nDescription: Missing Key Check (CPI): Performs a Cross-Program Invocation without verifying the target program's public key.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn spend_funds(accounts: &[AccountInfo], amount: u64) -> ProgramResult {\n    let source_wallet = &accounts[0];\n    let destination = &accounts[1];\n    // (VULN: No check that source_wallet.is_signer)\n    // ... (Transfer funds)\n    Ok(()) \n}",
-        "output": "Status: VULNERABLE\nDescription: Missing Signer Check: Transfers funds from a wallet without verifying the wallet owner's signature.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn update_admin(accounts: &[AccountInfo], new_admin_key: Pubkey) -> ProgramResult {\n    let config_account = &accounts[0];\n    let current_admin_signer = &accounts[1];\n    if !current_admin_signer.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    // ... (Additional key check would be here)\n    let mut data = config_account.try_borrow_mut_data()?;\n    data[..32].copy_from_slice(new_admin_key.as_ref());\n    Ok(()) \n}",
-        "output": "Status: SAFE\nDescription: Safe: The function enforces a Signer Check on the current admin before allowing an update.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn withdraw_fees(program_id: &Pubkey, accounts: &[AccountInfo], amount: u64) -> ProgramResult {\n    let vault_account = &accounts[0];\n    if vault_account.owner != program_id {\n        return Err(ProgramError::IncorrectProgramId);\n    }\n    // ... (Execute withdrawal)\n    Ok(()) \n}",
-        "output": "Status: SAFE\nDescription: Safe: The function enforces an Owner Check to ensure the vault belongs to the program before withdrawing.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn close_user_account(accounts: &[AccountInfo]) -> ProgramResult {\n    let user_account = &accounts[0];\n    let recipient = &accounts[1];\n    if !recipient.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    // ... (Transfer balance)\n    Ok(()) \n}",
-        "output": "Status: SAFE\nDescription: Safe: The function verifies that the recipient (owner) has signed the transaction before closing the account.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn freeze_account(accounts: &[AccountInfo]) -> ProgramResult {\n    let authority = &accounts[1];\n    if !authority.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    // ... (Key check logic would follow)\n    Ok(()) \n}",
-        "output": "Status: SAFE\nDescription: Safe: The function enforces a Signer Check on the freeze authority.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn mint_tokens(accounts: &[AccountInfo], amount: u64) -> ProgramResult {\n    let mint_authority = &accounts[0];\n    if !mint_authority.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    Ok(()) \n}",
-        "output": "Status: SAFE\nDescription: Safe: The function enforces a Signer Check on the mint authority.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn set_protocol_fee(accounts: &[AccountInfo], new_fee: u64) -> ProgramResult {\n    let admin_signer = &accounts[1];\n    if !admin_signer.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    Ok(()) \n}",
-        "output": "Status: SAFE\nDescription: Safe: The function verifies the admin's signature before updating the fee.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn initialize_data(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    let data_account = &accounts[0];\n    if data_account.owner != program_id {\n        return Err(ProgramError::IncorrectProgramId);\n    }\n    Ok(()) \n}",
-        "output": "Status: SAFE\nDescription: Safe: The function enforces an Owner Check to ensure the data account belongs to the program.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn update_sensitive_data(accounts: &[AccountInfo], new_data: Vec<u8>) -> ProgramResult {\n    let user_signer = &accounts[1];\n    if !user_signer.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    // ... (Owner logic matches signer)\n    Ok(()) \n}",
-        "output": "Status: SAFE\nDescription: Safe: The function enforces a Signer Check for the user attempting to update data.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn secure_cpi(accounts: &[AccountInfo]) -> ProgramResult {\n    let target_program = &accounts[0];\n    let expected_program_id = Pubkey::from_str(\"...\").unwrap();\n    if *target_program.key != expected_program_id {\n        return Err(ProgramError::InvalidAccountData);\n    }\n    Ok(()) \n}",
-        "output": "Status: SAFE\nDescription: Safe: The function verifies the target program's Public Key (Key Check) before performing CPI.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. You receive a smart contract written in Rust as input and answer with the vulnerability identified if it exists. The vulnerabilities are classified according to OWASP Top 10.",
-        "input": "pub fn spend_funds(accounts: &[AccountInfo], amount: u64) -> ProgramResult {\n    let source_wallet = &accounts[0];\n    if !source_wallet.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    Ok(()) \n}",
-        "output": "Status: SAFE\nDescription: Safe: The function verifies the wallet owner's signature before spending funds.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V1 - Access Control"
-    }
+  {
+    "sample_id": "SOL_AC_VULN_001",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn change_fee(accounts: &[AccountInfo], new_fee: u64) -> ProgramResult {\n    let config = &accounts[0];\n    // (VULN: no signer check, anyone can modify config)\n    let mut data = config.try_borrow_mut_data()?;\n    data[0] = new_fee as u8;\n    Ok(())\n}",
+    "output": "Status: VULNERABLE\nDescription: No signer validation is performed, allowing unauthorized fee modification.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  },
+  {
+    "sample_id": "SOL_AC_VULN_002",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn admin_only_reset(accounts: &[AccountInfo]) -> ProgramResult {\n    let cfg = &accounts[0];\n    let caller = &accounts[1];\n    // (VULN: checks signer, but doesn't ensure caller is admin)\n    if !caller.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    cfg.try_borrow_mut_data()?.fill(0);\n    Ok(())\n}",
+    "output": "Status: VULNERABLE\nDescription: Signature is validated but the function does not verify that the signer is the admin.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  },
+  {
+    "sample_id": "SOL_AC_VULN_003",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn delegate_tokens(accounts: &[AccountInfo]) -> ProgramResult {\n    let source = &accounts[0];\n    // (VULN: missing check that source.is_signer)\n    // (VULN: missing check that source.owner == program_id)\n    Ok(())\n}",
+    "output": "Status: VULNERABLE\nDescription: Fails to verify both ownership and signer authority before delegating tokens.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  },
+  {
+    "sample_id": "SOL_AC_VULN_004",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn update_whitelist(accounts: &[AccountInfo], entry: Pubkey) -> ProgramResult {\n    let list = &accounts[0];\n    // (VULN: anyone can modify the whitelist)\n    list.try_borrow_mut_data()?[..32].copy_from_slice(entry.as_ref());\n    Ok(())\n}",
+    "output": "Status: VULNERABLE\nDescription: No signer or authority check allows arbitrary whitelist updates.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  },
+  {
+    "sample_id": "SOL_AC_VULN_005",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn mint_nft(accounts: &[AccountInfo]) -> ProgramResult {\n    let mint = &accounts[0];\n    let authority = &accounts[1];\n    // (VULN: does not ensure authority.key == stored_mint_authority)\n    if !authority.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    Ok(())\n}",
+    "output": "Status: VULNERABLE\nDescription: Checks for signature only, but does not validate mint authority key.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  },
+  {
+    "sample_id": "SOL_AC_VULN_006",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn cpi_to_danger(accounts: &[AccountInfo]) -> ProgramResult {\n    let program = &accounts[0];\n    // (VULN: no validation of trusted target program)\n    solana_program::program::invoke(&Instruction{\n        program_id: *program.key,\n        accounts: vec![],\n        data: vec![1,2,3]\n    }, accounts)?;\n    Ok(())\n}",
+    "output": "Status: VULNERABLE\nDescription: Permits arbitrary CPI calls without validating the target program's public key.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  },
+  {
+    "sample_id": "SOL_AC_VULN_007",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn unlock_funds(accounts: &[AccountInfo]) -> ProgramResult {\n    let wallet = &accounts[0];\n    // (VULN: missing signer check, missing owner check)\n    Ok(())\n}",
+    "output": "Status: VULNERABLE\nDescription: Lacks both signer and owner validation before unlocking funds.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  },
+  {
+    "sample_id": "SOL_AC_VULN_008",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn rotate_key(accounts: &[AccountInfo], new_key: Pubkey) -> ProgramResult {\n    let storage = &accounts[0];\n    let signer = &accounts[1];\n    // (VULN: relies only on signer, never checks signer.key == authorized_key)\n    if !signer.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    storage.try_borrow_mut_data()?[..32].copy_from_slice(new_key.as_ref());\n    Ok(())\n}",
+    "output": "Status: VULNERABLE\nDescription: Fails to validate that the signer is the authorized key being rotated.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  },
+  {
+    "sample_id": "SOL_AC_VULN_009",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn set_mod_flag(accounts: &[AccountInfo]) -> ProgramResult {\n    let module = &accounts[0];\n    // (VULN: no restrictions, global module flag can be toggled)\n    module.try_borrow_mut_data()?[0] = 1;\n    Ok(())\n}",
+    "output": "Status: VULNERABLE\nDescription: Modifies protected module flags without verifying signer or owner authority.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  },
+  {
+    "sample_id": "SOL_AC_VULN_010",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn revoke_access(accounts: &[AccountInfo]) -> ProgramResult {\n    let target = &accounts[0];\n    let caller = &accounts[1];\n    // (VULN: checks signature but does not check caller's role or key)\n    if !caller.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    target.try_borrow_mut_data()?[0] = 0;\n    Ok(())\n}",
+    "output": "Status: VULNERABLE\nDescription: Revokes access without ensuring the signer has the required role or authority.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  }
+]
+[
+  {
+    "sample_id": "SOL_AC_SAFE_001",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn set_config(accounts: &[AccountInfo], value: u8) -> ProgramResult {\n    let cfg = &accounts[0];\n    let admin = &accounts[1];\n    if !admin.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    let stored = Pubkey::new_from_array(cfg.try_borrow_data()?[..32].try_into().unwrap());\n    if admin.key != &stored {\n        return Err(ProgramError::IllegalOwner);\n    }\n    cfg.try_borrow_mut_data()?[32] = value;\n    Ok(())\n}",
+    "output": "Status: SAFE\nDescription: Validates both signer and admin identity before modifying configuration.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  },
+  {
+    "sample_id": "SOL_AC_SAFE_002",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn secure_withdraw(program_id: &Pubkey, accounts: &[AccountInfo], amount: u64) -> ProgramResult {\n    let vault = &accounts[0];\n    let owner = &accounts[1];\n    if vault.owner != program_id {\n        return Err(ProgramError::IncorrectProgramId);\n    }\n    if !owner.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    if owner.key != &vault.owner {\n        return Err(ProgramError::IllegalOwner);\n    }\n    Ok(())\n}",
+    "output": "Status: SAFE\nDescription: Ensures program ownership and owner signature before withdrawal.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  },
+  {
+    "sample_id": "SOL_AC_SAFE_003",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn secure_upgrade(accounts: &[AccountInfo], expected_admin: Pubkey) -> ProgramResult {\n    let admin = &accounts[0];\n    if !admin.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    if admin.key != &expected_admin {\n        return Err(ProgramError::IllegalOwner);\n    }\n    Ok(())\n}",
+    "output": "Status: SAFE\nDescription: Restricts upgrade functionality to a specific admin key.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  },
+  {
+    "sample_id": "SOL_AC_SAFE_004",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn secure_freeze(accounts: &[AccountInfo]) -> ProgramResult {\n    let acct = &accounts[0];\n    let authority = &accounts[1];\n    let stored = Pubkey::new_from_array(acct.try_borrow_data()?[..32].try_into().unwrap());\n    if !authority.is_signer {\n        return Err(ProgramError::MissingRequiredSignature);\n    }\n    if authority.key != &stored {\n        return Err(ProgramError::IllegalOwner);\n    }\n    Ok(())\n}",
+    "output": "Status: SAFE\nDescription: Ensures freeze operation is performed only by the configured authority.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  },
+  {
+    "sample_id": "SOL_AC_SAFE_005",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn secure_nft_mint(accounts: &[AccountInfo]) -> ProgramResult {\n    let mint = &accounts[0];\n    let signer = &accounts[1];\n    let stored_auth = Pubkey::new_from_array(mint.try_borrow_data()?[0..32].try_into().unwrap());\n    if !signer.is_signer || signer.key != &stored_auth {\n        return Err(ProgramError::IllegalOwner);\n    }\n    Ok(())\n}",
+    "output": "Status: SAFE\nDescription: Enforces strict mint authority validation before minting NFT tokens.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  },
+  {
+    "sample_id": "SOL_AC_SAFE_006",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn secure_initialize(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    let acct = &accounts[0];\n    if acct.owner != program_id {\n        return Err(ProgramError::IncorrectProgramId);\n    }\n    Ok(())\n}",
+    "output": "Status: SAFE\nDescription: Validates that the initialized account belongs to the program.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  },
+  {
+    "sample_id": "SOL_AC_SAFE_007",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn secure_rotation(accounts: &[AccountInfo], expected_admin: Pubkey, new_key: Pubkey) -> ProgramResult {\n    let cfg = &accounts[0];\n    let signer = &accounts[1];\n    if !signer.is_signer || signer.key != &expected_admin {\n        return Err(ProgramError::IllegalOwner);\n    }\n    cfg.try_borrow_mut_data()?[..32].copy_from_slice(new_key.as_ref());\n    Ok(())\n}",
+    "output": "Status: SAFE\nDescription: Key rotation is restricted strictly to the expected admin.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  },
+  {
+    "sample_id": "SOL_AC_SAFE_008",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn secure_cpi(accounts: &[AccountInfo], expected_program: Pubkey) -> ProgramResult {\n    let target = &accounts[0];\n    if target.key != &expected_program {\n        return Err(ProgramError::InvalidAccountData);\n    }\n    Ok(())\n}",
+    "output": "Status: SAFE\nDescription: Ensures CPI is executed only against a trusted program ID.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  },
+  {
+    "sample_id": "SOL_AC_SAFE_009",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn secure_unlock(accounts: &[AccountInfo]) -> ProgramResult {\n    let acct = &accounts[0];\n    let user = &accounts[1];\n    if !user.is_signer || user.key != &acct.owner {\n        return Err(ProgramError::IllegalOwner);\n    }\n    Ok(())\n}",
+    "output": "Status: SAFE\nDescription: Unlock operation requires both signature and ownership validation.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  },
+  {
+    "sample_id": "SOL_AC_SAFE_010",
+    "instruction": "You are a smart contract security analyzer...",
+    "input": "pub fn secure_role_revoke(accounts: &[AccountInfo], admin_pk: Pubkey) -> ProgramResult {\n    let role_store = &accounts[0];\n    let signer = &accounts[1];\n    if !signer.is_signer || signer.key != &admin_pk {\n        return Err(ProgramError::IllegalOwner);\n    }\n    role_store.try_borrow_mut_data()?[0] = 0;\n    Ok(())\n}",
+    "output": "Status: SAFE\nDescription: Role revocation is restricted to a verified admin signer.",
+    "meta_platform": "Solana",
+    "meta_vuln_type": "V1 - Access Control"
+  }
 ]
