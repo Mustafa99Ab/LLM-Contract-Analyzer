@@ -1,3 +1,8 @@
+
+<img width="762" height="284" alt="Logo-HABES_SfondoTrasparente" src="https://github.com/user-attachments/assets/3a31c595-c60b-47d7-9967-3a7ef3004921" />
+
+---
+
 # 🧠 LLM Contract Analyzer
 
 A structured dataset and framework for analyzing smart contracts using Large Language Models (LLMs)
