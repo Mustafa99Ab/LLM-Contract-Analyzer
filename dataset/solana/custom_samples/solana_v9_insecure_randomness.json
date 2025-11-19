@@ -1,142 +1,164 @@
 [
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn predictable_slot_randomness(accounts: &[AccountInfo]) -> ProgramResult {\n    let current_slot = Clock::get()?.slot;\n    // (VULN: Slot number is deterministic and visible to the validator)\n    let random_value = current_slot % 100; \n    Ok(())\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: Direct Slot Number Use. Uses the predictable slot number as the sole source of randomness, which is easily manipulable or predictable by validators.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn lottery_winner_selection(ctx: Context<LotteryContext>) -> Result<()> {\n    let clock = Clock::get()?;\n    let winner_index = clock.slot % ctx.accounts.participants.len() as u64;\n    // VULN: Using slot number directly for random selection\n    msg!(\"Winner index: {}\", winner_index);\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Critical Insecure Randomness: Direct Slot Modulo Operation. The contract uses the slot number with a simple modulo operation to select lottery winners. This is highly predictable as validators know the slot number before block production, allowing them to manipulate the outcome by choosing whether to include the transaction.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "Critical"
     },
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn predictable_timestamp_randomness(accounts: &[AccountInfo]) -> ProgramResult {\n    let current_time = Clock::get()?.unix_timestamp;\n    // (VULN: Timestamp has low entropy and can be influenced by the block producer)\n    let random_value = current_time % 10;\n    Ok(())\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: Timestamp Dependency. Uses the low-entropy Unix timestamp for a random event, which can be influenced by validators.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn generate_nft_trait(ctx: Context<MintContext>, user_input: u64) -> Result<()> {\n    let timestamp = Clock::get()?.unix_timestamp as u64;\n    let combined = user_input.wrapping_add(timestamp);\n    let trait_id = combined % 100;\n    // VULN: Weak entropy combination with user-controllable input\n    ctx.accounts.nft_metadata.trait_type = trait_id as u8;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: User-Controlled Entropy Source. The function combines user input with a timestamp to generate NFT traits. The attacker can manipulate the user_input parameter and predict the timestamp within a small window, allowing them to pre-calculate desired trait outcomes.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "High"
     },
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn predictable_blockhash_randomness(accounts: &[AccountInfo]) -> ProgramResult {\n    let recent_hash = get_recent_blockhash(); \n    // (VULN: Blockhashes are known moments before block finalization)\n    let random_value = derive_from_hash(recent_hash);\n    Ok(())\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: Direct Blockhash Use. Uses a recent blockhash directly for randomness, which is known to block builders.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn airdrop_distribution(ctx: Context<AirdropContext>) -> Result<()> {\n    let recent_blockhash = ctx.accounts.recent_blockhashes.data.borrow();\n    let hash_bytes = &recent_blockhash[0..8];\n    let random_value = u64::from_le_bytes(hash_bytes.try_into().unwrap());\n    let recipient_index = random_value % ctx.accounts.recipients.len() as u64;\n    // VULN: Using recent blockhash for randomness\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: Recent Blockhash Dependency. The contract derives randomness from recent blockhashes which are publicly visible before block finalization. Block producers can observe these values and selectively include or exclude transactions to influence the distribution outcome.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "High"
     },
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn user_seeded_randomness(accounts: &[AccountInfo], seed: u64) -> ProgramResult {\n    // (VULN: Attacker controls the seed and knows the resulting 'random' number)\n    let random_value = hash_input(seed);\n    Ok(())\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: User-Seeded Randomness. Derives randomness solely from a user-provided seed, allowing the attacker to pre-calculate the outcome.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn dice_roll(ctx: Context<GameContext>, player_seed: [u8; 32]) -> Result<()> {\n    let mut hasher = Sha256::new();\n    hasher.update(&player_seed);\n    let hash_result = hasher.finalize();\n    let dice_value = (hash_result[0] % 6) + 1;\n    // VULN: Solely relying on player-provided seed\n    ctx.accounts.game_state.last_roll = dice_value;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: Pure Client-Side Entropy. The dice roll outcome is determined entirely by the player-provided seed with deterministic hashing. An attacker can pre-compute hash results off-chain to find seeds that produce favorable outcomes, then submit only winning transactions.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "Critical"
     },
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn external_state_seed(accounts: &[AccountInfo]) -> ProgramResult {\n    let external_state = accounts[1].try_borrow_data()?;\n    let seed = external_state.last_update_count;\n    // (VULN: The state can be manipulated or front-run)\n    let random_value = hash_input(seed);\n    Ok(())\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: External State Seed. Uses a mutable state field from an external account as a random seed, which is subject to front-running or manipulation.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn reward_calculator(ctx: Context<RewardContext>) -> Result<()> {\n    let account_data = ctx.accounts.user_account.to_account_info();\n    let lamports = account_data.lamports();\n    let last_digit = lamports % 10;\n    // VULN: Using account balance as entropy source\n    let reward_multiplier = if last_digit > 5 { 2 } else { 1 };\n    ctx.accounts.reward_pool.multiplier = reward_multiplier;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: Account Balance as Entropy. The reward calculation uses the account's lamport balance as a source of randomness. Attackers can manipulate their account balance through micro-transfers to achieve the last digit needed for favorable outcomes.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "Medium"
     },
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn exposed_randomness_calc(accounts: &[AccountInfo]) -> ProgramResult {\n    let input = Clock::get()?.slot;\n    // (VULN: Simple, deterministic math is easily reversed)\n    let random_value = (input * 0xCB) ^ 0xAF;\n    Ok(())\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: Exposed Calculation. Uses simple, deterministic math on a predictable input (slot), making the 'random' number easily reversible.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn mystery_box_open(ctx: Context<MysteryBox>) -> Result<()> {\n    let clock = Clock::get()?;\n    let slot = clock.slot;\n    let timestamp = clock.unix_timestamp;\n    let entropy = slot ^ (timestamp as u64);\n    let item_rarity = entropy % 1000;\n    // VULN: XOR of predictable values\n    ctx.accounts.player_inventory.add_item(item_rarity);\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: Weak Entropy Mixing via XOR. The contract XORs slot number with timestamp, both of which are predictable on-chain values. This weak mixing function provides no additional entropy and remains fully predictable to validators and sophisticated attackers.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "High"
     },
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn weak_entropy_combination(accounts: &[AccountInfo]) -> ProgramResult {\n    let slot = Clock::get()?.slot;\n    let time = Clock::get()?.unix_timestamp;\n    // (VULN: Weak combination of low-entropy sources)\n    let random_value = (slot as u64) ^ (time as u64);\n    Ok(())\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: Weak Entropy Combination. Combines two predictable environment variables (slot and timestamp) without high-entropy mixing.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn tournament_matchmaking(ctx: Context<Tournament>) -> Result<()> {\n    let instruction_data = ctx.accounts.instruction_sysvar.data.borrow();\n    let tx_index = instruction_data[0] as u64;\n    let opponent_index = tx_index % ctx.accounts.players.len() as u64;\n    // VULN: Transaction index used for matchmaking\n    ctx.accounts.match_state.opponent = opponent_index;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: Transaction Index Manipulation. The matchmaking system uses the transaction's position in the block (transaction index) as a randomness source. Validators control transaction ordering and can manipulate matchmaking outcomes by reordering transactions within their blocks.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "High"
     },
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn txn_index_randomness(accounts: &[AccountInfo], txn_index: u64) -> ProgramResult {\n    // (VULN: The transaction index is known by the block builder/front-runners)\n    let random_value = hash_input(txn_index);\n    Ok(())\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: Transaction Index Dependence. Uses the transaction index within the block as a random seed, which is known to the validator.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn daily_reward_claim(ctx: Context<DailyReward>) -> Result<()> {\n    let (pda, bump) = Pubkey::find_program_address(\n        &[b\"reward\", ctx.accounts.user.key().as_ref()],\n        ctx.program_id\n    );\n    let reward_amount = (bump as u64) * 100;\n    // VULN: PDA bump seed used for reward calculation\n    token::transfer(ctx.accounts.transfer_ctx(), reward_amount)?;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: PDA Bump Seed as Entropy. The contract uses the Program Derived Address (PDA) bump seed to calculate reward amounts. PDA bump seeds are deterministic values that can be calculated off-chain, making reward amounts completely predictable before transaction submission.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "Medium"
     },
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn pda_key_randomness(accounts: &[AccountInfo]) -> ProgramResult {\n    let (pda_key, _) = Pubkey::find_program_address(&[b\"seed\"], &MY_PROGRAM_ID);\n    // (VULN: The PDA key is deterministic and can be calculated off-chain)\n    let random_value = hash_key(pda_key);\n    Ok(())\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: PDA Key Dependence. Uses the deterministic Program Data Address (PDA) key as a source of randomness.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn raffle_draw(ctx: Context<RaffleContext>, external_data: u64) -> Result<()> {\n    let state_account = &ctx.accounts.global_state;\n    let counter = state_account.transaction_counter;\n    let random_seed = counter.wrapping_mul(external_data);\n    let winner = random_seed % ctx.accounts.participants.len() as u64;\n    // VULN: Mutable state counter with user input\n    ctx.accounts.global_state.transaction_counter += 1;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: Predictable State Counter with User Input. The raffle uses a global transaction counter multiplied by user-provided data. Attackers can observe the current counter value on-chain and submit transactions with calculated external_data values to guarantee winning outcomes through front-running.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "Critical"
     },
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn lamport_balance_seed(accounts: &[AccountInfo]) -> ProgramResult {\n    let balance = accounts[0].lamports();\n    // (VULN: Balance can be easily queried and potentially influenced by an attacker)\n    let random_value = balance % 100;\n    Ok(())\n}",
-        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: Lamport Balance Seed. Uses the Lamport balance of an account as a random seed, which is easily queried and can be manipulated.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn spin_wheel(ctx: Context<WheelGame>) -> Result<()> {\n    let clock = Clock::get()?;\n    let epoch = clock.epoch;\n    let slot_in_epoch = clock.slot % clock.slots_per_epoch;\n    let result = (epoch * slot_in_epoch) % 36;\n    // VULN: Epoch and slot position calculation\n    ctx.accounts.game_result.outcome = result as u8;\n    Ok(())\n}",
+        "output": "Status: VULNERABLE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Insecure Randomness: Epoch-Slot Arithmetic for Gaming. The wheel spin outcome is calculated using epoch number and slot position within epoch - both publicly visible values. Validators can predict outcomes multiple slots in advance and selectively process transactions that benefit them or their collaborators.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "Critical"
+    }
+]
+[
+    {
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "use switchboard_v2::VrfAccountData;\n\npub fn lottery_with_vrf(ctx: Context<SecureLottery>) -> Result<()> {\n    let vrf_account = VrfAccountData::new(&ctx.accounts.vrf_account)?;\n    require!(vrf_account.status == VrfStatus::Verified, ErrorCode::VrfNotVerified);\n    let random_result = vrf_account.get_result()?;\n    let winner_index = (random_result[0] as u64) % ctx.accounts.participants.len() as u64;\n    // SAFE: Using Switchboard VRF for verifiable randomness\n    ctx.accounts.lottery_state.winner = winner_index;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: Verifiable Random Function (VRF) Integration. The contract integrates Switchboard VRF, a decentralized oracle providing cryptographically verifiable randomness. The VRF result is verified on-chain before use, ensuring the random value cannot be predicted or manipulated by validators or users.",
+        "meta_platform": "Solana",
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "None"
     },
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn secure_oracle_randomness(accounts: &[AccountInfo]) -> ProgramResult {\n    // (FIX: Use CPI to a trusted Oracle that implements a Verifiable Random Function)\n    invoke(&instruction::request_vrf_seed(), accounts)?;\n    Ok(())\n}",
-        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: External Oracle Source. Relies on a trusted, external oracle (like Chainlink VRF) for verifiable, high-entropy randomness.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn commit_reveal_game(ctx: Context<GameContext>, reveal: [u8; 32]) -> Result<()> {\n    let game_state = &mut ctx.accounts.game_state;\n    \n    if game_state.phase == GamePhase::Commit {\n        // Phase 1: Players commit hashes\n        let commitment = hash(&reveal);\n        game_state.player_commits.push(commitment);\n    } else if game_state.phase == GamePhase::Reveal {\n        // Phase 2: Players reveal, contract verifies\n        require!(hash(&reveal) == game_state.player_commits[player_id], ErrorCode::InvalidReveal);\n        game_state.reveals.push(reveal);\n        // SAFE: Commit-reveal scheme prevents front-running\n        let combined_entropy = combine_all_reveals(&game_state.reveals);\n        game_state.random_seed = combined_entropy;\n    }\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: Two-Phase Commit-Reveal Protocol. The contract implements a commit-reveal scheme where players first commit to hashed values, then reveal them in a subsequent phase. This prevents front-running and prediction attacks as the final randomness is derived from all participants' contributions after commitments are locked.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "None"
     },
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn commit_reveal_scheme(accounts: &[AccountInfo], commit_hash: [u8; 32]) -> ProgramResult {\n    // (FIX: Requires a two-step process (commit, reveal) to prevent front-running)\n    if is_commit_phase() {\n        store_commit(commit_hash);\n    } else {\n        verify_reveal(accounts)?;\n    }\n    Ok(())\n}",
-        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: Commitment Scheme. Uses a commit-reveal scheme, which requires the user to commit to a hash before the random source is generated.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn dice_roll_with_chainlink(ctx: Context<DiceGame>) -> Result<()> {\n    // Request randomness from Chainlink VRF\n    let request_id = chainlink_vrf::request_randomness(\n        &ctx.accounts.vrf_coordinator,\n        &ctx.accounts.link_token,\n        ctx.accounts.key_hash,\n        ctx.accounts.fee\n    )?;\n    \n    ctx.accounts.game_state.pending_request = request_id;\n    ctx.accounts.game_state.status = GameStatus::AwaitingVrf;\n    // SAFE: Using Chainlink VRF oracle for unpredictable randomness\n    Ok(())\n}\n\npub fn fulfill_dice_roll(ctx: Context<FulfillGame>, randomness: [u8; 32]) -> Result<()> {\n    // Only callable by VRF coordinator\n    require!(ctx.accounts.caller.key() == ctx.accounts.vrf_coordinator.key(), ErrorCode::Unauthorized);\n    let dice_value = (randomness[0] % 6) + 1;\n    ctx.accounts.game_state.result = dice_value;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: Chainlink VRF Integration with Callback. The contract uses a two-transaction pattern with Chainlink VRF: first requesting randomness, then receiving it via a callback from the authorized VRF coordinator. This ensures the randomness is generated off-chain by a trusted oracle and cannot be manipulated by on-chain actors.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "None"
     },
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn future_blockhash_randomness(accounts: &[AccountInfo]) -> ProgramResult {\n    // (FIX: Uses a hash from a future, known source that cannot be influenced in the current block)\n    let random_value = fetch_future_hash(FUTURE_SLOT)?;\n    Ok(())\n}",
-        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: Unpredictable Future Source. Randomness is derived from a source (blockhash/slot) that is only known after the transaction is finalized.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn multi_party_randomness(ctx: Context<MPCGame>) -> Result<()> {\n    let participant_count = ctx.accounts.participants.len();\n    require!(participant_count >= 3, ErrorCode::InsufficientParticipants);\n    \n    let mut combined_entropy: [u8; 32] = [0; 32];\n    for (idx, participant) in ctx.accounts.participants.iter().enumerate() {\n        // Each participant provides signed entropy\n        verify_signature(&participant.entropy_commitment, &participant.signature)?;\n        \n        for i in 0..32 {\n            combined_entropy[i] ^= participant.entropy_commitment[i];\n        }\n    }\n    // SAFE: Multi-party computation requires collusion of all participants\n    ctx.accounts.game_state.final_seed = combined_entropy;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: Multi-Party Computation (MPC) for Randomness. The contract aggregates cryptographically signed entropy contributions from multiple independent participants using XOR combination. The randomness is secure as long as at least one participant is honest, making collusion attacks impractical with sufficient participant diversity.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "None"
     },
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn mixed_entropy_safe(accounts: &[AccountInfo], user_seed: u64) -> ProgramResult {\n    let unpredictable_hash = get_unpredictable_source()?;\n    // (FIX: Entropy is high due to the combination of unpredictable source and user's hidden seed)\n    let random_value = hash_combine(unpredictable_hash, user_seed);\n    Ok(())\n}",
-        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: Mixed Entropy. Combines a secure, unpredictable external hash with a user-provided seed that is only revealed later.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn delayed_reveal_nft(ctx: Context<MintContext>) -> Result<()> {\n    let current_slot = Clock::get()?.slot;\n    let reveal_slot = current_slot + REVEAL_DELAY; // e.g., 1000 slots in future\n    \n    ctx.accounts.nft_metadata.mint_slot = current_slot;\n    ctx.accounts.nft_metadata.reveal_slot = reveal_slot;\n    ctx.accounts.nft_metadata.is_revealed = false;\n    // SAFE: Traits determined by future blockhash unknown at mint time\n    Ok(())\n}\n\npub fn reveal_nft_traits(ctx: Context<RevealContext>) -> Result<()> {\n    let current_slot = Clock::get()?.slot;\n    let metadata = &mut ctx.accounts.nft_metadata;\n    \n    require!(current_slot >= metadata.reveal_slot, ErrorCode::RevealNotReady);\n    require!(!metadata.is_revealed, ErrorCode::AlreadyRevealed);\n    \n    let future_blockhash = get_blockhash_at_slot(metadata.reveal_slot)?;\n    let trait_seed = hash_with_mint(&future_blockhash, &metadata.mint_key);\n    metadata.traits = derive_traits(trait_seed);\n    metadata.is_revealed = true;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: Delayed Reveal with Future Blockhash. The contract uses a two-phase approach where NFTs are minted first, then traits are revealed later using a blockhash from a future slot that is unknown at mint time. This prevents manipulation since the randomness source is determined after commitment, similar to commit-reveal but using blockchain state.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "None"
     },
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn trusted_authority_randomness(accounts: &[AccountInfo]) -> ProgramResult {\n    // (FIX: Check that the randomness input account has been signed by a trusted oracle key)\n    verify_signed_oracle_data(accounts[1].key)?;\n    let random_value = get_random_value(accounts[1].key);\n    Ok(())\n}",
-        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: Trusted Authority Check. Requires randomness input to be signed and verified by a trusted external authority.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn tournament_matching(ctx: Context<Tournament>) -> Result<()> {\n    // Use Pyth Network's price feed as entropy source\n    let price_feed = &ctx.accounts.pyth_price_account;\n    let price_data = price_feed.get_current_price()?;\n    \n    require!(price_data.confidence_interval < MAX_CONFIDENCE, ErrorCode::PriceUncertain);\n    \n    let entropy = hash_price_data(\n        price_data.price,\n        price_data.timestamp,\n        price_data.exponent\n    );\n    \n    let match_seed = combine_entropy(entropy, ctx.accounts.tournament_id);\n    let matchings = generate_bracket(match_seed, &ctx.accounts.players);\n    // SAFE: Using external price oracle data as high-entropy source\n    ctx.accounts.tournament_state.matchings = matchings;\n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: External Oracle Price Feed as Entropy. The contract uses Pyth Network price feed data as an entropy source for tournament matchmaking. Price feed data includes real-world market prices with high unpredictability and sub-second updates, making it infeasible for validators to manipulate while maintaining price feed integrity.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "None"
     },
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn dedicated_vrf_account(accounts: &[AccountInfo]) -> ProgramResult {\n    // (FIX: Assumes accounts[1] is a dedicated VRF account with strict permissions)\n    let random_value = read_vrf_result(accounts[1].key)?;\n    Ok(())\n}",
-        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: Dedicated VRF Account. Uses a dedicated, highly controlled account whose sole purpose is to store verified VRF results.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn secure_lottery_draw(ctx: Context<Lottery>) -> Result<()> {\n    let lottery = &mut ctx.accounts.lottery_state;\n    \n    // Validate VRF account and authority\n    require!(\n        ctx.accounts.vrf_account.owner == &SWITCHBOARD_PROGRAM_ID,\n        ErrorCode::InvalidVrfAccount\n    );\n    \n    let vrf_data = VrfAccountData::new(&ctx.accounts.vrf_account)?;\n    \n    // Verify VRF result is recent and verified\n    require!(\n        vrf_data.status == VrfStatus::VerifiedAndValidated,\n        ErrorCode::VrfNotVerified\n    );\n    \n    let clock = Clock::get()?;\n    require!(\n        clock.slot - vrf_data.result_slot < MAX_SLOT_DIFF,\n        ErrorCode::StaleVrfResult\n    );\n    \n    let random_bytes = vrf_data.get_result()?;\n    // SAFE: Properly validated Switchboard VRF with recency check\n    lottery.winner_index = u64::from_le_bytes(random_bytes[0..8].try_into().unwrap()) \n        % lottery.participants.len() as u64;\n    lottery.is_drawn = true;\n    \n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: Validated VRF with Comprehensive Security Checks. The contract implements robust VRF integration with multiple security layers: owner verification, status validation, and recency checks. This ensures the random value is cryptographically secure, freshly generated, and properly verified before use in critical lottery operations.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "None"
     },
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn private_channel_randomness(accounts: &[AccountInfo]) -> ProgramResult {\n    // (FIX: Uses a mechanism to ensure the randomness input is not publicly exposed on-chain until necessary)\n    decrypt_randomness_seed(accounts[2].key)?;\n    Ok(())\n}",
-        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: Private Channel Randomness. Reads randomness from a source secured by off-chain verification or encryption until needed.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn threshold_signature_random(ctx: Context<ThresholdContext>) -> Result<()> {\n    let threshold = REQUIRED_SIGNATURES; // e.g., 5 out of 7\n    let mut valid_signatures = 0;\n    let mut entropy_accumulator: [u8; 32] = [0; 32];\n    \n    for authority in ctx.accounts.authorities.iter() {\n        if verify_authority_signature(\n            &authority.random_contribution,\n            &authority.signature,\n            &authority.pubkey\n        )? {\n            valid_signatures += 1;\n            for i in 0..32 {\n                entropy_accumulator[i] ^= authority.random_contribution[i];\n            }\n        }\n    }\n    \n    require!(valid_signatures >= threshold, ErrorCode::InsufficientSignatures);\n    \n    // SAFE: Threshold signature scheme with multiple independent authorities\n    ctx.accounts.random_state.seed = entropy_accumulator;\n    ctx.accounts.random_state.signature_count = valid_signatures;\n    \n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: Threshold Signature Scheme for Randomness Generation. The contract implements a threshold signature approach requiring a minimum number of independent authorities to contribute signed random values. The security model ensures that compromising the randomness requires collusion of multiple authorities, making attacks economically and practically infeasible.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "None"
     },
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn lock_during_generation(accounts: &[AccountInfo]) -> ProgramResult {\n    lock_state();\n    let random_value = generate_new_vrf_request()?;\n    unlock_state();\n    Ok(())\n}",
-        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: Lock During Generation. Uses a lock mechanism during the request and fulfillment phases to ensure integrity and prevent multiple calls.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn drand_beacon_randomness(ctx: Context<DrandContext>) -> Result<()> {\n    let beacon_account = &ctx.accounts.drand_beacon;\n    \n    // Verify drand beacon signature\n    let beacon_data = DrandBeacon::deserialize(&beacon_account.data.borrow())?;\n    require!(\n        verify_drand_signature(&beacon_data.randomness, &beacon_data.signature),\n        ErrorCode::InvalidBeaconSignature\n    );\n    \n    // Check beacon round freshness\n    let current_time = Clock::get()?.unix_timestamp;\n    require!(\n        current_time - beacon_data.timestamp < BEACON_MAX_AGE,\n        ErrorCode::StaleBeacon\n    );\n    \n    // SAFE: Using drand distributed randomness beacon\n    ctx.accounts.game_state.random_seed = beacon_data.randomness;\n    ctx.accounts.game_state.beacon_round = beacon_data.round;\n    \n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: Drand Distributed Randomness Beacon Integration. The contract consumes randomness from the drand network, a distributed randomness beacon operated by a consortium of independent organizations. The implementation verifies cryptographic signatures and checks beacon freshness, ensuring the randomness is publicly verifiable, unbiasable, and unpredictable.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "None"
     },
     {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn multi_party_randomness(accounts: &[AccountInfo]) -> ProgramResult {\n    let seed1 = fetch_trusted_seed(accounts[1].key);\n    let seed2 = fetch_trusted_seed(accounts[2].key);\n    // (FIX: Requires collusion between multiple parties to predict the result)\n    let random_value = hash_combine(seed1, seed2);\n    Ok(())\n}",
-        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: Multi-Party Randomness. Requires input from multiple, non-colluding authorities to seed the randomness, increasing security.",
+        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (V9).",
+        "input": "pub fn nft_trait_generation(ctx: Context<NFTMint>) -> Result<()> {\n    let orao_vrf = &ctx.accounts.orao_vrf_account;\n    \n    // Verify Orao VRF account structure\n    require!(\n        orao_vrf.owner == &ORAO_VRF_PROGRAM_ID,\n        ErrorCode::InvalidVrfProvider\n    );\n    \n    let vrf_result = OraoVrf::parse_randomness(orao_vrf)?;\n    \n    // Validate VRF proof\n    require!(\n        vrf_result.is_fulfilled && vrf_result.is_verified,\n        ErrorCode::VrfNotFulfilled\n    );\n    \n    // Derive deterministic traits from VRF output\n    let trait_seed = keccak::hash(&vrf_result.randomness);\n    let traits = TraitGenerator::generate(\n        trait_seed,\n        &ctx.accounts.collection_config\n    );\n    \n    // SAFE: Using Orao VRF with cryptographic verification\n    ctx.accounts.nft_metadata.traits = traits;\n    ctx.accounts.nft_metadata.vrf_request_id = vrf_result.request_id;\n    \n    Ok(())\n}",
+        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: Orao VRF with Cryptographic Proof Verification. The contract integrates Orao Network's Verifiable Random Function, validating both the VRF account ownership and the cryptographic proof. The two-step validation (fulfillment and verification) ensures the randomness is generated by the oracle network and mathematically proven to be unbiased before use in NFT trait generation.",
         "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided Rust code for Solana and identify Insecure Randomness vulnerabilities (OWASP V9).",
-        "input": "pub fn internal_state_hash_randomness(accounts: &[AccountInfo]) -> ProgramResult {\n    // (FIX: Derives randomness from a complex, internal data hash, making it harder to predict)\n    let internal_data_hash = hash_internal_state(accounts[0].key);\n    let random_value = derive_from_hash(internal_data_hash);\n    Ok(())\n}",
-        "output": "Status: SAFE\nVulnerability: V9 - Insecure Randomness\nAnalysis: Safe: Internal State Hash Randomness. Derives randomness from a complex hash of internal state data, making it unpredictable by external observers.",
-        "meta_platform": "Solana",
-        "meta_vuln_type": "V9 - Insecure Randomness"
+        "meta_vuln_type": "V9 - Insecure Randomness",
+        "meta_severity": "None"
     }
 ]
