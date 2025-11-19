@@ -1,142 +1,254 @@
 [
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    fee_logic = Seq([\n        If(Txn.fee() > Int(1000000)).Then(\n            App.globalPut(Bytes(\"high_fee_flag\"), Int(1)))\n        ),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"record\"), fee_logic])",
-        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Arbitrary Fee Abuse: Logic responds to (or records) excessively high transaction fees without validating the transaction's purpose, allowing DoS via inflated costs.",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    complex_logic = Seq([\n        For(Int(0), Int(0), Int(10000)).Do(Log(Bytes(\"compute\"))),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"complex\"), complex_logic])",
-        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Unnecessary Complex Computation: Executes a complex loop or calculation unnecessarily, consuming block resources and risking failure (DoS).",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    write_large_data = Seq([\n        App.globalPut(Bytes(\"user_data\"), Txn.application_args[1]),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"write_large\"), write_large_data])",
-        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Uncontrolled Global State Write: Writes a large, unchecked data input to Global State, increasing state size and future transaction costs (DoS).",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    unbounded_loop = Seq([\n        For(Int(0), Int(0), Btoi(Txn.application_args[1])).Do(Log(Bytes(\"loop\"))),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"loop\"), unbounded_loop])",
-        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Unbounded Loop based on Input: Executes a computational loop where the iteration count is derived directly from an unchecked user input (DoS).",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    create_many_local = Seq([\n        App.localPut(Txn.sender(), Bytes(\"data_1\"), Int(1)),\n        App.localPut(Txn.sender(), Bytes(\"data_2\"), Int(2)),\n        App.localPut(Txn.sender(), Bytes(\"data_3\"), Int(3)),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"create_many\"), create_many_local])",
-        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Excessive Local State Creation: Function allows the unnecessary creation of multiple local state entries simultaneously, increasing storage costs and node load (DoS).",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    log_unbounded = Seq([\n        For(Int(0), Int(0), Btoi(Txn.application_args[1])).Do(Log(Bytes(\"msg\"))),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"log_many\"), log_unbounded])",
-        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Unbounded Log Generation: Generates an arbitrary number of log messages based on unchecked user input (DoS).",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    inner_txn_spam = Seq([\n        For(Int(0), Int(0), Int(10)).Do(InnerTxnBuilder.Submit()),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"txn_spam\"), inner_txn_spam])",
-        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Inner Transaction Spam: Generates an unnecessarily large number of inner transactions (max 16) within a single outer transaction (DoS).",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    uncontrolled_asset_creation = Seq([\n        InnerTxnBuilder.Begin(),\n        InnerTxnBuilder.SetFields({TxnField.type_enum: TxnType.AssetConfig}),\n        InnerTxnBuilder.Submit(),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"create_asset\"), uncontrolled_asset_creation])",
-        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Uncontrolled Asset Creation: Allows any user to trigger asset configuration/creation without access control, wasting ALGO and block space (DoS).",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    large_loop_with_state = Seq([\n        For(Int(0), Int(0), Int(100)).Do(App.globalPut(Bytes(\"i\"), Btoi(Txn.application_args[1]))),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"complex_write\"), large_loop_with_state])",
-        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Large Loop with State Write: Executes a large computational loop that unnecessarily writes to global state in every iteration, consuming compute and write budget.",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    unbounded_scratch_space = Seq([\n        ScratchSlot(1).store(Int(1000)),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"use_scratch\"), unbounded_scratch_space])",
-        "output": "Status: VULNERABLE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Unbounded Scratch Space Usage: Excessive use of scratch space/slots for non-essential data, contributing to execution overhead (DoS).",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    fee_logic = Seq([\n        Assert(Txn.fee() < Int(10000)),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"record\"), fee_logic])",
-        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Asserted Fee Limit: Implements an assertion to ensure the transaction fee is below a predefined safe maximum.",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    complex_logic = Seq([\n        For(Int(0), Int(0), Int(10)).Do(Log(Bytes(\"compute\"))),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"complex\"), complex_logic])",
-        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Fixed Bound Computation: Uses a fixed, small loop count for complex calculations, ensuring computation remains within safe limits.",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    write_small_data = Seq([\n        Assert(Len(Txn.application_args[1]) < Int(32)),\n        App.globalPut(Bytes(\"user_data\"), Txn.application_args[1]),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"write_large\"), write_small_data])",
-        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Controlled Global State Write: Implements assertion to limit the size of user-provided data written to Global State.",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    fixed_loop = Seq([\n        For(Int(0), Int(0), Int(50)).Do(Log(Bytes(\"loop\"))),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"loop\"), fixed_loop])",
-        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Fixed Bound Loop: Uses a constant, fixed iteration count for the computational loop, decoupling it from user input.",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    create_single_local = Seq([\n        App.localPut(Txn.sender(), Bytes(\"data_status\"), Int(1)),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"create_many\"), create_single_local])",
-        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Single Local State Creation: Restricts the creation of local state to a single, essential entry per transaction.",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    bounded_log = Seq([\n        For(Int(0), Int(0), Int(5)).Do(Log(Bytes(\"msg\"))),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"log_many\"), bounded_log])",
-        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Bounded Log Generation: Limits the number of log messages generated to a fixed, small number.",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    inner_txn_safe = Seq([\n        For(Int(0), Int(0), Int(1)).Do(InnerTxnBuilder.Submit()),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"txn_spam\"), inner_txn_safe])",
-        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Controlled Inner Transaction: Limits the number of inner transactions to the minimum necessary for the operation.",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    controlled_asset_creation = Seq([\n        Assert(Txn.sender() == Global.creator_address()),\n        InnerTxnBuilder.Begin(),\n        InnerTxnBuilder.SetFields({TxnField.type_enum: TxnType.AssetConfig}),\n        InnerTxnBuilder.Submit(),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"create_asset\"), controlled_asset_creation])",
-        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Controlled Asset Creation: Restricts asset configuration/creation to the application creator only.",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    complex_write_safe = Seq([\n        For(Int(0), Int(0), Int(5)).Do(App.globalPut(Bytes(\"i\"), Btoi(Txn.application_args[1]))),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"complex_write\"), complex_write_safe])",
-        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Bounded Write Loop: Limits the computational loop that involves state writing to a fixed, small number of iterations.",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    },
-    {
-        "instruction": "You are a smart contract security analyzer. Your task is to analyze the provided PyTeal code for Algorand and identify Denial of Service (DoS) vulnerabilities (OWASP V10).",
-        "input": "def approval_program():\n    controlled_scratch_space = Seq([\n        ScratchSlot(1).store(Int(1)),\n        Return(Int(1))\n    ])\n    return Cond([Txn.application_args[0] == Bytes(\"use_scratch\"), controlled_scratch_space])",
-        "output": "Status: SAFE\nVulnerability: V10 - Denial of Service (DoS)\nAnalysis: Controlled Scratch Space Usage: Uses only a minimal amount of scratch space necessary for the execution.",
-        "meta_platform": "Algorand",
-        "meta_vuln_type": "V10 - Denial of Service"
-    }
+  {
+    "id": "ALG_V10_001",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "severity": "CRITICAL",
+    "instruction": "You are a smart contract security analyzer for Algorand. Analyze the PyTeal code for Denial of Service (DoS) vulnerabilities caused by uncontrolled resource consumption.",
+    "input": "def approval_program():\n    # Unbounded loop based on user input - VULNERABLE\n    expensive_loop = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"compute\")),\n        # VULN: Loop count controlled by user input (no upper bound)\n        For(Int(0), Int(0), Btoi(Txn.application_args[1])).Do(\n            Log(Bytes(\"expensive_operation\"))\n        ),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"compute\"), expensive_loop]\n    )\n    return program",
+    "output": "Status: VULNERABLE\nVulnerability: Unbounded Loop Iteration from User Input\nDescription: The contract executes a loop where the iteration count is directly derived from unchecked user input (Txn.application_args[1]). An attacker can set this to a very large number, causing the transaction to exceed execution budget limits and fail, resulting in denial of service.\nAffected Lines: For loop with Btoi(Txn.application_args[1]) as upper bound\nImpact: Transaction execution failure, network resource exhaustion, legitimate user transactions rejected\nCVSS Score: 9.3 (Critical)",
+    "remediation": "1. Replace user-controlled loop count with a fixed maximum constant\n2. Add Assert(Btoi(Txn.application_args[1]) <= Int(100)) to validate input\n3. Use fixed-bound iteration: For(Int(0), Int(0), Int(100)).Do(...)\n4. Document maximum safe iteration limits in contract specifications",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_cwe": "CWE-399: Resource Exhaustion"
+  },
+  {
+    "id": "ALG_V10_002",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "severity": "CRITICAL",
+    "instruction": "Analyze the PyTeal contract for DoS vulnerabilities caused by uncontrolled state writes.",
+    "input": "def approval_program():\n    # Unbounded state write - VULNERABLE\n    write_user_data = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"write\")),\n        # VULN: No size validation on user-provided data\n        # Attacker can write very large data, increasing contract size\n        App.globalPut(Bytes(\"user_data\"), Txn.application_args[1]),\n        App.globalPut(Bytes(\"size\"), Len(Txn.application_args[1])),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"write\"), write_user_data]\n    )\n    return program",
+    "output": "Status: VULNERABLE\nVulnerability: Unbounded Global State Write\nDescription: The contract writes user-provided data directly to global state without size validation. An attacker can submit extremely large data (up to 4KB per argument) repeatedly, exhausting the contract's state size limits and increasing operational costs for all future transactions.\nAffected Lines: App.globalPut with unchecked Txn.application_args[1]\nImpact: Contract state bloat, increased transaction fees for all users, potential contract failure\nCVSS Score: 8.8 (Critical)",
+    "remediation": "1. Add size validation: Assert(Len(Txn.application_args[1]) <= Int(32))\n2. Implement quota system to limit total state usage per user\n3. Use local state for user-specific data instead of global state\n4. Implement state cleanup/garbage collection mechanisms",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_cwe": "CWE-770: Allocation of Resources Without Limits"
+  },
+  {
+    "id": "ALG_V10_003",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "severity": "HIGH",
+    "instruction": "Analyze the PyTeal contract for DoS vulnerabilities from excessive inner transaction creation.",
+    "input": "def approval_program():\n    # Excessive inner transactions - VULNERABLE\n    spam_inner_txns = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"spam\")),\n        # VULN: Creates many inner transactions based on input\n        # Maximum 16 inner txns allowed; exceeding this causes failure\n        For(Int(0), Int(0), Btoi(Txn.application_args[1])).Do(\n            Seq([\n                InnerTxnBuilder.Begin(),\n                InnerTxnBuilder.SetFields({\n                    TxnField.type_enum: TxnType.Payment,\n                    TxnField.receiver: Txn.sender(),\n                    TxnField.amount: Int(0),\n                }),\n                InnerTxnBuilder.Submit()\n            ])\n        ),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"spam\"), spam_inner_txns]\n    )\n    return program",
+    "output": "Status: VULNERABLE\nVulnerability: Unbounded Inner Transaction Generation\nDescription: The contract generates inner transactions based on unchecked user input. Since Algorand limits to 16 inner transactions per outer transaction, an attacker can cause transaction failure by requesting more than 16 inner transactions, resulting in DoS.\nAffected Lines: Inner transaction loop controlled by Btoi(Txn.application_args[1])\nImpact: Transaction rejection, wasted fees, network disruption\nCVSS Score: 8.5 (Critical)",
+    "remediation": "1. Set strict upper bound: Assert(Btoi(Txn.application_args[1]) <= Int(5))\n2. Use fixed-count inner transaction loops: For(Int(0), Int(0), Int(3)).Do(...)\n3. Document inner transaction limits in specifications\n4. Implement batch processing for large operations outside the contract",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_cwe": "CWE-399: Resource Exhaustion"
+  },
+  {
+    "id": "ALG_V10_004",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "severity": "HIGH",
+    "instruction": "Analyze the PyTeal contract for DoS vulnerabilities from excessive operations without access control.",
+    "input": "def approval_program():\n    # Expensive operation without authorization - VULNERABLE\n    expensive_asset_creation = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"create_asset\")),\n        # VULN: Anyone can trigger expensive asset creation\n        # No authorization check; attacker spams asset creation\n        InnerTxnBuilder.Begin(),\n        InnerTxnBuilder.SetFields({\n            TxnField.type_enum: TxnType.AssetConfig,\n            TxnField.asset_name: Txn.application_args[1],\n            TxnField.asset_unit_name: Txn.application_args[2],\n        }),\n        InnerTxnBuilder.Submit(),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"create_asset\"), expensive_asset_creation]\n    )\n    return program",
+    "output": "Status: VULNERABLE\nVulnerability: Unauthorized Resource-Intensive Operations\nDescription: The contract allows any user to trigger expensive operations (asset creation) without authorization checks. An attacker can repeatedly trigger these operations, consuming ALGO funds and block space, resulting in DoS.\nAffected Lines: Asset creation with no Assert(Txn.sender() == admin) check\nImpact: Unauthorized fund depletion, block space exhaustion, service disruption\nCVSS Score: 9.1 (Critical)",
+    "remediation": "1. Add admin authorization: Assert(Txn.sender() == App.globalGet(Bytes('admin')))\n2. Implement rate limiting per user\n3. Use a whitelist for authorized operations\n4. Add cooldown periods between operations",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_cwe": "CWE-862: Missing Authorization"
+  },
+  {
+    "id": "ALG_V10_005",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "severity": "HIGH",
+    "instruction": "Analyze the PyTeal contract for DoS vulnerabilities from excessive logging.",
+    "input": "def approval_program():\n    # Unbounded logging - VULNERABLE\n    log_spam = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"log\")),\n        # VULN: Generate many log entries based on user input\n        # Each log consumes memory and execution budget\n        For(Int(0), Int(0), Btoi(Txn.application_args[1])).Do(\n            Log(Concat(Bytes(\"Message: \"), Txn.application_args[2]))\n        ),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"log\"), log_spam]\n    )\n    return program",
+    "output": "Status: VULNERABLE\nVulnerability: Unbounded Log Message Generation\nDescription: The contract generates an arbitrary number of log messages based on unchecked user input. Excessive logging consumes execution budget and memory, potentially causing transaction failures and network disruption.\nAffected Lines: Log loop controlled by Btoi(Txn.application_args[1])\nImpact: Transaction execution failure, memory exhaustion, resource denial\nCVSS Score: 7.8 (High)",
+    "remediation": "1. Cap log messages: Assert(Btoi(Txn.application_args[1]) <= Int(10))\n2. Use fixed-count logging: For(Int(0), Int(0), Int(5)).Do(Log(...))\n3. Combine messages into single log when possible\n4. Monitor and limit total log size per transaction",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_cwe": "CWE-400: Uncontrolled Resource Consumption"
+  },
+  {
+    "id": "ALG_V10_006",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "severity": "HIGH",
+    "instruction": "Analyze the PyTeal contract for DoS vulnerabilities from high transaction fees.",
+    "input": "def approval_program():\n    # No fee validation - VULNERABLE\n    accept_high_fee = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"execute\")),\n        # VULN: No assertion on transaction fee\n        # Attacker can set extremely high fees, wasting resources\n        App.globalPut(Bytes(\"last_fee\"), Txn.fee()),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"execute\"), accept_high_fee]\n    )\n    return program",
+    "output": "Status: VULNERABLE\nVulnerability: Unvalidated High Transaction Fees\nDescription: The contract accepts and records transactions with arbitrary fee amounts without validation. An attacker can submit transactions with unreasonably high fees, wasting ALGO and discouraging legitimate users from interacting with the contract.\nAffected Lines: No Assert check on Txn.fee()\nImpact: Economic denial of service (EDoS), increased costs for legitimate operations\nCVSS Score: 8.2 (High)",
+    "remediation": "1. Add fee assertion: Assert(Txn.fee() <= Int(10000))\n2. Set reasonable fee limits based on operation complexity\n3. Reject transactions exceeding threshold\n4. Document maximum acceptable fees",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_cwe": "CWE-770: Allocation of Resources Without Limits"
+  },
+  {
+    "id": "ALG_V10_007",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "severity": "HIGH",
+    "instruction": "Analyze the PyTeal contract for DoS vulnerabilities from excessive local state creation.",
+    "input": "def approval_program():\n    # Excessive local state writes - VULNERABLE\n    create_many_entries = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"create\")),\n        # VULN: Creates multiple local state entries without control\n        For(Int(0), Int(0), Btoi(Txn.application_args[1])).Do(\n            App.localPut(\n                Txn.sender(),\n                Concat(Bytes(\"entry_\"), Itob(Int(0))),\n                Btoi(Txn.application_args[2])\n            )\n        ),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"create\"), create_many_entries]\n    )\n    return program",
+    "output": "Status: VULNERABLE\nVulnerability: Unbounded Local State Creation\nDescription: The contract creates multiple local state entries for users based on unchecked input. Excessive local state creation increases MBR (Minimum Balance Requirement) for users and consumes block space, potentially locking users' funds.\nAffected Lines: Local state loop controlled by Btoi(Txn.application_args[1])\nImpact: User fund lockup, increased financial burden, service unavailability\nCVSS Score: 8.9 (Critical)",
+    "remediation": "1. Limit state creation: Assert(Btoi(Txn.application_args[1]) <= Int(3))\n2. Use fixed state keys instead of dynamic generation\n3. Implement single state entry per operation\n4. Document MBR impact on users",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_cwe": "CWE-770: Allocation of Resources Without Limits"
+  },
+  {
+    "id": "ALG_V10_008",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "severity": "MEDIUM",
+    "instruction": "Analyze the PyTeal contract for DoS vulnerabilities from complex state modifications.",
+    "input": "def approval_program():\n    # Complex computation in loop - VULNERABLE\n    complex_state_update = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"complex\")),\n        # VULN: Expensive computation repeated many times\n        For(Int(0), Int(0), Int(100)).Do(\n            Seq([\n                App.globalPut(\n                    Concat(Bytes(\"state_\"), Itob(Int(0))),\n                    Btoi(Txn.application_args[1]) * Btoi(Txn.application_args[2])\n                ),\n                Log(Bytes(\"computed\"))\n            ])\n        ),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"complex\"), complex_state_update]\n    )\n    return program",
+    "output": "Status: VULNERABLE\nVulnerability: Excessive Computational Operations in Loop\nDescription: The contract performs complex mathematical computations and state writes in an unoptimized loop. While the iteration count is fixed, the combination of computation intensity and state writes can exhaust execution budget, causing transaction failures.\nAffected Lines: Loop with Seq containing multiplication, state put, and logging\nImpact: Transaction rejection, service unavailability for complex operations\nCVSS Score: 7.5 (High)",
+    "remediation": "1. Optimize computation: Move expensive calculations outside loops\n2. Batch state writes: Update once after all calculations\n3. Reduce loop iterations: For(Int(0), Int(0), Int(20)).Do(...)\n4. Use scratch slots for temporary values instead of global state",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_cwe": "CWE-770: Allocation of Resources Without Limits"
+  },
+  {
+    "id": "ALG_V10_009",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "severity": "MEDIUM",
+    "instruction": "Analyze the PyTeal contract for DoS vulnerabilities from lack of operation rate limiting.",
+    "input": "def approval_program():\n    # No rate limiting - VULNERABLE\n    expensive_operation = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"transfer\")),\n        # VULN: No timestamp check or rate limiting\n        # User can execute unlimited operations rapidly\n        InnerTxnBuilder.Begin(),\n        InnerTxnBuilder.SetFields({\n            TxnField.type_enum: TxnType.Payment,\n            TxnField.receiver: Txn.application_args[1],\n            TxnField.amount: Btoi(Txn.application_args[2]),\n        }),\n        InnerTxnBuilder.Submit(),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"transfer\"), expensive_operation]\n    )\n    return program",
+    "output": "Status: VULNERABLE\nVulnerability: Lack of Operation Rate Limiting\nDescription: The contract allows unlimited rapid execution of expensive operations (fund transfers) without any throttling mechanism. An attacker can rapidly execute many operations, exhausting contract resources and funds, resulting in denial of service.\nAffected Lines: No rate limiting check before InnerTxnBuilder operations\nImpact: Rapid fund depletion, resource exhaustion, service disruption\nCVSS Score: 8.7 (Critical)",
+    "remediation": "1. Implement timestamp-based rate limiting: Assert(Global.latest_confirmed_block() > last_execution + 1000)\n2. Add operation counter with cooldown\n3. Implement per-user quotas\n4. Use global state to track last operation timestamp",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_cwe": "CWE-770: Allocation of Resources Without Limits"
+  },
+  {
+    "id": "ALG_V10_010",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "severity": "HIGH",
+    "instruction": "Analyze the PyTeal contract for DoS vulnerabilities from excessive group transaction processing.",
+    "input": "def approval_program():\n    # No group size validation - VULNERABLE\n    process_group = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"process\")),\n        # VULN: Processes all transactions in group without limit check\n        For(Int(0), Int(0), Global.group_size()).Do(\n            Seq([\n                InnerTxnBuilder.Begin(),\n                InnerTxnBuilder.SetFields({\n                    TxnField.type_enum: TxnType.Payment,\n                    TxnField.amount: Int(1000),\n                }),\n                InnerTxnBuilder.Submit()\n            ])\n        ),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"process\"), process_group]\n    )\n    return program",
+    "output": "Status: VULNERABLE\nVulnerability: Unbounded Group Transaction Processing\nDescription: The contract processes transactions from the entire group without validating group size. An attacker can submit large transaction groups, forcing the contract to perform excessive operations and potentially exceeding inner transaction limits (max 16).\nAffected Lines: Loop using Global.group_size() as upper bound\nImpact: Transaction failure, execution budget exhaustion, service disruption\nCVSS Score: 8.4 (Critical)",
+    "remediation": "1. Validate group size: Assert(Global.group_size() <= Int(4))\n2. Process only expected transactions: Assert(Global.group_size() == Int(2))\n3. Limit inner transactions created: Cap at Int(5) maximum\n4. Document group processing constraints",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_cwe": "CWE-770: Allocation of Resources Without Limits"
+  }
+]
+[
+  {
+    "id": "ALG_V10_SAFE_001",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "status": "SAFE",
+    "instruction": "Analyze the secure PyTeal code that properly handles loop iteration bounds to prevent DoS.",
+    "input": "def approval_program():\n    admin_key = Bytes(\"admin\")\n    max_iterations = Int(50)  # Fixed safe limit\n    \n    # SECURE: Fixed bound computation\n    safe_loop = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"compute\")),\n        # SECURE: Fixed iteration count - not user controlled\n        For(Int(0), Int(0), max_iterations).Do(\n            Log(Bytes(\"safe_operation\"))\n        ),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"compute\"), safe_loop]\n    )\n    return program",
+    "output": "Status: SAFE\nSecurity Implementation: Fixed-Bound Loop Iteration\nAnalysis: Uses a constant, pre-defined maximum iteration count instead of user input. This ensures predictable execution budget consumption and prevents unbounded resource exhaustion attacks.",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_security_pattern": "Fixed Resource Bounds"
+  },
+  {
+    "id": "ALG_V10_SAFE_002",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "status": "SAFE",
+    "instruction": "Analyze the secure PyTeal code that validates data size before state writes.",
+    "input": "def approval_program():\n    max_data_size = Int(64)  # Reasonable limit\n    \n    # SECURE: Size validation before state write\n    safe_write = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"write\")),\n        # SECURE: Validate data size before writing\n        Assert(Len(Txn.application_args[1]) <= max_data_size),\n        Assert(Len(Txn.application_args[1]) > Int(0)),\n        App.globalPut(Bytes(\"user_data\"), Txn.application_args[1]),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"write\"), safe_write]\n    )\n    return program",
+    "output": "Status: SAFE\nSecurity Implementation: Input Size Validation\nAnalysis: Validates user-provided data size before writing to state, preventing state bloat attacks. Sets reasonable upper bounds to protect against contract resource exhaustion.",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_security_pattern": "Input Validation and Size Limits"
+  },
+  {
+    "id": "ALG_V10_SAFE_003",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "status": "SAFE",
+    "instruction": "Analyze the secure PyTeal code that limits inner transaction creation.",
+    "input": "def approval_program():\n    admin_key = Bytes(\"admin\")\n    max_inner_txns = Int(3)  # Safe limit (max 16)\n    \n    # SECURE: Limited inner transaction generation\n    safe_inner_txns = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"create\")),\n        Assert(Txn.sender() == App.globalGet(admin_key)),\n        # SECURE: Fixed count of inner transactions\n        For(Int(0), Int(0), max_inner_txns).Do(\n            Seq([\n                InnerTxnBuilder.Begin(),\n                InnerTxnBuilder.SetFields({\n                    TxnField.type_enum: TxnType.Payment,\n                    TxnField.receiver: Txn.sender(),\n                    TxnField.amount: Int(1000),\n                }),\n                InnerTxnBuilder.Submit()\n            ])\n        ),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"create\"), safe_inner_txns]\n    )\n    return program",
+    "output": "Status: SAFE\nSecurity Implementation: Bounded Inner Transaction Creation with Authorization\nAnalysis: Limits inner transactions to a safe fixed count (3/16 max) and requires admin authorization, preventing spam attacks and resource exhaustion.",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_security_pattern": "Authorization + Fixed Bounds"
+  },
+  {
+    "id": "ALG_V10_SAFE_004",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "status": "SAFE",
+    "instruction": "Analyze the secure PyTeal code that prevents expensive operations without authorization.",
+    "input": "def approval_program():\n    admin_key = Bytes(\"admin\")\n    max_fee = Int(10000)  # Safe fee limit\n    \n    # SECURE: Authorized expensive operations with fee validation\n    safe_expensive_op = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"execute\")),\n        # SECURE: Verify admin authorization\n        Assert(Txn.sender() == App.globalGet(admin_key)),\n        # SECURE: Validate transaction fee\n        Assert(Txn.fee() <= max_fee),\n        InnerTxnBuilder.Begin(),\n        InnerTxnBuilder.SetFields({\n            TxnField.type_enum: TxnType.Payment,\n            TxnField.receiver: Txn.application_args[1],\n            TxnField.amount: Btoi(Txn.application_args[2]),\n        }),\n        InnerTxnBuilder.Submit(),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"execute\"), safe_expensive_op]\n    )\n    return program",
+    "output": "Status: SAFE\nSecurity Implementation: Authorization + Fee Validation\nAnalysis: Implements multiple protection layers: (1) Admin authorization check, (2) Fee validation, (3) Controlled fund transfer. Prevents unauthorized resource-intensive operations.",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_security_pattern": "Multi-Layer Authorization & Validation"
+  },
+  {
+    "id": "ALG_V10_SAFE_005",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "status": "SAFE",
+    "instruction": "Analyze the secure PyTeal code that controls logging operations.",
+    "input": "def approval_program():\n    max_logs = Int(5)  # Safe limit for log messages\n    \n    # SECURE: Bounded logging\n    safe_logging = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"log\")),\n        # SECURE: Fixed number of log messages\n        For(Int(0), Int(0), max_logs).Do(\n            Log(Concat(Bytes(\"Event: \"), Bytes(\"processed\")))\n        ),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"log\"), safe_logging]\n    )\n    return program",
+    "output": "Status: SAFE\nSecurity Implementation: Fixed-Bound Logging\nAnalysis: Limits the number of log messages to a constant, preventing log-based resource exhaustion attacks.",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_security_pattern": "Fixed Resource Bounds"
+  },
+  {
+    "id": "ALG_V10_SAFE_006",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "status": "SAFE",
+    "instruction": "Analyze the secure PyTeal code that validates transaction fees.",
+    "input": "def approval_program():\n    expected_fee = Int(1000)\n    max_fee = Int(5000)\n    \n    # SECURE: Fee validation\n    safe_fee_check = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"execute\")),\n        # SECURE: Validate fee is within acceptable range\n        Assert(Txn.fee() >= expected_fee),\n        Assert(Txn.fee() <= max_fee),\n        App.globalPut(Bytes(\"last_fee\"), Txn.fee()),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"execute\"), safe_fee_check]\n    )\n    return program",
+    "output": "Status: SAFE\nSecurity Implementation: Fee Range Validation\nAnalysis: Validates that transaction fees fall within acceptable bounds (min and max), preventing economic DoS attacks from excessive fees.",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_security_pattern": "Input Validation with Reasonable Bounds"
+  },
+  {
+    "id": "ALG_V10_SAFE_007",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "status": "SAFE",
+    "instruction": "Analyze the secure PyTeal code that limits local state creation.",
+    "input": "def approval_program():\n    max_state_entries = Int(2)  # Safe limit per user\n    \n    # SECURE: Limited local state creation\n    safe_state_creation = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"create\")),\n        # SECURE: Fixed number of state entries\n        For(Int(0), Int(0), max_state_entries).Do(\n            App.localPut(\n                Txn.sender(),\n                Concat(Bytes(\"key_\"), Itob(Int(0))),\n                Btoi(Txn.application_args[1])\n            )\n        ),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"create\"), safe_state_creation]\n    )\n    return program",
+    "output": "Status: SAFE\nSecurity Implementation: Limited Local State Creation\nAnalysis: Restricts the number of local state entries per user to a safe limit, preventing MBR exhaustion and fund lockup attacks.",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_security_pattern": "Fixed Resource Allocation"
+  },
+  {
+    "id": "ALG_V10_SAFE_008",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "status": "SAFE",
+    "instruction": "Analyze the secure PyTeal code with optimized computation.",
+    "input": "def approval_program():\n    safe_iterations = Int(10)  # Reduced for efficiency\n    \n    # SECURE: Optimized computation with reduced iterations\n    safe_optimized = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"compute\")),\n        # SECURE: Limited iterations with efficient single write\n        For(Int(0), Int(0), safe_iterations).Do(\n            Seq([])\n        ),\n        # Single state write after computation\n        App.globalPut(\n            Bytes(\"result\"),\n            Btoi(Txn.application_args[1]) + Btoi(Txn.application_args[2])\n        ),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"compute\"), safe_optimized]\n    )\n    return program",
+    "output": "Status: SAFE\nSecurity Implementation: Optimized Computation Pattern\nAnalysis: Reduces computation overhead by minimizing loop iterations and batching state writes. Single state update after all computations completes, not in each iteration.",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_security_pattern": "Resource-Efficient Design"
+  },
+  {
+    "id": "ALG_V10_SAFE_009",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "status": "SAFE",
+    "instruction": "Analyze the secure PyTeal code with rate limiting.",
+    "input": "def approval_program():\n    admin_key = Bytes(\"admin\")\n    last_execution_key = Bytes(\"last_execution\")\n    cooldown_blocks = Int(1000)  # ~4 minutes\n    \n    # SECURE: Rate-limited expensive operations\n    rate_limited_op = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"transfer\")),\n        Assert(Txn.sender() == App.globalGet(admin_key)),\n        # SECURE: Check cooldown period\n        Assert(Global.latest_confirmed_block() > \n               App.globalGet(last_execution_key) + cooldown_blocks),\n        InnerTxnBuilder.Begin(),\n        InnerTxnBuilder.SetFields({\n            TxnField.type_enum: TxnType.Payment,\n            TxnField.receiver: Txn.application_args[1],\n            TxnField.amount: Btoi(Txn.application_args[2]),\n        }),\n        InnerTxnBuilder.Submit(),\n        # Update last execution time\n        App.globalPut(last_execution_key, Global.latest_confirmed_block()),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"transfer\"), rate_limited_op]\n    )\n    return program",
+    "output": "Status: SAFE\nSecurity Implementation: Timestamp-Based Rate Limiting\nAnalysis: Enforces a cooldown period between expensive operations using block height, preventing rapid-fire resource exhaustion attacks while allowing authorized operations.",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_security_pattern": "Rate Limiting with Cooldown"
+  },
+  {
+    "id": "ALG_V10_SAFE_010",
+    "platform": "Algorand",
+    "vulnerability_type": "V10 - Denial of Service",
+    "status": "SAFE",
+    "instruction": "Analyze the secure PyTeal code that validates group transaction size.",
+    "input": "def approval_program():\n    admin_key = Bytes(\"admin\")\n    max_group_size = Int(4)  # Safe limit\n    \n    # SECURE: Group size validation\n    safe_group_process = Seq([\n        Assert(Txn.application_args[0] == Bytes(\"process\")),\n        Assert(Txn.sender() == App.globalGet(admin_key)),\n        # SECURE: Validate group size before processing\n        Assert(Global.group_size() <= max_group_size),\n        # Process only expected transactions\n        For(Int(0), Int(0), Int(2)).Do(\n            Seq([\n                InnerTxnBuilder.Begin(),\n                InnerTxnBuilder.SetFields({\n                    TxnField.type_enum: TxnType.Payment,\n                    TxnField.amount: Int(1000),\n                }),\n                InnerTxnBuilder.Submit()\n            ])\n        ),\n        Return(Int(1))\n    ])\n    \n    program = Cond(\n        [Txn.application_id() == Int(0), Return(Int(1))],\n        [Txn.application_args[0] == Bytes(\"process\"), safe_group_process]\n    )\n    return program",
+    "output": "Status: SAFE\nSecurity Implementation: Group Size Validation with Fixed Processing\nAnalysis: Validates group size before processing and uses fixed inner transaction count, preventing both group explosion attacks and inner transaction limit breaches.",
+    "meta_platform": "Algorand",
+    "meta_vuln_type": "V10 - Denial of Service",
+    "meta_security_pattern": "Input Validation + Authorization + Fixed Bounds"
+  }
 ]
