@@ -1,4 +1,3 @@
-<img width="1600" height="400" alt="Università degli Studi di Salerno" src="https://github.com/user-attachments/assets/c4ef87e2-7935-4839-827a-3c3561b6b086" />
 
 ---
 <div align="center">
