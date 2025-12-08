@@ -1,167 +1,85 @@
 <img width="1600" height="400" alt="Università degli Studi di Salerno" src="https://github.com/user-attachments/assets/c4ef87e2-7935-4839-827a-3c3561b6b086" />
 
 ---
+<div align="center">
+
+<img width="100%" src="https://github.com/user-attachments/assets/c4ef87e2-7935-4839-827a-3c3561b6b086" alt="University of Salerno Header" />
 
 # 🧠 LLM Contract Analyzer
 
-A structured dataset and framework for analyzing smart contracts using Large Language Models (LLMs)
+**A structured framework and dataset for detecting smart contract vulnerabilities using Large Language Models (LLMs).**
+
+[![Status: Work in Progress](https://img.shields.io/badge/Status-Work_in_Progress-orange)](https://github.com/yourusername/LLM-Contract-Analyzer)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Platform: Solana](https://img.shields.io/badge/Platform-Solana-blueviolet)](https://solana.com/)
+[![Platform: Algorand](https://img.shields.io/badge/Platform-Algorand-black)](https://algorand.com/)
+[![Research: Thesis](https://img.shields.io/badge/Research-Bachelor_Thesis-blue)](https://habes.cs.unisa.it)
+
+</div>
+
+---
+
+## 🚧 Project Status: Under Active Development
+
+> **⚠️ Note:** This repository is currently in the **data preparation and validation phase**. The datasets provided here are subject to updates, refinement, and expansion. The final release will be aligned with the completion of the associated thesis.
 
 ---
 
 ## 📌 Overview
 
-**LLM Contract Analyzer** is an academic research project developed as part of a bachelor thesis focused on smart contract security and AI-assisted vulnerability detection.
-The goal is to build a high-quality, structured dataset that helps LLMs detect logic bugs, security vulnerabilities, and misconfigurations across multiple non-EVM blockchain platforms.
+**LLM Contract Analyzer** is an academic research project developed as part of a Bachelor's thesis focused on smart contract security and AI-assisted vulnerability detection.
 
-This repository currently includes:
-
-* Organized JSON datasets
-* Two supported platforms: **Solana** and **Algorand**
-* Samples categorized by OWASP-aligned vulnerability types
-* Handcrafted and validated custom samples
-* Verified external datasets (audits, benchmarks, reports)
-
-The project will remain **open-source** to encourage collaboration from researchers, students, and developers.
+The primary goal is to establish a high-quality, structured, and labeled dataset that enables Large Language Models (LLMs) to accurately detect logic bugs, security vulnerabilities, and configuration errors across **non-EVM** blockchain architectures (specifically Solana & Algorand).
 
 ---
 
-## 🏛️ Academic Affiliation
+## 📊 Vulnerability Taxonomy & Dataset Scope
 
-This thesis project is conducted under the supervision of the:
+The dataset aligns with **OWASP Smart Contract Top 10** standards but is adapted for platform-specific relevance. 
 
-**HABES Lab — Hardware Assisted and Blockchain Empowered Security Lab**
-Department of Computer Science
-University of Salerno, Italy
-[https://habes.cs.unisa.it](https://habes.cs.unisa.it)
+**Current Scope Limitation:**
+Certain vulnerability types (V2, V3, V7) are currently **excluded** from the generated dataset as they primarily rely on external off-chain data (Oracles), complex business logic specific to a single DApp, or external DeFi protocol interactions (Flash Loans), which are difficult to capture in isolated static code snippets.
 
-Although the author is not physically part of the laboratory, the project is supervised by the professor responsible for the HABES Lab.
+| ID | Vulnerability Category | Solana Status | Algorand Status | Description |
+| :--- | :--- | :---: | :---: | :--- |
+| **V1** | **Access Control** | ✅ **Included** | ✅ **Included** | Missing signer checks, owner validation errors. |
+| **V2** | **Oracle Manipulation** | ❌ *Excluded* | ⚪ N/A | Requires external price feed context. |
+| **V3** | **Logic Errors** | ❌ *Excluded* | ✅ **Included** | Generic business logic flaws. |
+| **V4** | **Input Validation** | ✅ **Included** | ⚪ N/A | Missing constraints, account confusion. |
+| **V5** | **Reentrancy** | ✅ **Included** | ⚪ N/A | CPI inconsistencies (Solana specific). |
+| **V6** | **Unchecked Calls** | ✅ **Included** | ✅ **Included** | Unverified CPI calls / ignored return data. |
+| **V7** | **Flash Loans** | ❌ *Excluded* | ⚪ N/A | Arbitrage/AMM manipulation (Out of scope). |
+| **V8** | **Integer Issues** | ✅ **Included** | ✅ **Included** | Overflow/Underflow (Arithmetic errors). |
+| **V9** | **Insecure Randomness** | ✅ **Included** | ⚪ N/A | Predictable seeds / slot hashes. |
+| **V10** | **DoS** | ✅ **Included** | ✅ **Included** | PDA collisions, Compute Budget exhaustion. |
+
+> **Legend:**
+> * ✅ **Included:** High-quality samples are ready/in-progress.
+> * ❌ **Excluded:** Out of scope for the current research phase.
+> * ⚪ **N/A:** Not applicable to this blockchain's architecture.
 
 ---
 
 ## 📁 Repository Structure
 
+The dataset is organized by platform. Files are currently being populated and validated.
+
 ```text
 LLM-Contract-Analyzer/
 ├── algorand/
-│   ├── custom_samples/       # Handcrafted PyTeal samples (OWASP tailored)
-│   │   ├── algorand_v1_access_control.json
-│   │   ├── algorand_v3_logic_errors.json
-│   │   ├── algorand_v6_unchecked_calls.json
-│   │   ├── algorand_v8_integer_overflow.json
-│   │   └── algorand_v10_dos.json
-│   │
-│   └── external_datasets/    # Verified datasets collected from external sources
-│       └── (e.g., audit_reports, benchmarks...)
+│   └── custom_samples/
+│       ├── algorand_v1_access_control.json
+│       ├── algorand_v6_unchecked_calls.json
+│       └── ...
 │
 ├── solana/
-│   ├── custom_samples/       # Handcrafted Rust/Anchor samples (OWASP tailored)
-│   │   ├── solana_v1_access_control.json
-│   │   ├── solana_v2_oracle_manipulation.json
-│   │   ├── solana_v5_reentrancy.json
-│   │   └── ...
-│   │
-│   └── external_datasets/    # Verified datasets collected from external sources
-│       └── (e.g., audit_reports, benchmarks...)
+│   └── custom_samples/         # Handcrafted Rust/Anchor samples
+│       ├── solana_v1_access_control.json
+│       ├── solana_v4_input_validation.json
+│       ├── solana_v5_reentrancy.json
+│       ├── solana_v6_unchecked_calls.json
+│       ├── solana_v8_arithmetic.json
+│       ├── solana_v9_bump_seed.json
+│       └── solana_v10_dos.json
 │
 └── README.md
-```
-
-Each JSON file contains:
-
-* **instruction** → Task for the LLM
-* **input** → Smart contract code
-* **output** → Vulnerability classification & explanation
-* **meta_platform** → Blockchain platform
-* **meta_vuln_type** → Vulnerability type
-
----
-
-## 📊 Vulnerability Taxonomy
-
-The samples map traditional vulnerability classes to platform-specific implementations.
-Some vulnerabilities (e.g., reentrancy) appear only in Solana due to Algorand’s atomic model.
-
-| ID      | Vulnerability Category | Solana (Rust/Anchor)           | Algorand (PyTeal)               |
-| ------- | ---------------------- | ------------------------------ | ------------------------------- |
-| **V1**  | Access Control         | Missing `Signer`, owner checks | Unchecked `Sender`, Rekey logic |
-| **V2**  | Oracle Manipulation    | Unverified Pyth feeds          | N/A                             |
-| **V3**  | Logic Errors           | Incorrect business logic       | State transition flaws          |
-| **V4**  | Input Validation       | Missing account/type checks    | Mostly structural (N/A)         |
-| **V5**  | Reentrancy             | CPI inconsistencies            | N/A                             |
-| **V6**  | Unchecked Calls        | Unverified CPI calls           | Unchecked inner transactions    |
-| **V7**  | Flash Loans            | AMM price manipulation         | N/A                             |
-| **V8**  | Integer Issues         | Overflow/Underflow             | Math errors in TEAL             |
-| **V9**  | Insecure Randomness    | Predictable seeds              | N/A                             |
-| **V10** | DoS                    | PDA collisions, compute budget | Dynamic fee abuse               |
-
----
-
-## 🔬 Methodology
-
-* **Pattern Definition**: Extracted from security audits and academic literature
-* **Synthetic Samples**: Generated to isolate specific flaws
-* **External Verification**: Third-party datasets reviewed before inclusion
-* **Static Analysis**:
-
-  * PyTeal → validated through Python AST
-  * Rust/Anchor → validated for key macros and structure
-
----
-
-## 🎯 Project Goals
-
-* Provide a high-quality academic dataset for LLM security analysis
-* Support thesis research and reproducible experiments
-* Enable collaboration between students and researchers
-* Expand vulnerability coverage and platform diversity
-
----
-
-## 🔧 Usage Example
-
-```python
-import json
-
-with open("solana/custom_samples/solana_v3_logic_errors.json", "r") as f:
-    samples = json.load(f)
-
-print(samples[0])
-```
-
----
-
-## 📌 Supported Platforms
-
-### ✅ Currently Available
-
-* **Solana**
-* **Algorand**
-
-### 🔜 Coming Soon
-
-* Ethereum
-* Cosmos
-* NEAR
-* Aptos
-* Additional chains…
-
----
-
-## 🤝 Contributing
-
-This repository is open for academic and community contributions.
-You may contribute by:
-
-* Adding new smart contract samples
-* Proposing new platforms
-* Improving vulnerability labels
-* Reporting dataset issues
-
-Open a Pull Request or Issue at any time.
-
----
-
-## 🏅 Acknowledgements
-
-This project is part of an undergraduate thesis supervised by the HABES Lab at the University of Salerno.
-Special thanks to the supervising professor for guidance and academic support.
