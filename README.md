@@ -12,7 +12,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Platform: Solana](https://img.shields.io/badge/Platform-Solana-blueviolet)](https://solana.com/)
 [![Platform: Algorand](https://img.shields.io/badge/Platform-Algorand-black)](https://algorand.com/)
-[![Research: Thesis](https://img.shields.io/badge/Research-Bachelor_Thesis-blue)](https://habes.cs.unisa.it)
+[![Research: Thesis](https://img.shields.io/badge/Research-Master's_Thesis-blue)](https://habes.cs.unisa.it)
 
 </div>
 
@@ -26,7 +26,7 @@
 
 ## 📌 Overview
 
-**LLM Contract Analyzer** is an academic research project developed as part of a Bachelor's thesis focused on smart contract security and AI-assisted vulnerability detection.
+**LLM Contract Analyzer** is an academic research project developed as part of a Master's thesis focused on smart contract security and AI-assisted vulnerability detection.
 
 The primary goal is to establish a high-quality, structured, and labeled dataset that enables Large Language Models (LLMs) to accurately detect logic bugs, security vulnerabilities, and configuration errors across **non-EVM** blockchain architectures (specifically Solana & Algorand).
 
