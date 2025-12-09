@@ -65,13 +65,13 @@ The dataset is organized by platform. Files are currently being populated and va
 
 ```text
 LLM-Contract-Analyzer/
-├── algorand/
+├── algorand Dataset/
 │   └── custom_samples/
 │       ├── algorand_v1_access_control.json
 │       ├── algorand_v6_unchecked_calls.json
 │       └── ...
 │
-├── solana/
+├── Solana Dataset/
 │   └── custom_samples/         # Handcrafted Rust/Anchor samples
 │       ├── solana_v1_access_control.json
 │       ├── solana_v4_input_validation.json
