@@ -1,0 +1,79 @@
+{
+  "experiment": "Fine-Tuning with QLoRA",
+  "model": "Llama-3.1-8B-Instruct",
+  "quantization": "4-bit NF4",
+  "lora_config": {
+    "r": 64,
+    "alpha": 16,
+    "dropout": 0.1
+  },
+  "training_config": {
+    "epochs": 4,
+    "learning_rate": "2e-4",
+    "batch_size": 2,
+    "gradient_accumulation": 4
+  },
+  "dataset": {
+    "total": 140,
+    "train": 112,
+    "val": 14,
+    "test": 14
+  },
+  "overall_accuracy": 0.5714,
+  "per_vulnerability": {
+    "Bump Seed": {
+      "Accuracy": 0.5,
+      "Precision": 0.0,
+      "Recall": 0.0,
+      "F1-score": 0.0
+    },
+    "CPI": {
+      "Accuracy": 0.5,
+      "Precision": 0.0,
+      "Recall": 0.0,
+      "F1-score": 0.0
+    },
+    "DoS": {
+      "Accuracy": 0.5,
+      "Precision": 0.0,
+      "Recall": 0.0,
+      "F1-score": 0.0
+    },
+    "Integer Flow": {
+      "Accuracy": 0.5,
+      "Precision": 0.0,
+      "Recall": 0.0,
+      "F1-score": 0.0
+    },
+    "Missing Key Check": {
+      "Accuracy": 1.0,
+      "Precision": 1.0,
+      "Recall": 1.0,
+      "F1-score": 1.0
+    },
+    "Type Confusion": {
+      "Accuracy": 0.5,
+      "Precision": 0.0,
+      "Recall": 0.0,
+      "F1-score": 0.0
+    },
+    "Unchecked Calls": {
+      "Accuracy": 0.5,
+      "Precision": 0.0,
+      "Recall": 0.0,
+      "F1-score": 0.0
+    }
+  },
+  "average": {
+    "Accuracy": 0.57,
+    "Precision": 0.14,
+    "Recall": 0.14,
+    "F1-score": 0.14
+  },
+  "confusion_matrix": {
+    "TP": 1,
+    "FN": 6,
+    "FP": 0,
+    "TN": 7
+  }
+}
