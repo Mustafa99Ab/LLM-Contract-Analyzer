@@ -1,0 +1,121 @@
+{
+  "experiment": "Fine-Tuning with QLoRA",
+  "experiment_id": 2,
+  "model": {
+    "base": "meta-llama/Llama-3.1-8B-Instruct",
+    "quantization": "4-bit NF4 (QLoRA)",
+    "parameters": "8B total, ~100M trainable"
+  },
+  "method": {
+    "type": "Fine-Tuning",
+    "technique": "QLoRA + SFTTrainer + DataCollatorForCompletionOnlyLM",
+    "key_innovation": "Loss computed only on classification output",
+    "training_required": true
+  },
+  "lora_config": {
+    "r": 64,
+    "alpha": 16,
+    "dropout": 0.1,
+    "target_modules": [
+      "gate_proj",
+      "down_proj",
+      "k_proj",
+      "up_proj",
+      "v_proj",
+      "q_proj",
+      "o_proj"
+    ]
+  },
+  "training_config": {
+    "epochs": 3,
+    "learning_rate": 0.0002,
+    "batch_size": 2,
+    "gradient_accumulation": 4,
+    "effective_batch_size": 8,
+    "max_seq_length": 1024,
+    "warmup_ratio": 0.03,
+    "optimizer": "paged_adamw_32bit"
+  },
+  "dataset": {
+    "total": 140,
+    "train": 112,
+    "val": 14,
+    "test": 14,
+    "vulnerability_types": 7
+  },
+  "results": {
+    "overall": {
+      "accuracy": 0.7143,
+      "precision": 0.8,
+      "recall": 0.5714,
+      "f1_score": 0.6667
+    },
+    "macro_average": {
+      "Accuracy": 0.71,
+      "Precision": 0.57,
+      "Recall": 0.57,
+      "F1-score": 0.57
+    },
+    "per_vulnerability_type": {
+      "Bump Seed": {
+        "Accuracy": 1.0,
+        "Precision": 1.0,
+        "Recall": 1.0,
+        "F1-score": 1.0,
+        "Count": 2
+      },
+      "CPI": {
+        "Accuracy": 0.0,
+        "Precision": 0.0,
+        "Recall": 0.0,
+        "F1-score": 0.0,
+        "Count": 2
+      },
+      "DoS": {
+        "Accuracy": 0.5,
+        "Precision": 0.0,
+        "Recall": 0.0,
+        "F1-score": 0.0,
+        "Count": 2
+      },
+      "Integer Flow": {
+        "Accuracy": 0.5,
+        "Precision": 0.0,
+        "Recall": 0.0,
+        "F1-score": 0.0,
+        "Count": 2
+      },
+      "Missing Key Check": {
+        "Accuracy": 1.0,
+        "Precision": 1.0,
+        "Recall": 1.0,
+        "F1-score": 1.0,
+        "Count": 2
+      },
+      "Type Confusion": {
+        "Accuracy": 1.0,
+        "Precision": 1.0,
+        "Recall": 1.0,
+        "F1-score": 1.0,
+        "Count": 2
+      },
+      "Unchecked Calls": {
+        "Accuracy": 1.0,
+        "Precision": 1.0,
+        "Recall": 1.0,
+        "F1-score": 1.0,
+        "Count": 2
+      }
+    }
+  },
+  "confusion_matrix": {
+    "TP": 4,
+    "FN": 3,
+    "FP": 1,
+    "TN": 6
+  },
+  "references": [
+    "Dettmers et al. (2023). QLoRA: Efficient Finetuning of Quantized LLMs. arXiv:2305.14314",
+    "Hu et al. (2021). LoRA: Low-Rank Adaptation of Large Language Models. arXiv:2106.09685"
+  ]
+}
