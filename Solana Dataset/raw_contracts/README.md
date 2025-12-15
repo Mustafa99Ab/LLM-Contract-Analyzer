@@ -80,4 +80,4 @@ These files are from the official Solana Program Library, licensed under Apache 
 
 ---
 
-*Last Updated: December 2024*
+*Last Updated: December 2025*
