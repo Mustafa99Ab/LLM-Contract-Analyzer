@@ -1,0 +1,22 @@
+vulnerability_type,ground_truth,prediction,correct
+Integer Flow,SAFE,VULNERABLE,False
+Integer Flow,SAFE,SAFE,True
+Integer Flow,VULNERABLE,SAFE,False
+Type Confusion,SAFE,SAFE,True
+Type Confusion,SAFE,SAFE,True
+Type Confusion,VULNERABLE,VULNERABLE,True
+DoS,SAFE,SAFE,True
+DoS,SAFE,SAFE,True
+DoS,VULNERABLE,SAFE,False
+Bump Seed,SAFE,SAFE,True
+Bump Seed,SAFE,SAFE,True
+Bump Seed,VULNERABLE,SAFE,False
+Unchecked Calls,SAFE,SAFE,True
+Unchecked Calls,SAFE,SAFE,True
+Unchecked Calls,VULNERABLE,SAFE,False
+Missing Key Check,SAFE,SAFE,True
+Missing Key Check,SAFE,SAFE,True
+Missing Key Check,VULNERABLE,VULNERABLE,True
+CPI,SAFE,VULNERABLE,False
+CPI,SAFE,SAFE,True
+CPI,VULNERABLE,SAFE,False

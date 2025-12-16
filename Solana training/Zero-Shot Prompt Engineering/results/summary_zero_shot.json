@@ -1,0 +1,48 @@
+{
+  "experiment": "Zero-Shot Prompt Engineering",
+  "model": "meta-llama/Llama-3.1-8B-Instruct",
+  "dataset_size": 182,
+  "test_size": 21,
+  "results": {
+    "accuracy": 0.381,
+    "precision": 0.35,
+    "recall": 1.0,
+    "f1_score": 0.5185
+  },
+  "confusion_matrix": {
+    "TP": 7,
+    "FN": 0,
+    "FP": 13,
+    "TN": 1
+  },
+  "per_vulnerability": {
+    "Bump Seed": {
+      "accuracy": 0.3333333333333333,
+      "count": 3
+    },
+    "CPI": {
+      "accuracy": 0.3333333333333333,
+      "count": 3
+    },
+    "DoS": {
+      "accuracy": 0.3333333333333333,
+      "count": 3
+    },
+    "Integer Flow": {
+      "accuracy": 0.6666666666666666,
+      "count": 3
+    },
+    "Missing Key Check": {
+      "accuracy": 0.3333333333333333,
+      "count": 3
+    },
+    "Type Confusion": {
+      "accuracy": 0.3333333333333333,
+      "count": 3
+    },
+    "Unchecked Calls": {
+      "accuracy": 0.3333333333333333,
+      "count": 3
+    }
+  }
+}
