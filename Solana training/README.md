@@ -7,7 +7,7 @@
 
 | Item | Details |
 |------|---------|
-| **Title** | A Comprehensive Analysis of Solana Smart Contracts Using the LLaMA 3 Large Language Model |
+| **Title** | A Comparative Study of Large Language Models for Smart Contract Security Analysis |
 | **Academic Context** | Master’s Thesis – University of Salerno |
 | **Reference Paper** | Boi & Esposito (2025) – University of Salerno |
 | **Model Used** | LLaMA-3.1-8B-Instruct |
