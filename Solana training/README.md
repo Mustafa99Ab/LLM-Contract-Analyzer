@@ -9,8 +9,7 @@
 |------|---------|
 | **Title** | A Comparative Study of Large Language Models for Smart Contract Security Analysis |
 | **Academic Context** | Master’s Thesis – University of Salerno |
-| **Reference Paper** | Prompt Engineering vs. Fine-Tuning for
-LLM-Based Vulnerability Detection in Solana and Algorand Smart Contracts |
+| **Reference Paper** | Prompt Engineering vs. Fine-Tuning for LLM-Based Vulnerability Detection in Solana and Algorand Smart Contracts |
 | **Model Used** | LLaMA-3.1-8B-Instruct |
 | **Model in Reference Paper** | LLaMA-3-8B |
 
