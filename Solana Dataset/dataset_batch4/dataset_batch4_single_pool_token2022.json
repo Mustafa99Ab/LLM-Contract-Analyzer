@@ -1,0 +1,394 @@
+[
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn calculate_deposit_amount(\n    pre_token_supply: u64,\n    pre_pool_stake: u64,\n    user_stake_to_deposit: u64,\n) -> Option<u64> {\n    if pre_pool_stake == 0 || pre_token_supply == 0 {\n        Some(user_stake_to_deposit)\n    } else {\n        u64::try_from(\n            (user_stake_to_deposit as u128)\n                .checked_mul(pre_token_supply as u128)?\n                .checked_div(pre_pool_stake as u128)?,\n        )\n        .ok()\n    }\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV8 - Integer Overflow - MITIGATED\nu128 promotion prevents intermediate overflow. checked_mul and checked_div return None on overflow/zero-division. u64::try_from validates the result fits in u64. Returns Option for caller to handle failure.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "Integer Overflow",
+    "owasp_code": "V8",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "calculate_deposit_amount",
+      "lines": "44-59",
+      "extraction_method": "direct extraction"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn calculate_deposit_amount(\n    pre_token_supply: u64,\n    pre_pool_stake: u64,\n    user_stake_to_deposit: u64,\n) -> u64 {\n    if pre_pool_stake == 0 || pre_token_supply == 0 {\n        user_stake_to_deposit\n    } else {\n        (user_stake_to_deposit * pre_token_supply) / pre_pool_stake\n    }\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV8 - Integer Overflow\nCRITICAL\nMultiplication of two u64 values can overflow u64 range (max ~1.8e19). Without u128 promotion, large stake deposits with large token supplies silently wrap, minting incorrect token amounts. Division by zero is possible if pre_pool_stake is 0 despite the guard.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Integer Overflow",
+    "owasp_code": "V8",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "calculate_deposit_amount",
+      "lines": "44-59",
+      "extraction_method": "modified from source - replaced u128 promotion with u64 arithmetic, replaced checked_mul/checked_div with unchecked * and /, removed u64::try_from validation, changed return from Option<u64> to u64"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn calculate_withdraw_amount(\n    pre_token_supply: u64,\n    pre_pool_stake: u64,\n    user_tokens_to_burn: u64,\n) -> Option<u64> {\n    let numerator = (user_tokens_to_burn as u128).checked_mul(pre_pool_stake as u128)?;\n    let denominator = pre_token_supply as u128;\n    if numerator < denominator || denominator == 0 {\n        Some(0)\n    } else {\n        u64::try_from(numerator.checked_div(denominator)?).ok()\n    }\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV8 - Integer Overflow - MITIGATED\nu128 promotion, checked_mul, denominator zero check, dust withdrawal protection (returns 0 if numerator < denominator), and u64::try_from validation.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "Integer Overflow",
+    "owasp_code": "V8",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "calculate_withdraw_amount",
+      "lines": "63-75",
+      "extraction_method": "direct extraction"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_deposit_stake(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    let (_, pool_stake_state) = get_stake_state(pool_stake_info)?;\n    let pre_pool_stake = pool_stake_state\n        .delegation\n        .stake\n        .saturating_sub(minimum_pool_balance);\n    let pre_pool_excess_lamports = pool_stake_info\n        .lamports()\n        .checked_sub(pool_stake_state.delegation.stake)\n        .and_then(|amount| amount.checked_sub(pool_rent_exempt_reserve))\n        .ok_or(SinglePoolError::ArithmeticOverflow)?;\n\n    // After merge\n    let (_, pool_stake_state) = get_stake_state(pool_stake_info)?;\n    let post_pool_stake = pool_stake_state\n        .delegation\n        .stake\n        .saturating_sub(minimum_pool_balance);\n\n    let stake_added = post_pool_stake\n        .checked_sub(pre_pool_stake)\n        .ok_or(SinglePoolError::ArithmeticOverflow)?;\n\n    let user_excess_lamports = post_pool_lamports\n        .checked_sub(pool_stake_state.delegation.stake)\n        .and_then(|amount| amount.checked_sub(pool_rent_exempt_reserve))\n        .and_then(|amount| amount.checked_sub(pre_pool_excess_lamports))\n        .ok_or(SinglePoolError::ArithmeticOverflow)?;\n\n    let new_pool_tokens = calculate_deposit_amount(token_supply, pre_pool_stake, stake_added)\n        .ok_or(SinglePoolError::UnexpectedMathError)?;\n\n    if new_pool_tokens == 0 {\n        return Err(SinglePoolError::DepositTooSmall.into());\n    }\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV8 - Integer Overflow - MITIGATED\nMultiple chained checked_sub operations with ArithmeticOverflow error propagation. calculate_deposit_amount returns Option handled with ok_or. Zero token check prevents dust deposits.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "Integer Overflow",
+    "owasp_code": "V8",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "process_deposit_stake",
+      "lines": "931-1088",
+      "extraction_method": "extracted and simplified - kept checked_sub chains (L988-996, L1032-1042), zero deposit check (L1059-1061), calculate_deposit_amount with ok_or (L1056-1057)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_transfer(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    amount: u64,\n    transfer_instruction: TransferInstruction,\n) -> ProgramResult {\n    let source_amount = u64::from(source_account.base.amount);\n    if source_amount < amount {\n        return Err(TokenError::InsufficientFunds.into());\n    }\n\n    source_account.base.amount = source_amount\n        .checked_sub(amount)\n        .ok_or(TokenError::Overflow)?\n        .into();\n    let credited_amount = amount\n        .checked_sub(calculated_fee)\n        .ok_or(TokenError::Overflow)?;\n    destination_account.base.amount = u64::from(destination_account.base.amount)\n        .checked_add(credited_amount)\n        .ok_or(TokenError::Overflow)?\n        .into();\n\n    if calculated_fee > 0 {\n        if let Ok(extension) = destination_account.get_extension_mut::<TransferFeeAmount>() {\n            let new_withheld_amount = u64::from(extension.withheld_amount)\n                .checked_add(calculated_fee)\n                .ok_or(TokenError::Overflow)?;\n            extension.withheld_amount = new_withheld_amount.into();\n        }\n    }\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV8 - Integer Overflow - MITIGATED\nAll balance mutations use checked arithmetic: checked_sub for deductions (source amount and fee), checked_add for credits (destination and withheld fee). InsufficientFunds pre-check prevents unnecessary computation.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "Integer Overflow",
+    "owasp_code": "V8",
+    "source_info": {
+      "origin": "solana-program/token-2022",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/token-2022/blob/main/program/src/processor.rs",
+      "function": "process_transfer",
+      "lines": "329-600",
+      "extraction_method": "extracted and simplified - kept checked_sub for source (L535-538), checked_sub for fee (L539-541), checked_add for destination (L542-545), checked_add for withheld_amount (L548-550)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_transfer(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    amount: u64,\n) -> ProgramResult {\n    let source_amount = u64::from(source_account.base.amount);\n\n    source_account.base.amount = (source_amount - amount).into();\n    let credited_amount = amount - calculated_fee;\n    destination_account.base.amount =\n        (u64::from(destination_account.base.amount) + credited_amount).into();\n\n    if calculated_fee > 0 {\n        if let Ok(extension) = destination_account.get_extension_mut::<TransferFeeAmount>() {\n            extension.withheld_amount =\n                (u64::from(extension.withheld_amount) + calculated_fee).into();\n        }\n    }\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV8 - Integer Overflow\nCRITICAL\nUnchecked subtraction on source allows underflow if amount > balance, wrapping to near-max u64. Unchecked addition on destination can overflow. Without InsufficientFunds check, transfers of more tokens than available succeed.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Integer Overflow",
+    "owasp_code": "V8",
+    "source_info": {
+      "origin": "solana-program/token-2022",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/token-2022/blob/main/program/src/processor.rs",
+      "function": "process_transfer",
+      "lines": "329-600",
+      "extraction_method": "modified from source - replaced checked_sub (L535-538) with unchecked -, replaced checked_add (L542-545) with unchecked +, removed InsufficientFunds check (L362-364)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_mint_to(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    amount: u64,\n    instruction_variant: InstructionVariant,\n) -> ProgramResult {\n    check_program_account(mint_info.owner)?;\n    check_program_account(destination_account_info.owner)?;\n\n    if destination_account.base.is_frozen() {\n        return Err(TokenError::AccountFrozen.into());\n    }\n    if destination_account.base.is_native() {\n        return Err(TokenError::NativeNotSupported.into());\n    }\n    if mint_info.key != &destination_account.base.mint {\n        return Err(TokenError::MintMismatch.into());\n    }\n\n    match &mint.base.mint_authority {\n        PodCOption { option: PodCOption::<Pubkey>::SOME, value: mint_authority } =>\n            Self::validate_owner(program_id, mint_authority, owner_info,\n                owner_info_data_len, account_info_iter.as_slice())?,\n        _ => return Err(TokenError::FixedSupply.into()),\n    }\n\n    destination_account.base.amount = u64::from(destination_account.base.amount)\n        .checked_add(amount)\n        .ok_or(TokenError::Overflow)?\n        .into();\n    mint.base.supply = u64::from(mint.base.supply)\n        .checked_add(amount)\n        .ok_or(TokenError::Overflow)?\n        .into();\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV8 - Integer Overflow - MITIGATED\nchecked_add on both destination amount and mint supply prevents overflow. FixedSupply check prevents minting when authority is revoked. Frozen, native, and mint mismatch validations.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "Integer Overflow",
+    "owasp_code": "V8",
+    "source_info": {
+      "origin": "solana-program/token-2022",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/token-2022/blob/main/program/src/processor.rs",
+      "function": "process_mint_to",
+      "lines": "1022-1113",
+      "extraction_method": "extracted and simplified - kept checked_add for amount (L1102-1105) and supply (L1107-1110), validate_owner (L1092-1098), frozen/native/mint checks"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_burn(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    amount: u64,\n) -> ProgramResult {\n    if u64::from(source_account.base.amount) < amount {\n        return Err(TokenError::InsufficientFunds.into());\n    }\n\n    source_account.base.amount = u64::from(source_account.base.amount)\n        .checked_sub(amount)\n        .ok_or(TokenError::Overflow)?\n        .into();\n    mint.base.supply = u64::from(mint.base.supply)\n        .checked_sub(amount)\n        .ok_or(TokenError::Overflow)?\n        .into();\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV8 - Integer Overflow - MITIGATED\nInsufficientFunds pre-check plus checked_sub on both source amount and mint supply. Double protection against underflow.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "Integer Overflow",
+    "owasp_code": "V8",
+    "source_info": {
+      "origin": "solana-program/token-2022",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/token-2022/blob/main/program/src/processor.rs",
+      "function": "process_burn",
+      "lines": "1115-1286",
+      "extraction_method": "extracted and simplified - kept InsufficientFunds check (L1192-1194), checked_sub for amount (L1276-1279) and supply (L1280-1283)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_deposit_stake(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    SinglePool::from_account_info(pool_info, program_id)?;\n    check_pool_stake_address(program_id, pool_info.key, pool_stake_info.key)?;\n\n    if pool_stake_info.key == user_stake_info.key {\n        return Err(SinglePoolError::InvalidPoolStakeAccountUsage.into());\n    }\n    let onramp_account_address = crate::find_pool_onramp_address(program_id, pool_info.key);\n    if onramp_account_address == *user_stake_info.key {\n        return Err(SinglePoolError::InvalidPoolStakeAccountUsage.into());\n    }\n\n    let new_pool_tokens = calculate_deposit_amount(token_supply, pre_pool_stake, stake_added)\n        .ok_or(SinglePoolError::UnexpectedMathError)?;\n    if new_pool_tokens == 0 {\n        return Err(SinglePoolError::DepositTooSmall.into());\n    }\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV10 - Denial of Service - MITIGATED\nSelf-deposit prevention blocks using pool's own stake or onramp as deposit source. Zero token check prevents dust deposits that waste compute. Pool account validation ensures correct accounts.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "DoS",
+    "owasp_code": "V10",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "process_deposit_stake",
+      "lines": "931-1088",
+      "extraction_method": "extracted and simplified - kept self-deposit prevention (L973-980), zero token check (L1059-1061), pool account validation"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_withdraw_stake(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    user_stake_authority: &Pubkey,\n    token_amount: u64,\n) -> ProgramResult {\n    SinglePool::from_account_info(pool_info, program_id)?;\n    check_pool_stake_address(program_id, pool_info.key, pool_stake_info.key)?;\n\n    if pool_stake_info.key == user_stake_info.key {\n        return Err(SinglePoolError::InvalidPoolStakeAccountUsage.into());\n    }\n\n    let withdraw_stake = calculate_withdraw_amount(token_supply, pre_pool_stake, token_amount)\n        .ok_or(SinglePoolError::UnexpectedMathError)?;\n\n    if withdraw_stake == 0 {\n        return Err(SinglePoolError::WithdrawalTooSmall.into());\n    }\n    if withdraw_stake > pre_pool_stake || withdraw_stake == pool_stake_info.lamports() {\n        return Err(SinglePoolError::WithdrawalTooLarge.into());\n    }\n\n    // Burn FIRST, then split\n    Self::token_burn(pool_info.key, token_program_info.clone(),\n        user_token_account_info.clone(), pool_mint_info.clone(),\n        pool_mint_authority_info.clone(), mint_authority_bump_seed, token_amount)?;\n\n    Self::stake_split(pool_info.key, pool_stake_info.clone(),\n        pool_stake_authority_info.clone(), stake_authority_bump_seed,\n        withdraw_stake, user_stake_info.clone())?;\n\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV10 - Denial of Service - MITIGATED\nWithdrawalTooSmall prevents zero-stake splits (which fail at runtime). WithdrawalTooLarge prevents draining the entire pool stake (which would kill the pool). Self-stake prevention blocks using pool accounts as withdrawal target.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "DoS",
+    "owasp_code": "V10",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "process_withdraw_stake",
+      "lines": "1091-1204",
+      "extraction_method": "extracted and simplified - kept withdrawal size validation (L1160-1167), self-stake prevention (L1135-1142), burn-then-split ordering (L1170-1188)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_withdraw_stake(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    user_stake_authority: &Pubkey,\n    token_amount: u64,\n) -> ProgramResult {\n    let withdraw_stake = calculate_withdraw_amount(token_supply, pre_pool_stake, token_amount)\n        .ok_or(SinglePoolError::UnexpectedMathError)?;\n\n    Self::token_burn(pool_info.key, token_program_info.clone(),\n        user_token_account_info.clone(), pool_mint_info.clone(),\n        pool_mint_authority_info.clone(), mint_authority_bump_seed, token_amount)?;\n\n    Self::stake_split(pool_info.key, pool_stake_info.clone(),\n        pool_stake_authority_info.clone(), stake_authority_bump_seed,\n        withdraw_stake, user_stake_info.clone())?;\n\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV10 - Denial of Service\nCRITICAL\nWithout withdrawal size checks, a user can withdraw the entire pool stake, making the pool permanently unusable. Zero-amount withdrawals waste compute. The pool's stake account would be left below minimum delegation.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "DoS",
+    "owasp_code": "V10",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "process_withdraw_stake",
+      "lines": "1091-1204",
+      "extraction_method": "modified from source - removed WithdrawalTooSmall check (L1160-1162), removed WithdrawalTooLarge check (L1165-1167), removed self-stake prevention (L1135-1142)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_close_account(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    check_program_account(source_account_info.owner)?;\n\n    if source_account_info.key == destination_account_info.key {\n        return Err(ProgramError::InvalidAccountData);\n    }\n\n    let source_account = PodStateWithExtensionsMut::<PodAccount>::unpack(&mut source_account_data)?;\n\n    if !source_account.base.is_native() && u64::from(source_account.base.amount) != 0 {\n        return Err(TokenError::NonNativeHasBalance.into());\n    }\n\n    let authority = source_account\n        .base\n        .close_authority\n        .unwrap_or(source_account.base.owner);\n    Self::validate_owner(\n        program_id, &authority, authority_info,\n        authority_info_data_len, account_info_iter.as_slice(),\n    )?;\n\n    if let Ok(cpi_guard) = source_account.get_extension::<CpiGuard>() {\n        if cpi_guard.lock_cpi.into() && in_cpi() {\n            return Err(TokenError::CpiGuardCloseAccountBlocked.into());\n        }\n    }\n\n    let destination_starting_lamports = destination_account_info.lamports();\n    **destination_account_info.lamports.borrow_mut() = destination_starting_lamports\n        .checked_add(source_account_info.lamports())\n        .ok_or(TokenError::Overflow)?;\n    **source_account_info.lamports.borrow_mut() = 0;\n\n    source_account.base.amount = 0.into();\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV10 - Denial of Service - MITIGATED\nSelf-close prevention, non-zero balance check (prevents accidental token loss), CPI guard prevents unauthorized closes via CPI, and checked_add for lamport transfer prevents overflow.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "DoS",
+    "owasp_code": "V10",
+    "source_info": {
+      "origin": "solana-program/token-2022",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/token-2022/blob/main/program/src/processor.rs",
+      "function": "process_close_account",
+      "lines": "1288-1400",
+      "extraction_method": "extracted and simplified - kept self-close prevention (L1298-1300), non-zero balance check (L1309-1311), validate_owner, CPI guard check (L1321-1325), checked_add for lamports"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_deposit_stake(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    // Validate user stake authorized to pool\n    let (user_stake_meta, user_stake_state) = get_stake_state(user_stake_info)?;\n    if user_stake_meta.authorized != stake::state::Authorized::auto(pool_stake_authority_info.key) {\n        return Err(SinglePoolError::WrongStakeStake.into());\n    }\n\n    // FIRST: Merge user stake into pool (takes user's stake)\n    Self::stake_merge(pool_info.key, user_stake_info.clone(),\n        pool_stake_authority_info.clone(), stake_authority_bump_seed,\n        pool_stake_info.clone(), clock_info.clone(), stake_history_info.clone())?;\n\n    // Sanity check: user stake account is empty after merge\n    if user_stake_info.lamports() != 0 {\n        return Err(SinglePoolError::UnexpectedMathError.into());\n    }\n\n    // THEN: Mint tokens to user\n    Self::token_mint_to(pool_info.key, token_program_info.clone(),\n        pool_mint_info.clone(), user_token_account_info.clone(),\n        pool_mint_authority_info.clone(), mint_authority_bump_seed, new_pool_tokens)?;\n\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV5 - Reentrancy Attacks - MITIGATED\nCorrect CEI ordering: user's stake is merged into pool FIRST, then tokens are minted. Post-merge sanity check verifies user account is empty. Even during mint CPI callback, user's stake is already consumed.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "process_deposit_stake",
+      "lines": "1001-1072",
+      "extraction_method": "extracted and simplified - kept stake authorization check (L1002-1008), merge-then-mint CPI ordering (L1013-1021 merge, L1064-1072 mint), post-merge sanity check (L1045-1047)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_deposit_stake(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    let stake_added = user_stake_state.delegation.stake;\n\n    let new_pool_tokens = calculate_deposit_amount(token_supply, pre_pool_stake, stake_added)\n        .ok_or(SinglePoolError::UnexpectedMathError)?;\n\n    // WRONG: Mint tokens FIRST\n    Self::token_mint_to(pool_info.key, token_program_info.clone(),\n        pool_mint_info.clone(), user_token_account_info.clone(),\n        pool_mint_authority_info.clone(), mint_authority_bump_seed, new_pool_tokens)?;\n\n    // THEN: Merge stake\n    Self::stake_merge(pool_info.key, user_stake_info.clone(),\n        pool_stake_authority_info.clone(), stake_authority_bump_seed,\n        pool_stake_info.clone(), clock_info.clone(), stake_history_info.clone())?;\n\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV5 - Reentrancy Attacks\nCRITICAL\nTokens are minted before user's stake is merged. During mint CPI, attacker can use the newly minted tokens to withdraw from the pool. The attacker gets pool tokens without the stake merge completing.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "process_deposit_stake",
+      "lines": "1013-1072",
+      "extraction_method": "modified from source - reversed CPI order: token_mint_to (originally L1064) executes before stake_merge (originally L1013), removed post-merge sanity check (L1045-1047)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_withdraw_stake(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    user_stake_authority: &Pubkey,\n    token_amount: u64,\n) -> ProgramResult {\n    // FIRST: Burn user's pool tokens (destroys withdrawal authorization)\n    Self::token_burn(pool_info.key, token_program_info.clone(),\n        user_token_account_info.clone(), pool_mint_info.clone(),\n        pool_mint_authority_info.clone(), mint_authority_bump_seed, token_amount)?;\n\n    // SECOND: Split stake from pool to user\n    Self::stake_split(pool_info.key, pool_stake_info.clone(),\n        pool_stake_authority_info.clone(), stake_authority_bump_seed,\n        withdraw_stake, user_stake_info.clone())?;\n\n    // LAST: Assign authorities to user\n    Self::stake_authorize(pool_info.key, user_stake_info.clone(),\n        pool_stake_authority_info.clone(), stake_authority_bump_seed,\n        user_stake_authority, clock_info.clone())?;\n\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV5 - Reentrancy Attacks - MITIGATED\nCorrect CEI pattern: tokens are burned FIRST (destroying withdrawal right), then stake is split, then authorities are assigned. Any reentrancy during split/authorize would fail because tokens are already burned.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "process_withdraw_stake",
+      "lines": "1170-1198",
+      "extraction_method": "extracted and simplified - kept burn-then-split-then-authorize CPI ordering"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_transfer(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    amount: u64,\n) -> ProgramResult {\n    let source_account = PodStateWithExtensionsMut::<PodAccount>::unpack(&mut source_account_data)?;\n\n    if let Ok(cpi_guard) = source_account.get_extension::<CpiGuard>() {\n        if *authority_info.key == source_account.base.owner\n            && cpi_guard.lock_cpi.into()\n            && in_cpi()\n        {\n            return Err(TokenError::CpiGuardTransferBlocked.into());\n        }\n    }\n\n    Self::validate_owner(program_id, &source_account.base.owner,\n        authority_info, authority_info_data_len, account_info_iter.as_slice())?;\n\n    // Transfer hook: set flags, drop borrows, invoke, unset flags\n    if let Some(program_id) = maybe_transfer_hook_program_id {\n        transfer_hook::set_transferring(&mut source_account)?;\n        transfer_hook::set_transferring(&mut destination_account)?;\n        drop(source_account_data);\n        drop(destination_account_data);\n        spl_transfer_hook_interface::onchain::invoke_execute(\n            &program_id, source_account_info.clone(), mint_info.clone(),\n            destination_account_info.clone(), authority_info.clone(),\n            account_info_iter.as_slice(), amount,\n        )?;\n        transfer_hook::unset_transferring(source_account_info)?;\n        transfer_hook::unset_transferring(destination_account_info)?;\n    }\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV5 - Reentrancy Attacks - MITIGATED\nCPI guard blocks owner-authorized transfers when called via CPI. Transfer hook uses set_transferring/unset_transferring flags to mark accounts as in-transit, preventing reentrancy during hook execution. Borrows are dropped before CPI to avoid double-borrow.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-program/token-2022",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/token-2022/blob/main/program/src/processor.rs",
+      "function": "process_transfer",
+      "lines": "329-600",
+      "extraction_method": "extracted and simplified - kept CPI guard check (L445-456), transfer hook flag mechanism (L575-593)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn _process_initialize_mint(\n    accounts: &[AccountInfo],\n    decimals: u8,\n    mint_authority: &Pubkey,\n    freeze_authority: PodCOption<Pubkey>,\n    rent_sysvar_account: bool,\n) -> ProgramResult {\n    let mint_info = next_account_info(account_info_iter)?;\n    check_program_account(mint_info.owner)?;\n\n    if !rent.is_exempt(mint_info.lamports(), mint_data_len) {\n        return Err(TokenError::NotRentExempt.into());\n    }\n\n    let mut mint = PodStateWithExtensionsMut::<PodMint>::unpack_uninitialized(&mut mint_data)?;\n    let extension_types = mint.get_extension_types()?;\n    if ExtensionType::try_calculate_account_len::<Mint>(&extension_types)? != mint_data_len {\n        return Err(ProgramError::InvalidAccountData);\n    }\n    ExtensionType::check_for_invalid_mint_extension_combinations(&extension_types)?;\n\n    if let Ok(default_account_state) = mint.get_extension_mut::<DefaultAccountState>() {\n        let state = AccountState::try_from(default_account_state.state)\n            .or(Err(ProgramError::InvalidAccountData))?;\n        if state == AccountState::Frozen && freeze_authority.is_none() {\n            return Err(TokenError::MintCannotFreeze.into());\n        }\n    }\n\n    mint.base.mint_authority = PodCOption::some(*mint_authority);\n    mint.base.decimals = decimals;\n    mint.base.is_initialized = PodBool::from_bool(true);\n    mint.base.freeze_authority = freeze_authority;\n    mint.init_account_type()?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV4 - Input Validation - MITIGATED\nProgram ownership check, rent exemption, unpack_uninitialized prevents re-initialization, extension type validation ensures correct account size and valid combinations, frozen-without-freeze-authority prevention.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "Type Confusion",
+    "owasp_code": "V4",
+    "source_info": {
+      "origin": "solana-program/token-2022",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/token-2022/blob/main/program/src/processor.rs",
+      "function": "_process_initialize_mint",
+      "lines": "99-145",
+      "extraction_method": "direct extraction"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn _process_initialize_mint(\n    accounts: &[AccountInfo],\n    decimals: u8,\n    mint_authority: &Pubkey,\n    freeze_authority: PodCOption<Pubkey>,\n) -> ProgramResult {\n    let mint_info = next_account_info(account_info_iter)?;\n    let mut mint_data = mint_info.data.borrow_mut();\n    let mut mint = PodStateWithExtensionsMut::<PodMint>::unpack_uninitialized(&mut mint_data)?;\n\n    mint.base.mint_authority = PodCOption::some(*mint_authority);\n    mint.base.decimals = decimals;\n    mint.base.is_initialized = PodBool::from_bool(true);\n    mint.base.freeze_authority = freeze_authority;\n    mint.init_account_type()?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV4 - Input Validation\nHIGH\nNo program ownership verification allows initializing mints owned by other programs. Missing rent exemption check allows non-rent-exempt accounts. Missing extension validation allows invalid extension combinations and incorrect account sizes.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Type Confusion",
+    "owasp_code": "V4",
+    "source_info": {
+      "origin": "solana-program/token-2022",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/token-2022/blob/main/program/src/processor.rs",
+      "function": "_process_initialize_mint",
+      "lines": "99-145",
+      "extraction_method": "modified from source - removed check_program_account (L111), removed rent exemption check (L119-121), removed extension size validation (L125-127), removed extension combination check (L128), removed frozen-without-freeze check (L130-136)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn _process_initialize_account(\n    accounts: &[AccountInfo],\n    owner: Option<&Pubkey>,\n    rent_sysvar_account: bool,\n) -> ProgramResult {\n    let new_account_info = next_account_info(account_info_iter)?;\n    let mint_info = next_account_info(account_info_iter)?;\n\n    check_program_account(new_account_info.owner)?;\n    check_program_account(mint_info.owner)?;\n\n    if !rent.is_exempt(new_account_info.lamports(), new_account_info_data_len) {\n        return Err(TokenError::NotRentExempt.into());\n    }\n\n    let mint_data = mint_info.data.borrow();\n    let mint = PodStateWithExtensions::<PodMint>::unpack(&mint_data)\n        .map_err(|_| Into::<ProgramError>::into(TokenError::InvalidMint))?;\n\n    let required_extensions =\n        Self::get_required_account_extensions_from_unpacked_mint(mint_info.owner, &mint)?;\n    if ExtensionType::try_calculate_account_len::<Account>(&required_extensions)?\n        > new_account_info_data_len\n    {\n        return Err(ProgramError::InvalidAccountData);\n    }\n\n    let starting_state =\n        if let Ok(default_account_state) = mint.get_extension::<DefaultAccountState>() {\n            AccountState::try_from(default_account_state.state)\n                .or(Err(ProgramError::InvalidAccountData))?\n        } else {\n            AccountState::Initialized\n        };\n\n    account.base.mint = *mint_info.key;\n    account.base.owner = *owner;\n    account.base.state = starting_state.into();\n\n    if mint_info.key == &native_mint::id() {\n        account.base.amount = new_account_info.lamports()\n            .checked_sub(rent_exempt_reserve)\n            .ok_or(TokenError::Overflow)?\n            .into();\n    }\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV4 - Input Validation - MITIGATED\nDual program ownership check (account and mint), rent exemption, mint validity verification, extension requirements derived from mint, default account state handling, and checked arithmetic for native mint.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "Type Confusion",
+    "owasp_code": "V4",
+    "source_info": {
+      "origin": "solana-program/token-2022",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/token-2022/blob/main/program/src/processor.rs",
+      "function": "_process_initialize_account",
+      "lines": "168-253",
+      "extraction_method": "extracted and simplified - kept dual check_program_account (L177-178), rent check (L197-199), mint validation (L203-204), extension requirements (L212-218), default state handling (L223-229), native mint checked_sub (L240-244)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn check_vote_account(vote_account_info: &AccountInfo) -> Result<(), ProgramError> {\n    check_account_owner(vote_account_info, &vote_program::id())?;\n\n    let vote_account_data = &vote_account_info.try_borrow_data()?;\n    let state_variant = vote_account_data\n        .get(..VOTE_STATE_DISCRIMINATOR_END)\n        .and_then(|s| s.try_into().ok())\n        .ok_or(SinglePoolError::UnparseableVoteAccount)?;\n\n    match u32::from_le_bytes(state_variant) {\n        1 | 2 | 3 => Ok(()),\n        0 => Err(SinglePoolError::LegacyVoteAccount.into()),\n        _ => Err(SinglePoolError::UnparseableVoteAccount.into()),\n    }\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV4 - Input Validation - MITIGATED\nOwnership check ensures account is owned by vote program. Discriminator parsing validates the vote state version. Legacy vote accounts (version 0) are explicitly rejected. Unparseable accounts return error.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "Type Confusion",
+    "owasp_code": "V4",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "check_vote_account",
+      "lines": "243-258",
+      "extraction_method": "direct extraction"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn token_mint_to<'a>(\n    pool_account_key: &Pubkey,\n    token_program: AccountInfo<'a>,\n    mint: AccountInfo<'a>,\n    destination: AccountInfo<'a>,\n    authority: AccountInfo<'a>,\n    bump_seed: u8,\n    amount: u64,\n) -> Result<(), ProgramError> {\n    let authority_seeds = &[POOL_MINT_AUTHORITY_PREFIX, pool_account_key.as_ref(), &[bump_seed]];\n    let signers = &[&authority_seeds[..]];\n\n    let ix = spl_token::instruction::mint_to(\n        token_program.key, mint.key, destination.key, authority.key, &[], amount,\n    )?;\n\n    invoke_signed(&ix, &[mint, destination, authority], signers)\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV6 - Unchecked External Calls - MITIGATED\nInstruction creation uses ? for error propagation. invoke_signed returns Result which is propagated to caller. Both instruction building and CPI invocation are properly checked.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "Unchecked Calls",
+    "owasp_code": "V6",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "token_mint_to",
+      "lines": "502-529",
+      "extraction_method": "direct extraction"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn token_burn<'a>(\n    pool_account_key: &Pubkey,\n    token_program: AccountInfo<'a>,\n    burn_account: AccountInfo<'a>,\n    mint: AccountInfo<'a>,\n    authority: AccountInfo<'a>,\n    bump_seed: u8,\n    amount: u64,\n) -> Result<(), ProgramError> {\n    let authority_seeds = &[POOL_MINT_AUTHORITY_PREFIX, pool_account_key.as_ref(), &[bump_seed]];\n    let signers = &[&authority_seeds[..]];\n\n    let ix = spl_token::instruction::burn(\n        token_program.key, burn_account.key, mint.key, authority.key, &[], amount,\n    )?;\n\n    invoke_signed(&ix, &[burn_account, mint, authority], signers)\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV6 - Unchecked External Calls - MITIGATED\nSame pattern as token_mint_to: ? on instruction creation, invoke_signed returns Result. Both error paths properly handled.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "Unchecked Calls",
+    "owasp_code": "V6",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "token_burn",
+      "lines": "531-558",
+      "extraction_method": "direct extraction"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn stake_split<'a>(\n    pool_account_key: &Pubkey,\n    stake_account: AccountInfo<'a>,\n    authority: AccountInfo<'a>,\n    bump_seed: u8,\n    amount: u64,\n    split_stake: AccountInfo<'a>,\n) -> Result<(), ProgramError> {\n    let authority_seeds = &[POOL_STAKE_AUTHORITY_PREFIX, pool_account_key.as_ref(), &[bump_seed]];\n    let signers = &[&authority_seeds[..]];\n\n    let split_instruction =\n        stake::instruction::split(stake_account.key, authority.key, amount, split_stake.key);\n\n    invoke_signed(\n        split_instruction.last().unwrap(),\n        &[stake_account, split_stake, authority],\n        signers,\n    )\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV6 - Unchecked External Calls\nMEDIUM\nThe .last().unwrap() on the split instruction vector can panic if the vector is empty. While stake::instruction::split is unlikely to return an empty vector in practice, using unwrap instead of proper error handling is a vulnerability pattern. Should use .last().ok_or(ProgramError::...)? instead.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Unchecked Calls",
+    "owasp_code": "V6",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "stake_split",
+      "lines": "390-413",
+      "extraction_method": "direct extraction - .last().unwrap() on instruction vector (L409) is a code smell that panics if vector is empty"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn check_pool_pda(\n    program_id: &Pubkey,\n    base_address: &Pubkey,\n    check_address: &Pubkey,\n    pda_lookup_fn: &dyn Fn(&Pubkey, &Pubkey) -> (Pubkey, u8),\n    pda_name: &str,\n    pool_error: SinglePoolError,\n) -> Result<u8, ProgramError> {\n    let (derived_address, bump_seed) = pda_lookup_fn(program_id, base_address);\n    if *check_address != derived_address {\n        msg!(\"Incorrect {} address for base {}: expected {}, received {}\",\n            pda_name, base_address, derived_address, check_address);\n        Err(pool_error.into())\n    } else {\n        Ok(bump_seed)\n    }\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV9 - Bump Seed Canonicalization - MITIGATED\nGeneric PDA checker uses find_program_address (via pda_lookup_fn) to derive canonical address and bump. Derived address is verified against provided address. Returns the canonical bump_seed for use in signing.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "Bump Seed",
+    "owasp_code": "V9",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "check_pool_pda",
+      "lines": "219-240",
+      "extraction_method": "direct extraction"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_initialize_pool(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    check_vote_account(vote_account_info)?;\n    let pool_bump_seed = check_pool_address(program_id, vote_account_info.key, pool_info.key)?;\n    let stake_bump_seed = check_pool_stake_address(program_id, pool_info.key, pool_stake_info.key)?;\n    let mint_bump_seed = check_pool_mint_address(program_id, pool_info.key, pool_mint_info.key)?;\n    let stake_authority_bump_seed = check_pool_stake_authority_address(\n        program_id, pool_info.key, pool_stake_authority_info.key)?;\n    let mint_authority_bump_seed = check_pool_mint_authority_address(\n        program_id, pool_info.key, pool_mint_authority_info.key)?;\n    check_system_program(system_program_info.key)?;\n    check_token_program(token_program_info.key)?;\n    check_stake_program(stake_program_info.key)?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV9 - Bump Seed Canonicalization - MITIGATED\nFive separate PDA checks using find_program_address: pool, stake, mint, stake_authority, mint_authority. Each returns canonical bump. All three system programs (system, token, stake) are also verified.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "Bump Seed",
+    "owasp_code": "V9",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "process_initialize_pool",
+      "lines": "560-596",
+      "extraction_method": "extracted and simplified - kept all 5 PDA derivation checks (pool L578, stake L579-580, mint L581-582, stake_authority L583-587, mint_authority L588-592) plus program checks"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_transfer(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    amount: u64,\n) -> ProgramResult {\n    check_program_account(source_account_info.owner)?;\n    check_program_account(destination_account_info.owner)?;\n\n    let source_account = PodStateWithExtensionsMut::<PodAccount>::unpack(&mut source_account_data)?;\n    if source_account.base.is_frozen() {\n        return Err(TokenError::AccountFrozen.into());\n    }\n\n    if let Ok(cpi_guard) = source_account.get_extension::<CpiGuard>() {\n        if *authority_info.key == source_account.base.owner\n            && cpi_guard.lock_cpi.into() && in_cpi()\n        {\n            return Err(TokenError::CpiGuardTransferBlocked.into());\n        }\n    }\n\n    match (source_account.base.delegate, maybe_permanent_delegate) {\n        (_, Some(ref delegate)) if authority_info.key == delegate =>\n            Self::validate_owner(program_id, delegate, authority_info,\n                authority_info_data_len, account_info_iter.as_slice())?,\n        (PodCOption { option: PodCOption::<Pubkey>::SOME, value: delegate }, _)\n            if authority_info.key == &delegate => {\n            Self::validate_owner(program_id, &delegate, authority_info,\n                authority_info_data_len, account_info_iter.as_slice())?;\n            if u64::from(source_account.base.delegated_amount) < amount {\n                return Err(TokenError::InsufficientFunds.into());\n            }\n            source_account.base.delegated_amount = u64::from(source_account.base.delegated_amount)\n                .checked_sub(amount).ok_or(TokenError::Overflow)?.into();\n        }\n        _ => Self::validate_owner(program_id, &source_account.base.owner,\n            authority_info, authority_info_data_len, account_info_iter.as_slice())?,\n    }\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV1 - Access Control - MITIGATED\nThree-way authority validation: permanent delegate, account delegate, and owner — each with validate_owner. CPI guard adds extra protection against unauthorized CPI-based transfers. Frozen account check prevents transfers from frozen accounts.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "Missing Key Check",
+    "owasp_code": "V1",
+    "source_info": {
+      "origin": "solana-program/token-2022",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/token-2022/blob/main/program/src/processor.rs",
+      "function": "process_transfer",
+      "lines": "329-502",
+      "extraction_method": "extracted and simplified - kept validate_owner for all three authority paths (permanent delegate L458-464, delegate L472-491, owner L494-500), CPI guard (L445-456), frozen check (L358-360)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_transfer(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    amount: u64,\n) -> ProgramResult {\n    let source_account = PodStateWithExtensionsMut::<PodAccount>::unpack(&mut source_account_data)?;\n\n    let source_amount = u64::from(source_account.base.amount);\n    source_account.base.amount = source_amount\n        .checked_sub(amount)\n        .ok_or(TokenError::Overflow)?\n        .into();\n\n    let mut destination_account_data = destination_account_info.data.borrow_mut();\n    let destination_account =\n        PodStateWithExtensionsMut::<PodAccount>::unpack(&mut destination_account_data)?;\n    destination_account.base.amount = u64::from(destination_account.base.amount)\n        .checked_add(amount)\n        .ok_or(TokenError::Overflow)?\n        .into();\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV1 - Access Control\nCRITICAL\nNo authority validation at all — anyone can transfer tokens from any account. No ownership, delegate, or permanent delegate checks. No frozen check. No CPI guard. Missing program account check allows accounts from other programs.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Missing Key Check",
+    "owasp_code": "V1",
+    "source_info": {
+      "origin": "solana-program/token-2022",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/token-2022/blob/main/program/src/processor.rs",
+      "function": "process_transfer",
+      "lines": "329-600",
+      "extraction_method": "modified from source - removed all validate_owner calls (L458-500), removed frozen check (L358-360), removed check_program_account (L352-353), removed CPI guard (L445-456), removed mint mismatch check (L521-523)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_update_pool_token_metadata(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    name: String,\n    symbol: String,\n    uri: String,\n) -> ProgramResult {\n    check_vote_account(vote_account_info)?;\n    check_pool_address(program_id, vote_account_info.key, pool_info.key)?;\n\n    let pool = SinglePool::from_account_info(pool_info, program_id)?;\n    if pool.vote_account_address != *vote_account_info.key {\n        return Err(SinglePoolError::InvalidPoolAccount.into());\n    }\n\n    let vote_account_data = &vote_account_info.try_borrow_data()?;\n    let vote_account_withdrawer = vote_account_data\n        .get(VOTE_STATE_AUTHORIZED_WITHDRAWER_START..VOTE_STATE_AUTHORIZED_WITHDRAWER_END)\n        .and_then(|x| Pubkey::try_from(x).ok())\n        .ok_or(SinglePoolError::UnparseableVoteAccount)?;\n\n    if *authorized_withdrawer_info.key != vote_account_withdrawer {\n        return Err(SinglePoolError::InvalidMetadataSigner.into());\n    }\n    if !authorized_withdrawer_info.is_signer {\n        return Err(SinglePoolError::SignatureMissing.into());\n    }\n\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV1 - Access Control - MITIGATED\nVote account ownership verified. Pool linked to correct vote account. Authorized withdrawer extracted from on-chain vote state data and matched against provided account. Signature required. Only the validator operator can update metadata.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "Missing Key Check",
+    "owasp_code": "V1",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "process_update_pool_token_metadata",
+      "lines": "1288-1372",
+      "extraction_method": "extracted and simplified - kept vote account check (L1303-1304), pool-vote link (L1307-1309), withdrawer key extraction and match (L1324-1333), signer check (L1335-1338)"
+    }
+  }
+]
