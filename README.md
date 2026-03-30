@@ -59,26 +59,4 @@ Certain vulnerability types (V2, V3, V7) are currently **excluded** from the gen
 
 ---
 
-## 📁 Repository Structure
 
-The dataset is organized by platform. Files are currently being populated and validated.
-
-```text
-LLM-Contract-Analyzer/
-├── algorand Dataset/
-│   └── custom_samples/
-│       ├── algorand_v1_access_control.json
-│       ├── algorand_v6_unchecked_calls.json
-│       └── ...
-│
-├── Solana Dataset/
-│   └── custom_samples/         # Handcrafted Rust/Anchor samples
-│       ├── solana_v1_access_control.json
-│       ├── solana_v4_input_validation.json
-│       ├── solana_v5_reentrancy.json
-│       ├── solana_v6_unchecked_calls.json
-│       ├── solana_v8_arithmetic.json
-│       ├── solana_v9_bump_seed.json
-│       └── solana_v10_dos.json
-│
-└── README.md
