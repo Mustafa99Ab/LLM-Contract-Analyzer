@@ -6,7 +6,7 @@
 
 ## Overview
 
-This document describes the methodology used to construct the **Solana Smart Contract Vulnerability Dataset** for LLM fine-tuning. The dataset comprises **182 samples** (91 VULNERABLE + 91 SAFE) across 7 vulnerability categories based on OWASP Smart Contract Top 10.
+This document describes the methodology used to construct the **Solana Smart Contract Vulnerability Dataset** for LLM fine-tuning. The dataset comprises **285 samples** (145 SAFE + 140 VULNERABLE) across 7 vulnerability categories based on OWASP Smart Contract Top 10.
 
 ---
 
@@ -14,446 +14,347 @@ This document describes the methodology used to construct the **Solana Smart Con
 
 | Metric | Value |
 |--------|-------|
-| **Total Samples** | 182 |
-| **VULNERABLE** | 91 (50%) |
-| **SAFE** | 91 (50%) |
+| **Total Samples** | 285 |
+| **SAFE** | 145 (51%) |
+| **VULNERABLE** | 140 (49%) |
 | **Vulnerability Types** | 7 |
-| **Samples per Type** | 26 (13 SAFE + 13 VULN) |
+| **Source Contracts** | 15 |
+| **Total Source Code** | ~28,000+ lines of production Rust/Solana code |
 
 ---
 
 ## Source Repositories
 
-The dataset was derived from **five official Solana Program Library (SPL) repositories**:
+The dataset was derived from **15 official Solana program repositories**:
 
-| # | Source | Repository | Lines of Code | Samples |
-|---|--------|------------|---------------|---------|
-| 1 | SPL Stake Pool | solana-labs/solana-program-library/stake-pool | 3,849 | 40 |
-| 2 | SPL Token | solana-labs/solana-program-library/token | 1,340 | 30 |
-| 3 | SPL Governance | solana-labs/solana-program-library/governance | 2,400+ | 30 |
-| 4 | Binary Oracle Pair | solana-labs/solana-program-library/binary-oracle-pair | 800+ | 40 |
-| 5 | **Token Swap** | solana-labs/solana-program-library/token-swap | 8,377 | **42** |
-
-**Total Source Code: ~16,766 lines of production Rust/Solana code**
+| # | Source | Repository | Samples |
+|---|--------|------------|---------|
+| 1 | SPL Stake Pool | solana-program/stake-pool | 32 |
+| 2 | SPL Token | solana-program/token | 20 |
+| 3 | Associated Token Account | solana-program/associated-token-account | 14 |
+| 4 | Binary Oracle Pair | solana-labs/solana-program-library/binary-oracle-pair | 16 |
+| 5 | Token Swap | solana-labs/solana-program-library/token-swap | 24 |
+| 6 | Token Lending | solana-labs/solana-program-library/token-lending | 33 |
+| 7 | Single Pool | solana-program/single-pool | 29 |
+| 8 | Token-2022 | solana-program/token-2022 | 16 |
+| 9 | Name Service | solana-labs/solana-program-library/name-service | 14 |
+| 10 | Binary Option | solana-labs/solana-program-library/binary-option | 15 |
+| 11 | Stateless Asks | solana-labs/solana-program-library/stateless-asks | 9 |
+| 12 | Governance | solana-labs/solana-program-library/governance | 35 |
+| 13 | Token Upgrade | solana-labs/solana-program-library/token-upgrade | 8 |
+| 14 | Record | solana-program/record | 12 |
+| 15 | Feature Proposal | solana-program/feature-proposal | 8 |
 
 ---
 
 ## Vulnerability Categories
 
-Based on OWASP Smart Contract Top 10 (2023):
+Based on OWASP Smart Contract Top 10 (2025):
 
-| Code | Vulnerability Type | Description | Samples |
-|------|-------------------|-------------|---------|
-| V1 | Missing Key Check | Missing signer/owner verification | 26 |
-| V4 | Input Validation (Type Confusion) | Improper account type validation | 26 |
-| V5 | CPI Reentrancy | Unsafe Cross-Program Invocation | 26 |
-| V6 | Unchecked Calls | Missing return value/state checks | 26 |
-| V8 | Integer Flow | Overflow/underflow vulnerabilities | 26 |
-| V9 | Bump Seed | PDA canonicalization issues | 26 |
-| V10 | DoS | Denial of Service vectors | 26 |
+| Code | Vulnerability Type | Description | SAFE | VULN | Total |
+|------|-------------------|-------------|------|------|-------|
+| V1 | Missing Key Check | Missing signer/owner verification | 20 | 20 | 40 |
+| V4 | Input Validation (Type Confusion) | Improper account type validation | 20 | 20 | 40 |
+| V5 | CPI Reentrancy | Unsafe Cross-Program Invocation ordering | 22 | 20 | 42 |
+| V6 | Unchecked External Calls | Missing CPI return value checks | 20 | 20 | 40 |
+| V8 | Integer Overflow/Underflow | Unchecked arithmetic operations | 23 | 20 | 43 |
+| V9 | Bump Seed Canonicalization | PDA non-canonical derivation | 20 | 20 | 40 |
+| V10 | Denial of Service (DoS) | Missing guards against resource abuse | 20 | 20 | 40 |
+| | **Total** | | **145** | **140** | **285** |
 
 ---
 
 ## Sample Generation Methodology
 
-### Approach 1: Direct Extraction and Modification (~60% of samples)
+### SAFE Samples: Direct Extraction from Production Code
 
-Samples were **directly extracted** from production SPL code:
+SAFE samples were **directly extracted** from real, deployed Solana smart contracts on GitHub. These contracts have been audited, are actively used on mainnet, and represent genuine secure coding patterns.
 
-- **SAFE samples**: Extracted verbatim from audited production code
-- **VULNERABLE samples**: Created by **removing or weakening** security checks
+**Process:**
+1. Identify a function with clear security patterns (e.g., `validate_owner`, `checked_add`, `find_program_address`)
+2. Extract the relevant code, simplifying boilerplate while preserving all security checks
+3. Document the source: contract name, function name, line numbers, GitHub URL
 
-### Approach 2: Pattern-Based Synthesis (~40% of samples)
+### VULNERABLE Samples: Systematic Security Check Removal
 
-Additional samples were **synthesized** following documented vulnerability patterns:
+VULNERABLE samples were created by **removing specific security checks** from the SAFE originals. Each removal is precisely documented.
 
-- Maintain identical code structure and idioms
-- Apply patterns from Sealevel Attacks repository
-- Follow OWASP Smart Contract guidelines
+**Process:**
+1. Take an existing SAFE sample
+2. Remove one or more specific security checks (documented by line number)
+3. Verify the resulting code represents a realistic vulnerability
+4. Document exactly what was removed and why it creates a vulnerability
+
+### Key Principles
+
+| Principle | Description |
+|-----------|-------------|
+| **Real Source Code** | All samples originate from real deployed contracts, not synthetic generation |
+| **No Data Leakage** | No revealing comments like `// VULNERABLE` or `// SAFE` in code |
+| **Documented Modifications** | Every VULNERABLE sample documents exactly which lines were removed |
+| **Balanced Distribution** | 20 SAFE + 20 VULNERABLE per vulnerability type |
+| **Source Traceability** | Each sample links to its GitHub source with function name and line numbers |
 
 ---
 
-## Injection Examples (Before & After)
-
-Below are concrete examples showing how VULNERABLE variants were created from SAFE code for each vulnerability type:
+## Vulnerability Patterns: Before & After
 
 ### 1. Missing Key Check (V1)
 
-**SAFE (Original):**
+**SAFE (Original — Token Swap `check_accounts` L194-244):**
 ```rust
-pub fn unpack_token_account(
-    account_info: &AccountInfo,
-    token_program_id: &Pubkey,
-) -> Result<Account, SwapError> {
-    // ✓ Validates account ownership
-    if account_info.owner != token_program_id
-        && check_spl_token_program_account(account_info.owner).is_err()
-    {
-        Err(SwapError::IncorrectTokenProgramId)
-    } else {
-        StateWithExtensions::<Account>::unpack(&account_info.data.borrow())
-            .map(|a| a.base)
-            .map_err(|_| SwapError::ExpectedAccount)
+fn check_accounts(token_swap: &dyn SwapState, program_id: &Pubkey,
+    swap_account_info: &AccountInfo, authority_info: &AccountInfo,
+    token_a_info: &AccountInfo, token_b_info: &AccountInfo,
+) -> ProgramResult {
+    if swap_account_info.owner != program_id {
+        return Err(ProgramError::IncorrectProgramId);
     }
+    if *authority_info.key != Self::authority_id(program_id, swap_account_info.key, token_swap.bump_seed())? {
+        return Err(SwapError::InvalidProgramAddress.into());
+    }
+    if *token_a_info.key != *token_swap.token_a_account() {
+        return Err(SwapError::IncorrectSwapAccount.into());
+    }
+    Ok(())
 }
 ```
 
-**VULNERABLE (Modified):**
+**VULNERABLE (Modified — removed all checks):**
 ```rust
-pub fn unpack_token_account(
-    account_info: &AccountInfo,
-    token_program_id: &Pubkey,
-) -> Result<Account, SwapError> {
-    // ✗ Missing ownership check - accepts any account
-    StateWithExtensions::<Account>::unpack(&account_info.data.borrow())
-        .map(|a| a.base)
-        .map_err(|_| SwapError::ExpectedAccount)
+fn check_accounts(token_swap: &dyn SwapState, program_id: &Pubkey,
+    swap_account_info: &AccountInfo, authority_info: &AccountInfo,
+    token_a_info: &AccountInfo, token_b_info: &AccountInfo,
+) -> ProgramResult {
+    Ok(())
 }
 ```
 
-**Vulnerability**: Attacker can pass a malicious account not owned by the token program.
+**What was removed:** Program ownership (L208-210), authority PDA verification (L211-215), token account matching (L216-221), pool mint matching (L222-224).
 
 ---
 
 ### 2. Bump Seed Canonicalization (V9)
 
-**SAFE (Original):**
+**SAFE (Original — Token Swap `process_initialize` L269-270):**
 ```rust
-pub fn process_initialize(
-    program_id: &Pubkey,
-    accounts: &[AccountInfo],
-) -> ProgramResult {
-    let swap_info = next_account_info(account_info_iter)?;
-    
-    // ✓ Derives canonical bump and stores it
-    let (swap_authority, bump_seed) = 
-        Pubkey::find_program_address(&[&swap_info.key.to_bytes()], program_id);
-    
-    // ✓ Verifies PDA matches
-    if *authority_info.key != swap_authority {
-        return Err(SwapError::InvalidProgramAddress.into());
-    }
-    
-    // ✓ Stores canonical bump in state
-    let obj = SwapV1 {
-        bump_seed,  // Saved for later use
-        // ...
-    };
-    Ok(())
+let (swap_authority, bump_seed) =
+    Pubkey::find_program_address(&[&swap_info.key.to_bytes()], program_id);
+if *authority_info.key != swap_authority {
+    return Err(SwapError::InvalidProgramAddress.into());
 }
 ```
 
-**VULNERABLE (Modified):**
+**VULNERABLE (Modified — user-provided bump):**
 ```rust
-pub fn process_initialize(
-    program_id: &Pubkey,
-    accounts: &[AccountInfo],
-) -> ProgramResult {
-    let swap_info = next_account_info(account_info_iter)?;
-    
-    // ✗ No PDA derivation or verification
-    // ✗ Hardcoded bump or user-supplied bump
-    let obj = SwapV1 {
-        bump_seed: 0,  // Invalid - not canonical
-        // ...
-    };
-    Ok(())
+let swap_authority = Pubkey::create_program_address(
+    &[&swap_info.key.to_bytes(), &[bump_seed]], program_id)?;
+if *authority_info.key != swap_authority {
+    return Err(SwapError::InvalidProgramAddress.into());
 }
 ```
 
-**Vulnerability**: Non-canonical bump allows PDA collision attacks.
+**What was changed:** `find_program_address` (derives canonical bump) replaced with `create_program_address` (accepts user-provided bump). Multiple valid PDAs become possible.
 
 ---
 
 ### 3. Integer Overflow (V8)
 
-**SAFE (Original):**
+**SAFE (Original — Token-2022 `process_mint_to` L1084-1087):**
 ```rust
-pub fn process_swap(
-    amount_in: u64,
-    accounts: &[AccountInfo],
-) -> ProgramResult {
-    // ✓ Uses saturating_sub for safe subtraction
-    let actual_amount = amount_in.saturating_sub(fee);
-    
-    // ✓ Uses checked_sub with error handling
-    let pool_amount = pool_token_amount
-        .checked_sub(withdraw_fee)
-        .ok_or(SwapError::CalculationFailure)?;
-    
-    Ok(())
-}
+mint.base.supply = u64::from(mint.base.supply)
+    .checked_add(amount)
+    .ok_or(TokenError::Overflow)?;
 ```
 
-**VULNERABLE (Modified):**
+**VULNERABLE (Modified — unchecked arithmetic):**
 ```rust
-pub fn process_swap(
-    amount_in: u64,
-    accounts: &[AccountInfo],
-) -> ProgramResult {
-    // ✗ Direct subtraction - can underflow
-    let actual_amount = amount_in - fee;
-    
-    // ✗ No overflow protection
-    let pool_amount = pool_token_amount - withdraw_fee;
-    
-    Ok(())
-}
+mint.base.supply = u64::from(mint.base.supply) + amount;
 ```
 
-**Vulnerability**: Underflow can result in extremely large values, draining funds.
+**What was changed:** `checked_add` with error handling replaced with unchecked `+`. Supply can overflow to near-zero.
 
 ---
 
-### 4. CPI Vulnerability (V5)
+### 4. CPI Reentrancy (V5)
 
-**SAFE (Original):**
+**SAFE (Original — Token Swap `process_withdraw_all` L822-854):**
 ```rust
-pub fn token_transfer<'a>(
-    swap: &Pubkey,
-    token_program: AccountInfo<'a>,
-    source: AccountInfo<'a>,
-    destination: AccountInfo<'a>,
-    authority: AccountInfo<'a>,
-    bump_seed: u8,
-    amount: u64,
-) -> Result<(), ProgramError> {
-    // ✓ Uses official SPL Token instruction builder
-    let ix = spl_token_2022::instruction::transfer_checked(
-        token_program.key,
-        source.key,
-        mint.key,
-        destination.key,
-        authority.key,
-        &[],
-        amount,
-        decimals,
-    )?;
-    
-    // ✓ Uses invoke_signed with PDA seeds
-    invoke_signed(&ix, &[...], signers)
-}
+// FIRST: Burn pool tokens (destroy LP position)
+Self::token_burn(swap_info.key, pool_token_program_info.clone(),
+    source_info.clone(), pool_mint_info.clone(), authority_info.clone(),
+    token_swap.bump_seed(), pool_token_amount)?;
+
+// THEN: Transfer tokens A and B out
+Self::token_transfer(swap_info.key, /* ... */, token_a_amount)?;
+Self::token_transfer(swap_info.key, /* ... */, token_b_amount)?;
 ```
 
-**VULNERABLE (Modified):**
+**VULNERABLE (Modified — reversed CPI order):**
 ```rust
-pub fn token_transfer<'a>(
-    swap: &Pubkey,
-    token_program: AccountInfo<'a>,
-    source: AccountInfo<'a>,
-    destination: AccountInfo<'a>,
-    amount: u64,
-) -> Result<(), ProgramError> {
-    // ✗ Manual instruction construction
-    // ✗ No program ID verification
-    let ix = Instruction {
-        program_id: *token_program.key,  // Accepts ANY program
-        accounts: vec![...],
-        data: amount.to_le_bytes().to_vec(),
-    };
-    
-    // ✗ Uses invoke without signing
-    invoke(&ix, &[source, destination, token_program])
-}
+// WRONG: Transfer tokens out FIRST
+Self::token_transfer(swap_info.key, /* ... */, token_a_amount)?;
+Self::token_transfer(swap_info.key, /* ... */, token_b_amount)?;
+
+// THEN burn — but user already has A and B
+Self::token_burn(swap_info.key, pool_token_program_info.clone(),
+    source_info.clone(), pool_mint_info.clone(), authority_info.clone(),
+    token_swap.bump_seed(), pool_token_amount)?;
 ```
 
-**Vulnerability**: Attacker can pass malicious program as token_program.
+**What was changed:** Burn-then-transfer (CEI pattern) reversed to transfer-then-burn. During transfer CPI, pool tokens still exist for re-entry.
 
 ---
 
 ### 5. Denial of Service (V10)
 
-**SAFE (Original):**
+**SAFE (Original — SPL Token `process_initialize_mint` L42-84):**
 ```rust
-pub fn process_deposit(
-    pool_token_amount: u64,
-    maximum_token_a_amount: u64,
-    accounts: &[AccountInfo],
-) -> ProgramResult {
-    // ✓ Validates operation is supported
-    if !calculator.allows_deposits() {
-        return Err(SwapError::UnsupportedCurveOperation.into());
-    }
-    
-    // ✓ Uses ok_or for error handling
-    let results = calculator.pool_tokens_to_trading_tokens(...)
-        .ok_or(SwapError::ZeroTradingTokens)?;
-    
-    // ✓ Slippage protection
-    if token_a_amount > maximum_token_a_amount {
-        return Err(SwapError::ExceededSlippage.into());
-    }
-    
-    // ✓ Zero amount check
-    if token_a_amount == 0 {
-        return Err(SwapError::ZeroTradingTokens.into());
-    }
-    Ok(())
+let mut mint = Mint::unpack_unchecked(&mint_info.data.borrow())?;
+if mint.is_initialized {
+    return Err(TokenError::AlreadyInUse.into());
 }
+if !Rent::from_account_info(rent)?.is_exempt(mint_info.lamports(), Mint::LEN) {
+    return Err(TokenError::NotRentExempt.into());
+}
+mint.supply = 0;
 ```
 
-**VULNERABLE (Modified):**
+**VULNERABLE (Modified — removed guards):**
 ```rust
-pub fn process_deposit(
-    pool_token_amount: u64,
-    accounts: &[AccountInfo],
-) -> ProgramResult {
-    // ✗ No deposit validation check
-    
-    // ✗ Uses unwrap - panics on None (DoS vector)
-    let results = calculator.pool_tokens_to_trading_tokens(...)
-        .unwrap();
-    
-    // ✗ No slippage protection - frontrunning vulnerable
-    // ✗ No zero check - dust attack vector
-    Ok(())
-}
+let mut mint = Mint::unpack_unchecked(&mint_info.data.borrow())?;
+mint.mint_authority = COption::Some(*mint_authority);
+mint.is_initialized = true;
+Mint::pack(mint, &mut mint_info.data.borrow_mut())?;
 ```
 
-**Vulnerability**: Panics cause transaction failures; missing slippage enables MEV attacks.
+**What was removed:** Re-initialization check (L53-55), rent exemption check (L56-58), supply reset to 0.
 
 ---
 
-### 6. Unchecked Calls (V6)
+### 6. Unchecked External Calls (V6)
 
-**SAFE (Original):**
+**SAFE (Original — SPL Stake Pool `token_mint_to` L586-609):**
 ```rust
-pub fn process_initialize(
-    accounts: &[AccountInfo],
-) -> ProgramResult {
-    // ✓ Checks for existing delegation
-    if token_a.delegate.is_some() {
-        return Err(SwapError::InvalidDelegate.into());
-    }
-    
-    // ✓ Checks close authority
-    if token_a.close_authority.is_some() {
-        return Err(SwapError::InvalidCloseAuthority.into());
-    }
-    
-    // ✓ Validates fees and curve
-    fees.validate()?;
-    swap_curve.calculator.validate()?;
-    
-    Ok(())
-}
+let ix = spl_token_2022::instruction::mint_to(
+    token_program.key, mint.key, destination.key, authority.key, &[], amount)?;
+invoke_signed(&ix, &[mint, destination, authority, token_program], signers)
 ```
 
-**VULNERABLE (Modified):**
+**VULNERABLE (Modified — errors discarded):**
 ```rust
-pub fn process_initialize(
-    accounts: &[AccountInfo],
-) -> ProgramResult {
-    // ✗ No delegate check - pre-approved transfers possible
-    // ✗ No close authority check - tokens can be closed
-    // ✗ No fee validation - malicious fees
-    // ✗ No curve validation - invalid calculations
-    
-    Ok(())
-}
+let ix = spl_token_2022::instruction::mint_to(
+    token_program.key, mint.key, destination.key, authority.key, &[], amount).unwrap();
+let _ = invoke_signed(&ix, &[mint, destination, authority, token_program], signers);
+Ok(())
 ```
 
-**Vulnerability**: Missing checks allow rug pulls and fund theft.
+**What was changed:** `?` on instruction creation replaced with `.unwrap()` (panics). `invoke_signed` result replaced with `let _ =` (error silently discarded). Mint failure goes unnoticed.
 
 ---
 
-### 7. Type Confusion (V4)
+### 7. Input Validation / Type Confusion (V4)
 
-**SAFE (Original):**
+**SAFE (Original — Token-2022 `_process_initialize_account` L168-253):**
 ```rust
-pub fn unpack_token_account(
-    account_info: &AccountInfo,
-    token_program_id: &Pubkey,
-) -> Result<Account, SwapError> {
-    // ✓ Validates owner before unpacking
-    if account_info.owner != token_program_id {
-        Err(SwapError::IncorrectTokenProgramId)
-    } else {
-        // ✓ Uses typed unpacking
-        StateWithExtensions::<Account>::unpack(&account_info.data.borrow())
-            .map(|a| a.base)
-            .map_err(|_| SwapError::ExpectedAccount)
-    }
+check_program_account(new_account_info.owner)?;
+check_program_account(mint_info.owner)?;
+
+let mut account = PodStateWithExtensionsMut::<PodAccount>::unpack_uninitialized(&mut account_data)?;
+if !rent.is_exempt(new_account_info.lamports(), new_account_info_data_len) {
+    return Err(TokenError::NotRentExempt.into());
 }
+let mint = PodStateWithExtensions::<PodMint>::unpack(&mint_data)
+    .map_err(|_| Into::<ProgramError>::into(TokenError::InvalidMint))?;
 ```
 
-**VULNERABLE (Modified):**
+**VULNERABLE (Modified — removed all validation):**
 ```rust
-pub fn unpack_account_data(
-    account_info: &AccountInfo,
-) -> Result<Account, SwapError> {
-    // ✗ No type validation
-    // ✗ Interprets raw bytes without verification
-    let data = account_info.data.borrow();
-    let account: Account = unsafe { 
-        std::ptr::read(data.as_ptr() as *const Account) 
-    };
-    Ok(account)
-}
+let mut account = PodStateWithExtensionsMut::<PodAccount>::unpack_uninitialized(&mut account_data)?;
+account.base.mint = *mint_info.key;
+account.base.owner = *owner;
+account.base.state = AccountState::Initialized.into();
+account.init_account_type()?;
 ```
 
-**Vulnerability**: Mint accounts can be interpreted as Token accounts, causing logic errors.
+**What was removed:** `check_program_account` for both accounts (L177-178), rent exemption (L197-199), mint validation via unpack (L203-204), required extensions check (L212-218), native mint overflow protection (L240-244).
 
 ---
 
-## Quality Assurance
+## Source Verification
 
-All samples underwent rigorous validation:
+Each sample includes a `source_info` object:
 
-| Check | Description |
-|-------|-------------|
-| **Syntactic Correctness** | Valid Rust/Anchor code structure |
-| **No Data Leakage** | No revealing comments like `// VULNERABLE` |
-| **Balance** | Exactly 50% VULNERABLE / 50% SAFE |
-| **Pattern Diversity** | Multiple patterns per vulnerability type |
-| **Source Traceability** | Each sample linked to source repository |
+```json
+{
+  "source_info": {
+    "origin": "solana-labs/solana-program-library/token-swap",
+    "file": "program/src/processor.rs",
+    "url": "https://github.com/solana-labs/solana-program-library/blob/master/token-swap/program/src/processor.rs",
+    "function": "check_accounts",
+    "lines": "194-244",
+    "extraction_method": "modified from source - removed ALL checks: program ownership (L208-210), authority PDA (L211-215), token_a match (L216-218)"
+  }
+}
+```
+
+**To verify any sample:**
+1. Open the `url` in a browser
+2. Navigate to the `function` at the specified `lines`
+3. For SAFE: confirm the security patterns are present in the original
+4. For VULNERABLE: confirm the `extraction_method` items are present in the original but absent in the sample
 
 ---
 
 ## Dataset Format
 
-Each sample follows the LLaMA-3 chat template:
+Each sample follows the LLaMA-3 instruction template:
 
 ```json
 {
-  "id": "TS_MKC_001",
-  "vulnerability_type": "Missing Key Check",
+  "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer...<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nCode:\n[RUST CODE]<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n[ANALYSIS]<|eot_id|>",
   "label": "SAFE",
-  "source": "token-swap/processor.rs",
-  "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security auditor...<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n```rust\n[CODE]\n```<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE<|eot_id|>"
+  "vulnerability_type": "Missing Key Check",
+  "owasp_code": "V1",
+  "source_info": { ... }
 }
 ```
+
+---
+
+## File Structure
+
+| File | Description | Samples |
+|------|-------------|---------|
+| `dataset_batch1_stake_pool_token.json` | SPL Stake Pool + SPL Token | 33 |
+| `dataset_batch2_ata_binary_oracle.json` | ATA + Binary Oracle Pair | 24 |
+| `dataset_batch3_token_swap_lending.json` | Token Swap + Token Lending | 31 |
+| `dataset_batch4_single_pool_token2022.json` | Single Pool + Token-2022 | 28 |
+| `dataset_batch5_nameservice_binaryoption_statelessasks.json` | Name Service + Binary Option + Stateless Asks | 24 |
+| `dataset_batch6_governance.json` | Governance (7 processor files) | 22 |
+| `dataset_batch7_tokenupgrade_record_featureproposal.json` | Token Upgrade + Record + Feature Proposal | 21 |
+| `dataset_supplement_v9_v6_vulnerable.json` | V9 + V6 balance supplement | 30 |
+| `dataset_supplement_v4_v10.json` | V4 + V10 balance supplement | 27 |
+| `dataset_supplement_v5_v1.json` | V5 + V1 balance supplement | 22 |
+| `dataset_supplement_final.json` | Final balance supplement | 23 |
+| `dataset_final_merged.json` | **All samples merged (use this for training)** | **285** |
+
+Each batch JSON has a corresponding `dataset_sources_*.md` documentation file.
 
 ---
 
 ## References
 
 1. **Solana Program Library**: https://github.com/solana-labs/solana-program-library
-2. **Token Swap Program**: https://github.com/solana-labs/solana-program-library/tree/master/token-swap
-3. **Sealevel Attacks**: https://github.com/coral-xyz/sealevel-attacks
-4. **OWASP Smart Contract Top 10**: https://owasp.org/www-project-smart-contract-top-10/
-5. **Neodyme Blog - Solana Security**: https://blog.neodyme.io/
-6. Alves, H., et al. (2016). *Software Vulnerability Detection Using Machine Learning*
-7. University of Salerno (2024). *Synthetic Dataset Generation for Smart Contract Vulnerability Detection*
+2. **Solana Program (migrated repos)**: https://github.com/solana-program
+3. **OWASP Smart Contract Top 10 (2025)**: https://owasp.org/www-project-smart-contract-top-10/
+4. **Sealevel Attacks**: https://github.com/coral-xyz/sealevel-attacks
+5. Boi, B. & Esposito, C. (2025). *Prompt Engineering vs. Fine-Tuning for LLM-Based Vulnerability Detection in Solana and Algorand Smart Contracts*. IEEE BCCA 2025.
 
 ---
 
-## Distribution Summary
-
-| Vulnerability Type | SAFE | VULNERABLE | Total |
-|-------------------|------|------------|-------|
-| Missing Key Check | 13 | 13 | 26 |
-| Bump Seed | 13 | 13 | 26 |
-| Integer Flow | 13 | 13 | 26 |
-| CPI | 13 | 13 | 26 |
-| DoS | 13 | 13 | 26 |
-| Unchecked Calls | 13 | 13 | 26 |
-| Type Confusion | 13 | 13 | 26 |
-| **Total** | **91** | **91** | **182** |
-
----
-
-*Document Version: 2.0*  
-*Last Updated: December 2025*  
-*Author: Mustafa Hafed*  
-*Dataset: solana_182_final.json*
+*Document Version: 3.0*
+*Last Updated: April 2026*
+*Author: Mustafa Hafed*
+*Supervisor: Prof. Biagio Boi, University of Salerno*
+*Dataset: dataset_final_merged.json (285 samples)*
