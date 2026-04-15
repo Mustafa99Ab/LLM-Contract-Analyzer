@@ -1,0 +1,6 @@
+{
+  "vulnerability": "not_vulnerable",
+  "owasp_code": "V9",
+  "label": "SAFE",
+  "smart_contract": "fn process_init_lending_market(\n    program_id: &Pubkey,\n    owner: Pubkey,\n    quote_currency: [u8; 32],\n    accounts: &[AccountInfo],\n) -> ProgramResult {\n    let account_info_iter = &mut accounts.iter();\n    let lending_market_info = next_account_info(account_info_iter)?;\n    let rent = &Rent::from_account_info(next_account_info(account_info_iter)?)?;\n    let token_program_id = next_account_info(account_info_iter)?;\n    let oracle_program_id = next_account_info(account_info_iter)?;\n\n    assert_rent_exempt(rent, lending_market_info)?;\n    let mut lending_market = assert_uninitialized::<LendingMarket>(lending_market_info)?;\n    if lending_market_info.owner != program_id {\n        return Err(LendingError::InvalidAccountOwner.into());\n    }\n\n    lending_market.init(InitLendingMarketParams {\n        bump_seed: Pubkey::find_program_address(&[lending_market_info.key.as_ref()], program_id).1,\n        owner,\n        quote_currency,\n        token_program_id: *token_program_id.key,\n        oracle_program_id: *oracle_program_id.key,\n    });\n    LendingMarket::pack(lending_market, &mut lending_market_info.data.borrow_mut())?;\n    Ok(())\n}"
+}

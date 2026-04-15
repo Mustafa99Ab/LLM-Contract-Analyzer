@@ -1,0 +1,6 @@
+{
+  "vulnerability": "not_vulnerable",
+  "owasp_code": "V4",
+  "label": "SAFE",
+  "smart_contract": "pub fn process_swap(\n    program_id: &Pubkey, amount_in: u64, minimum_amount_out: u64,\n    accounts: &[AccountInfo],\n) -> ProgramResult {\n    if swap_info.owner != program_id {\n        return Err(ProgramError::IncorrectProgramId);\n    }\n    let token_swap = SwapVersion::unpack(&swap_info.data.borrow())?;\n\n    if *authority_info.key != Self::authority_id(program_id, swap_info.key, token_swap.bump_seed())? {\n        return Err(SwapError::InvalidProgramAddress.into());\n    }\n    if !(*swap_source_info.key == *token_swap.token_a_account()\n        || *swap_source_info.key == *token_swap.token_b_account()) {\n        return Err(SwapError::IncorrectSwapAccount.into());\n    }\n    if *swap_source_info.key == *swap_destination_info.key {\n        return Err(SwapError::InvalidInput.into());\n    }\n    if *pool_mint_info.key != *token_swap.pool_mint() {\n        return Err(SwapError::IncorrectPoolMint.into());\n    }\n    if *pool_fee_account_info.key != *token_swap.pool_fee_account() {\n        return Err(SwapError::IncorrectFeeAccount.into());\n    }\n\n    if amount_received < minimum_amount_out {\n        return Err(SwapError::ExceededSlippage.into());\n    }\n    Ok(())\n}"
+}

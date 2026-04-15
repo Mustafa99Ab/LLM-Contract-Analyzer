@@ -1,0 +1,6 @@
+{
+  "vulnerability": "missing_key_check",
+  "owasp_code": "V1",
+  "label": "VULNERABLE",
+  "smart_contract": "fn process_modify_reserve_config(\n    program_id: &Pubkey, new_config: ReserveConfig, accounts: &[AccountInfo],\n) -> ProgramResult {\n    let mut reserve = Reserve::unpack(&reserve_info.data.borrow_mut())?;\n    reserve.config = new_config;\n    Reserve::pack(reserve, &mut reserve_info.data.borrow_mut())?;\n    Ok(())\n}"
+}

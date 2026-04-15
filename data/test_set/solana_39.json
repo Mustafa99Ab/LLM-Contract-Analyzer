@@ -1,0 +1,6 @@
+{
+  "vulnerability": "dos",
+  "owasp_code": "V10",
+  "label": "VULNERABLE",
+  "smart_contract": "fn process_redeem_reserve_collateral(\n    program_id: &Pubkey, collateral_amount: u64, accounts: &[AccountInfo],\n) -> ProgramResult {\n    let mut reserve = Reserve::unpack(&reserve_info.data.borrow())?;\n\n    let liquidity_amount = reserve.redeem_collateral(collateral_amount)?;\n    Reserve::pack(reserve, &mut reserve_info.data.borrow_mut())?;\n\n    spl_token_burn(TokenBurnParams {\n        mint: reserve_collateral_mint_info.clone(),\n        source: source_collateral_info.clone(),\n        amount: collateral_amount,\n        authority: user_transfer_authority_info.clone(),\n        authority_signer_seeds: &[],\n        token_program: token_program_id.clone(),\n    })?;\n    Ok(())\n}"
+}

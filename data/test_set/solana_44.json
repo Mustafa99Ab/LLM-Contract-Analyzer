@@ -1,0 +1,6 @@
+{
+  "vulnerability": "type_confusion",
+  "owasp_code": "V4",
+  "label": "VULNERABLE",
+  "smart_contract": "fn process_create_associated_token_account(\n    program_id: &Pubkey, accounts: &[AccountInfo], create_mode: CreateMode,\n) -> ProgramResult {\n    let (associated_token_address, bump_seed) = get_associated_token_address_and_bump_seed_internal(\n        wallet_account_info.key, spl_token_mint_info.key, program_id, spl_token_program_id);\n    if associated_token_address != *associated_token_account_info.key {\n        return Err(ProgramError::InvalidSeeds);\n    }\n\n    if create_mode == CreateMode::Idempotent && associated_token_account_info.owner == spl_token_program_id {\n        return Ok(());\n    }\n\n    create_pda_account(funder_info, &Rent::get()?, account_len, spl_token_program_id,\n        system_program_info, associated_token_account_info, associated_token_account_signer_seeds)?;\n    Ok(())\n}"
+}

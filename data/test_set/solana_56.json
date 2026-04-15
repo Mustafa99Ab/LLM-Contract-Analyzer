@@ -1,0 +1,6 @@
+{
+  "vulnerability": "not_vulnerable",
+  "owasp_code": "V5",
+  "label": "SAFE",
+  "smart_contract": "pub fn process_swap(\n    program_id: &Pubkey,\n    amount_in: u64,\n    minimum_amount_out: u64,\n    accounts: &[AccountInfo],\n) -> ProgramResult {\n    let token_swap = SwapVersion::unpack(&swap_info.data.borrow())?;\n\n    // FIRST: Transfer user's source tokens INTO the pool\n    Self::token_transfer(\n        swap_info.key, source_token_program_info.clone(),\n        source_info.clone(), source_token_mint_info.clone(),\n        swap_source_info.clone(), user_transfer_authority_info.clone(),\n        token_swap.bump_seed(), source_transfer_amount, source_mint_decimals,\n    )?;\n\n    // THEN: Transfer pool's destination tokens OUT to user\n    Self::token_transfer(\n        swap_info.key, destination_token_program_info.clone(),\n        swap_destination_info.clone(), destination_token_mint_info.clone(),\n        destination_info.clone(), authority_info.clone(),\n        token_swap.bump_seed(), destination_transfer_amount, destination_mint_decimals,\n    )?;\n\n    Ok(())\n}"
+}

@@ -1,0 +1,6 @@
+{
+  "vulnerability": "not_vulnerable",
+  "owasp_code": "V8",
+  "label": "SAFE",
+  "smart_contract": "fn relocate_lamports(\n    source_account_info: &AccountInfo,\n    destination_account_info: &AccountInfo,\n    lamports: u64,\n) -> ProgramResult {\n    {\n        let mut source_lamports = source_account_info.try_borrow_mut_lamports()?;\n        **source_lamports = source_lamports\n            .checked_sub(lamports)\n            .ok_or(ProgramError::InsufficientFunds)?;\n    }\n    {\n        let mut destination_lamports = destination_account_info.try_borrow_mut_lamports()?;\n        **destination_lamports = destination_lamports\n            .checked_add(lamports)\n            .ok_or(ProgramError::ArithmeticOverflow)?;\n    }\n    Ok(())\n}"
+}

@@ -1,0 +1,6 @@
+{
+  "vulnerability": "not_vulnerable",
+  "owasp_code": "V4",
+  "label": "SAFE",
+  "smart_contract": "fn check_vote_account(vote_account_info: &AccountInfo) -> Result<(), ProgramError> {\n    check_account_owner(vote_account_info, &vote_program::id())?;\n\n    let vote_account_data = &vote_account_info.try_borrow_data()?;\n    let state_variant = vote_account_data\n        .get(..VOTE_STATE_DISCRIMINATOR_END)\n        .and_then(|s| s.try_into().ok())\n        .ok_or(SinglePoolError::UnparseableVoteAccount)?;\n\n    match u32::from_le_bytes(state_variant) {\n        1 | 2 | 3 => Ok(()),\n        0 => Err(SinglePoolError::LegacyVoteAccount.into()),\n        _ => Err(SinglePoolError::UnparseableVoteAccount.into()),\n    }\n}"
+}

@@ -1,0 +1,6 @@
+{
+  "vulnerability": "not_vulnerable",
+  "owasp_code": "V9",
+  "label": "SAFE",
+  "smart_contract": "fn process_propose(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    let (mint_address, mint_bump_seed) = get_mint_address_with_seed(feature_proposal_info.key);\n    if mint_address != *mint_info.key {\n        return Err(ProgramError::InvalidArgument);\n    }\n\n    let (distributor_token_address, distributor_token_bump_seed) =\n        get_distributor_token_address_with_seed(feature_proposal_info.key);\n    if distributor_token_address != *distributor_token_info.key {\n        return Err(ProgramError::InvalidArgument);\n    }\n\n    let (acceptance_token_address, acceptance_token_bump_seed) =\n        get_acceptance_token_address_with_seed(feature_proposal_info.key);\n    if acceptance_token_address != *acceptance_token_info.key {\n        return Err(ProgramError::InvalidArgument);\n    }\n\n    let (feature_id_address, feature_id_bump_seed) =\n        get_feature_id_address_with_seed(feature_proposal_info.key);\n    if feature_id_address != *feature_id_info.key {\n        return Err(ProgramError::InvalidArgument);\n    }\n    Ok(())\n}"
+}

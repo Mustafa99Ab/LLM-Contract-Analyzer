@@ -1,0 +1,6 @@
+{
+  "vulnerability": "type_confusion",
+  "owasp_code": "V4",
+  "label": "VULNERABLE",
+  "smart_contract": "fn _process_initialize_multisig(\n    accounts: &[AccountInfo],\n    m: u8,\n) -> ProgramResult {\n    let account_info_iter = &mut accounts.iter();\n    let multisig_info = next_account_info(account_info_iter)?;\n\n    let mut multisig = Multisig::unpack_unchecked(&multisig_info.data.borrow())?;\n    if multisig.is_initialized {\n        return Err(TokenError::AlreadyInUse.into());\n    }\n\n    let signer_infos = account_info_iter.as_slice();\n    multisig.m = m;\n    multisig.n = signer_infos.len() as u8;\n    for (i, signer_info) in signer_infos.iter().enumerate() {\n        multisig.signers[i] = *signer_info.key;\n    }\n    multisig.is_initialized = true;\n\n    Multisig::pack(multisig, &mut multisig_info.data.borrow_mut())?;\n    Ok(())\n}"
+}

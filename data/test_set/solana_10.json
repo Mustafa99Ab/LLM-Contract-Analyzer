@@ -1,0 +1,6 @@
+{
+  "vulnerability": "not_vulnerable",
+  "owasp_code": "V1",
+  "label": "SAFE",
+  "smart_contract": "pub fn process_decide(\n    _program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    decision: bool,\n) -> ProgramResult {\n    let account_info_iter = &mut accounts.iter();\n    let pool_account_info = next_account_info(account_info_iter)?;\n    let decider_account_info = next_account_info(account_info_iter)?;\n    let clock_info = next_account_info(account_info_iter)?;\n    let clock = &Clock::from_account_info(clock_info)?;\n\n    let mut pool = Pool::try_from_slice(&pool_account_info.data.borrow())?;\n\n    if *decider_account_info.key != pool.decider {\n        return Err(PoolError::WrongDeciderAccount.into());\n    }\n\n    if !decider_account_info.is_signer {\n        return Err(PoolError::SignatureMissing.into());\n    }\n\n    if pool.decision != Decision::Undecided {\n        return Err(PoolError::DecisionAlreadyMade.into());\n    }\n\n    let current_slot = clock.slot;\n    if current_slot < pool.mint_end_slot || current_slot > pool.decide_end_slot {\n        return Err(PoolError::InvalidSlotForDecision.into());\n    }\n\n    pool.decision = if decision { Decision::Pass } else { Decision::Fail };\n    borsh::to_writer(&mut pool_account_info.data.borrow_mut()[..], &pool)?;\n    Ok(())\n}"
+}

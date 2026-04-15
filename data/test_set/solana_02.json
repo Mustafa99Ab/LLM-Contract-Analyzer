@@ -1,0 +1,6 @@
+{
+  "vulnerability": "not_vulnerable",
+  "owasp_code": "V6",
+  "label": "SAFE",
+  "smart_contract": "pub fn mint<'a>(\n    token_program_id: AccountInfo<'a>,\n    mint_account: AccountInfo<'a>,\n    destination_account: AccountInfo<'a>,\n    authority_account: AccountInfo<'a>,\n    amount: u64,\n    pool_pub_key: &Pubkey,\n    bump_seed: u8,\n) -> ProgramResult {\n    let me_bytes = pool_pub_key.to_bytes();\n    let authority_signature_seeds = [&me_bytes[..32], &[bump_seed]];\n    let signers = &[&authority_signature_seeds[..]];\n\n    let ix = spl_token::instruction::mint_to(\n        token_program_id.key,\n        mint_account.key,\n        destination_account.key,\n        authority_account.key,\n        &[authority_account.key],\n        amount,\n    )?;\n\n    invoke_signed(\n        &ix,\n        &[token_program_id, mint_account, destination_account, authority_account],\n        signers,\n    )\n}"
+}

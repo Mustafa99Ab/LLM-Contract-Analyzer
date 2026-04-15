@@ -1,0 +1,6 @@
+{
+  "vulnerability": "bump_seed",
+  "owasp_code": "V9",
+  "label": "VULNERABLE",
+  "smart_contract": "fn process_propose(program_id: &Pubkey, accounts: &[AccountInfo],\n    tokens_to_mint: u64, acceptance_criteria: AcceptanceCriteria,\n    mint_bump: u8, feature_id_bump: u8,\n) -> ProgramResult {\n    let mint_address = Pubkey::create_program_address(\n        &[&feature_proposal_info.key.to_bytes(), br\"mint\", &[mint_bump]],\n        program_id,\n    )?;\n    if mint_address != *mint_info.key {\n        return Err(ProgramError::InvalidArgument);\n    }\n\n    let feature_id_address = Pubkey::create_program_address(\n        &[&feature_proposal_info.key.to_bytes(), br\"feature-id\", &[feature_id_bump]],\n        program_id,\n    )?;\n    if feature_id_address != *feature_id_info.key {\n        return Err(ProgramError::InvalidArgument);\n    }\n    Ok(())\n}"
+}

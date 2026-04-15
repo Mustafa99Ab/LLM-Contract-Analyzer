@@ -1,0 +1,6 @@
+{
+  "vulnerability": "cpi",
+  "owasp_code": "V5",
+  "label": "VULNERABLE",
+  "smart_contract": "fn process_deposit_reserve_liquidity(\n    program_id: &Pubkey, liquidity_amount: u64, accounts: &[AccountInfo],\n) -> ProgramResult {\n    let mut reserve = Reserve::unpack(&reserve_info.data.borrow())?;\n    let collateral_amount = reserve.deposit_liquidity(liquidity_amount)?;\n    Reserve::pack(reserve, &mut reserve_info.data.borrow_mut())?;\n\n    // WRONG: Mint collateral FIRST\n    spl_token_mint_to(TokenMintToParams {\n        mint: reserve_collateral_mint_info.clone(),\n        destination: destination_collateral_info.clone(),\n        amount: collateral_amount, authority: lending_market_authority_info.clone(),\n        authority_signer_seeds, token_program: token_program_id.clone(),\n    })?;\n\n    // THEN transfer liquidity — but collateral already minted\n    spl_token_transfer(TokenTransferParams {\n        source: source_liquidity_info.clone(),\n        destination: reserve_liquidity_supply_info.clone(),\n        amount: liquidity_amount, authority: user_transfer_authority_info.clone(),\n        authority_signer_seeds: &[], token_program: token_program_id.clone(),\n    })?;\n    Ok(())\n}"
+}

@@ -1,0 +1,6 @@
+{
+  "vulnerability": "bump_seed",
+  "owasp_code": "V9",
+  "label": "VULNERABLE",
+  "smart_contract": "fn process_initialize_pool(program_id: &Pubkey, accounts: &[AccountInfo],\n    pool_bump: u8, stake_bump: u8, mint_bump: u8,\n    stake_auth_bump: u8, mint_auth_bump: u8,\n) -> ProgramResult {\n    check_vote_account(vote_account_info)?;\n\n    let pool_address = Pubkey::create_program_address(\n        &[POOL_PREFIX, vote_account_info.key.as_ref(), &[pool_bump]], program_id)?;\n    if pool_address != *pool_info.key {\n        return Err(SinglePoolError::InvalidPoolAccount.into());\n    }\n\n    let stake_address = Pubkey::create_program_address(\n        &[POOL_STAKE_PREFIX, pool_info.key.as_ref(), &[stake_bump]], program_id)?;\n    if stake_address != *pool_stake_info.key {\n        return Err(SinglePoolError::InvalidPoolStakeAccount.into());\n    }\n\n    check_system_program(system_program_info.key)?;\n    check_token_program(token_program_info.key)?;\n    check_stake_program(stake_program_info.key)?;\n    Ok(())\n}"
+}

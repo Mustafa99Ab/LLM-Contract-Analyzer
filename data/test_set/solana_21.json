@@ -1,0 +1,6 @@
+{
+  "vulnerability": "missing_key_check",
+  "owasp_code": "V1",
+  "label": "VULNERABLE",
+  "smart_contract": "pub fn process_burn(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    amount: u64,\n) -> ProgramResult {\n    let account_info_iter = &mut accounts.iter();\n    let source_account_info = next_account_info(account_info_iter)?;\n    let mint_info = next_account_info(account_info_iter)?;\n    let authority_info = next_account_info(account_info_iter)?;\n\n    let mut source_account = Account::unpack(&source_account_info.data.borrow())?;\n    let mut mint = Mint::unpack(&mint_info.data.borrow())?;\n\n    if source_account.amount < amount {\n        return Err(TokenError::InsufficientFunds.into());\n    }\n\n    source_account.amount = source_account.amount.checked_sub(amount).ok_or(TokenError::Overflow)?;\n    mint.supply = mint.supply.checked_sub(amount).ok_or(TokenError::Overflow)?;\n\n    Account::pack(source_account, &mut source_account_info.data.borrow_mut())?;\n    Mint::pack(mint, &mut mint_info.data.borrow_mut())?;\n    Ok(())\n}"
+}

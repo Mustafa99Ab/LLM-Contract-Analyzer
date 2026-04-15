@@ -1,0 +1,6 @@
+{
+  "vulnerability": "dos",
+  "owasp_code": "V10",
+  "label": "VULNERABLE",
+  "smart_contract": "fn process_realloc(accounts: &[AccountInfo], space: u32) -> ProgramResult {\n    let name_account = next_account_info(accounts_iter)?;\n\n    let new_space = NameRecordHeader::LEN + space as usize;\n    name_account.realloc(new_space, false)?;\n    Ok(())\n}"
+}

@@ -1,0 +1,6 @@
+{
+  "vulnerability": "not_vulnerable",
+  "owasp_code": "V10",
+  "label": "SAFE",
+  "smart_contract": "RecordInstruction::Reallocate { data_length } => {\n    let data_info = next_account_info(account_info_iter)?;\n    let authority_info = next_account_info(account_info_iter)?;\n    {\n        let raw_data = &mut data_info.data.borrow_mut();\n        let account_data = bytemuck::try_from_bytes_mut::<RecordData>(\n            &mut raw_data[..RecordData::WRITABLE_START_INDEX],\n        ).map_err(|_| ProgramError::InvalidArgument)?;\n        if !account_data.is_initialized() {\n            return Err(ProgramError::UninitializedAccount);\n        }\n        check_authority(authority_info, &account_data.authority)?;\n    }\n\n    let needed_account_length = std::mem::size_of::<RecordData>()\n        .checked_add(usize::try_from(data_length).map_err(|_| ProgramError::InvalidArgument)?)\n        .unwrap();\n\n    if data_info.data_len() >= needed_account_length {\n        return Ok(());\n    }\n    data_info.resize(needed_account_length)?;\n    Ok(())\n}"
+}

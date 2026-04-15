@@ -1,0 +1,6 @@
+{
+  "vulnerability": "dos",
+  "owasp_code": "V10",
+  "label": "VULNERABLE",
+  "smart_contract": "RecordInstruction::Reallocate { data_length } => {\n    let data_info = next_account_info(account_info_iter)?;\n\n    let needed_account_length = std::mem::size_of::<RecordData>() + data_length as usize;\n    data_info.resize(needed_account_length)?;\n    Ok(())\n}"
+}

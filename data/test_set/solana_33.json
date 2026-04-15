@@ -1,0 +1,6 @@
+{
+  "vulnerability": "integer_overflow",
+  "owasp_code": "V8",
+  "label": "VULNERABLE",
+  "smart_contract": "fn pay_creator_fees<'a>(\n    metadata_info: &AccountInfo<'a>, size: u64, is_native: bool,\n) -> Result<u64, ProgramError> {\n    let metadata = try_from_slice_unchecked::<Metadata>(&metadata_info.try_borrow_data()?)?;\n    let fees = metadata.data.seller_fee_basis_points;\n    let total_fee = (fees as u64) * size / 10000;\n    let remaining_size = size - total_fee;\n\n    match metadata.data.creators {\n        Some(creators) => {\n            for creator in creators {\n                let creator_fee = creator.share as u64 * total_fee / 100;\n                remaining_fee = remaining_fee - creator_fee;\n            }\n        }\n        None => {}\n    }\n    Ok(remaining_size + remaining_fee)\n}"
+}

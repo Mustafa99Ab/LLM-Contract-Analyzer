@@ -1,0 +1,6 @@
+{
+  "vulnerability": "integer_overflow",
+  "owasp_code": "V8",
+  "label": "VULNERABLE",
+  "smart_contract": "fn process_refresh_obligation(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    let mut obligation = Obligation::unpack(&obligation_info.data.borrow())?;\n\n    let mut deposited_value: u128 = 0;\n    let mut borrowed_value: u128 = 0;\n\n    for (index, collateral) in obligation.deposits.iter_mut().enumerate() {\n        let deposit_reserve = Reserve::unpack(&deposit_reserve_info.data.borrow())?;\n\n        let decimals = 10u64.pow(deposit_reserve.liquidity.mint_decimals as u32);\n\n        let market_value = (collateral.deposited_amount as u128)\n            * (deposit_reserve.liquidity.market_price as u128)\n            / (decimals as u128);\n\n        deposited_value += market_value;\n    }\n\n    obligation.deposited_value = deposited_value;\n    obligation.borrowed_value = borrowed_value;\n    Obligation::pack(obligation, &mut obligation_info.data.borrow_mut())?;\n    Ok(())\n}"
+}

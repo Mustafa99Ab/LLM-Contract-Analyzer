@@ -1,0 +1,6 @@
+{
+  "vulnerability": "cpi",
+  "owasp_code": "V5",
+  "label": "VULNERABLE",
+  "smart_contract": "pub fn process_trade(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    size: u64,\n    buy_price: u64,\n    sell_price: u64,\n) -> ProgramResult {\n    let n = size;\n\n    // WRONG: Transfer escrow funds FIRST\n    spl_token_transfer_signed(token_program_info, escrow_account_info,\n        buyer_account_info, authority_info, n * sell_price, seeds)?;\n    spl_token_transfer_signed(token_program_info, escrow_account_info,\n        seller_account_info, authority_info, n * buy_price, seeds)?;\n\n    // THEN burn — but funds already released\n    spl_burn(token_program_info, buyer_short_token_account_info,\n        short_token_mint_info, buyer_info, n)?;\n    spl_burn(token_program_info, seller_long_token_account_info,\n        long_token_mint_info, seller_info, n)?;\n\n    binary_option.decrement_supply(n)?;\n    Ok(())\n}"
+}

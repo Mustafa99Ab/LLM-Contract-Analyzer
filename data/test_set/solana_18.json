@@ -1,0 +1,6 @@
+{
+  "vulnerability": "missing_key_check",
+  "owasp_code": "V1",
+  "label": "VULNERABLE",
+  "smart_contract": "fn process_set_preferred_validator(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n    validator_type: PreferredValidatorType, validator_vote_address: Option<Pubkey>,\n) -> ProgramResult {\n    let mut stake_pool = try_from_slice_unchecked::<StakePool>(&stake_pool_info.data.borrow())?;\n\n    match validator_type {\n        PreferredValidatorType::Deposit => stake_pool.preferred_deposit_validator_vote_address = validator_vote_address,\n        PreferredValidatorType::Withdraw => stake_pool.preferred_withdraw_validator_vote_address = validator_vote_address,\n    }\n    stake_pool.serialize(&mut stake_pool_info.data.borrow_mut())?;\n    Ok(())\n}"
+}

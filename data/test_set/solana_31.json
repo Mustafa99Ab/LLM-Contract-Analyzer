@@ -1,0 +1,6 @@
+{
+  "vulnerability": "not_vulnerable",
+  "owasp_code": "V10",
+  "label": "SAFE",
+  "smart_contract": "pub fn process_delete(accounts: &[AccountInfo]) -> ProgramResult {\n    let name_account = next_account_info(accounts_iter)?;\n    let name_owner = next_account_info(accounts_iter)?;\n    let refund_target = next_account_info(accounts_iter)?;\n\n    let name_record_header = NameRecordHeader::unpack_from_slice(&name_account.data.borrow())?;\n\n    if !name_owner.is_signer || name_record_header.owner != *name_owner.key {\n        return Err(ProgramError::InvalidArgument);\n    }\n\n    write_data(name_account, &vec![0; name_account.data_len()], 0);\n\n    let source_amount: &mut u64 = &mut name_account.lamports.borrow_mut();\n    let dest_amount: &mut u64 = &mut refund_target.lamports.borrow_mut();\n    *dest_amount = dest_amount.saturating_add(*source_amount);\n    *source_amount = 0;\n    Ok(())\n}"
+}

@@ -1,0 +1,6 @@
+{
+  "vulnerability": "integer_flow",
+  "owasp_code": "V8",
+  "label": "VULNERABLE",
+  "smart_contract": "pub fn process_mint_to(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    amount: u64,\n) -> ProgramResult {\n    let account_info_iter = &mut accounts.iter();\n    let mint_info = next_account_info(account_info_iter)?;\n    let destination_account_info = next_account_info(account_info_iter)?;\n    let owner_info = next_account_info(account_info_iter)?;\n\n    let mut destination_account = Account::unpack(&destination_account_info.data.borrow())?;\n    let mut mint = Mint::unpack(&mint_info.data.borrow())?;\n\n    destination_account.amount += amount;\n    mint.supply += amount;\n\n    Account::pack(destination_account, &mut destination_account_info.data.borrow_mut())?;\n    Mint::pack(mint, &mut mint_info.data.borrow_mut())?;\n    Ok(())\n}"
+}

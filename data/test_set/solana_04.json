@@ -1,0 +1,6 @@
+{
+  "vulnerability": "dos",
+  "owasp_code": "V10",
+  "label": "VULNERABLE",
+  "smart_contract": "fn process_add_validator_to_pool(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    raw_validator_seed: u32,\n) -> ProgramResult {\n    let account_info_iter = &mut accounts.iter();\n    let stake_pool_info = next_account_info(account_info_iter)?;\n    let validator_list_info = next_account_info(account_info_iter)?;\n    let validator_vote_info = next_account_info(account_info_iter)?;\n\n    let stake_pool = try_from_slice_unchecked::<StakePool>(&stake_pool_info.data.borrow())?;\n    let mut validator_list_data = validator_list_info.data.borrow_mut();\n    let (header, mut validator_list) = ValidatorListHeader::deserialize_vec(&mut validator_list_data)?;\n\n    validator_list.push(ValidatorStakeInfo {\n        status: StakeStatus::Active.into(),\n        vote_account_address: *validator_vote_info.key,\n        active_stake_lamports: 0.into(),\n        transient_stake_lamports: 0.into(),\n        last_update_epoch: 0.into(),\n        transient_seed_suffix: 0.into(),\n        unused: 0.into(),\n        validator_seed_suffix: raw_validator_seed.into(),\n    })?;\n    Ok(())\n}"
+}

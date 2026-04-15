@@ -1,0 +1,6 @@
+{
+  "vulnerability": "bump_seed",
+  "owasp_code": "V9",
+  "label": "VULNERABLE",
+  "smart_contract": "pub fn process_collect(program_id: &Pubkey, accounts: &[AccountInfo],\n    bump_seed: u8,\n) -> ProgramResult {\n    let escrow_owner_key = Pubkey::create_program_address(\n        &[long_token_mint_info.key.as_ref(), short_token_mint_info.key.as_ref(),\n          token_program_info.key.as_ref(), program_id.as_ref(), &[bump_seed]],\n        program_id,\n    )?;\n    let seeds = &[long_token_mint_info.key.as_ref(), short_token_mint_info.key.as_ref(),\n        token_program_info.key.as_ref(), program_id.as_ref(), &[bump_seed]];\n\n    assert_keys_equal(escrow_owner_key, *escrow_authority_info.key)?;\n\n    if reward > 0 {\n        let amount = reward.checked_mul(escrow_account.amount)\n            .ok_or(BinaryOptionError::AmountOverflow)?;\n        let amount = amount / binary_option.circulation;\n        spl_token_transfer_signed(token_program_info, escrow_account_info,\n            collector_account_info, escrow_authority_info, amount, seeds)?;\n    }\n    Ok(())\n}"
+}

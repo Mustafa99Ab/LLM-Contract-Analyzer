@@ -1,0 +1,6 @@
+{
+  "vulnerability": "bump_seed",
+  "owasp_code": "V9",
+  "label": "VULNERABLE",
+  "smart_contract": "pub fn process_recover_nested(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    let owner_associated_token_account_info = next_account_info(account_info_iter)?;\n    let owner_token_mint_info = next_account_info(account_info_iter)?;\n    let wallet_account_info = next_account_info(account_info_iter)?;\n    let spl_token_program_id = spl_token_program_info.key;\n\n    let owner_associated_token_address = Pubkey::create_program_address(\n        &[&wallet_account_info.key.to_bytes(), &spl_token_program_id.to_bytes(),\n          &owner_token_mint_info.key.to_bytes(), &[bump_seed]],\n        program_id,\n    )?;\n    if owner_associated_token_address != *owner_associated_token_account_info.key {\n        return Err(ProgramError::InvalidSeeds);\n    }\n    Ok(())\n}"
+}

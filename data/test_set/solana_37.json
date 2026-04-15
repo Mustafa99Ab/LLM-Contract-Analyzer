@@ -1,0 +1,6 @@
+{
+  "vulnerability": "cpi",
+  "owasp_code": "V5",
+  "label": "VULNERABLE",
+  "smart_contract": "fn process_flash_loan(\n    program_id: &Pubkey,\n    liquidity_amount: u64,\n    accounts: &[AccountInfo],\n) -> ProgramResult {\n    let mut reserve = Reserve::unpack(&reserve_info.data.borrow())?;\n\n    reserve.liquidity.borrow(Decimal::from(liquidity_amount))?;\n    Reserve::pack(reserve, &mut reserve_info.data.borrow_mut())?;\n\n    spl_token_transfer(TokenTransferParams {\n        source: source_liquidity_info.clone(),\n        destination: destination_liquidity_info.clone(),\n        amount: liquidity_amount,\n        authority: lending_market_authority_info.clone(),\n        authority_signer_seeds,\n        token_program: token_program_id.clone(),\n    })?;\n\n    invoke(\n        &Instruction {\n            program_id: *flash_loan_receiver_program_id.key,\n            accounts: flash_loan_instruction_accounts,\n            data,\n        },\n        &flash_loan_instruction_account_infos[..],\n    )?;\n\n    Ok(())\n}"
+}

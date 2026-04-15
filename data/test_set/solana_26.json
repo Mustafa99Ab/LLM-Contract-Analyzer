@@ -1,0 +1,6 @@
+{
+  "vulnerability": "not_vulnerable",
+  "owasp_code": "V4",
+  "label": "SAFE",
+  "smart_contract": "fn process_accept_offer(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    maker_size: u64,\n    taker_size: u64,\n    bump_seed: u8,\n) -> ProgramResult {\n    let maker_src_token_account: spl_token::state::Account =\n        spl_token::state::Account::unpack(&maker_src_account.data.borrow())?;\n\n    if maker_src_token_account.delegated_amount != maker_pay_size {\n        return Err(ProgramError::InvalidAccountData);\n    }\n    let authority_key = Pubkey::create_program_address(seeds, program_id)?;\n    assert_keys_equal(authority_key, *transfer_authority.key)?;\n\n    if maker_src_token_account.delegate != COption::Some(authority_key) {\n        return Err(ProgramError::InvalidAccountData);\n    }\n    assert_keys_equal(spl_token::id(), *token_program_info.key)?;\n    assert_is_ata(maker_src_account, maker_wallet.key, maker_src_mint.key)?;\n    assert_is_ata(taker_dst_account, taker_wallet.key, maker_src_mint.key)?;\n    Ok(())\n}"
+}

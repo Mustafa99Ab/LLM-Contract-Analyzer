@@ -1,0 +1,6 @@
+{
+  "vulnerability": "not_vulnerable",
+  "owasp_code": "V5",
+  "label": "SAFE",
+  "smart_contract": "fn process_withdraw_stake(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    user_stake_authority: &Pubkey,\n    token_amount: u64,\n) -> ProgramResult {\n    // FIRST: Burn user's pool tokens (destroys withdrawal authorization)\n    Self::token_burn(pool_info.key, token_program_info.clone(),\n        user_token_account_info.clone(), pool_mint_info.clone(),\n        pool_mint_authority_info.clone(), mint_authority_bump_seed, token_amount)?;\n\n    // SECOND: Split stake from pool to user\n    Self::stake_split(pool_info.key, pool_stake_info.clone(),\n        pool_stake_authority_info.clone(), stake_authority_bump_seed,\n        withdraw_stake, user_stake_info.clone())?;\n\n    // LAST: Assign authorities to user\n    Self::stake_authorize(pool_info.key, user_stake_info.clone(),\n        pool_stake_authority_info.clone(), stake_authority_bump_seed,\n        user_stake_authority, clock_info.clone())?;\n\n    Ok(())\n}"
+}

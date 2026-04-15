@@ -1,0 +1,45 @@
+{% for message in messages %}
+{% if message['role'] == 'developer' or message['role'] == 'system' %}
+<|start_header_id|>system<|end_header_id|>
+
+{{ message['content'] }}<|eot_id|>
+
+{% elif message['role'] == 'user' %}
+<|start_header_id|>user<|end_header_id|>
+
+{{ message['content'] }}<|eot_id|>user_end
+
+{% elif message['role'] == 'assistant' %}
+{% if message['description'] %}
+<|start_header_id|>assistant<|end_header_id|>
+
+<final>
+{{ message['description'] }}
+</final>
+<|eot_id|>
+
+{% else %}
+<|start_header_id|>assistant<|end_header_id|>
+
+<think>
+{{ message['thinking'] }}</think>
+
+<final>
+{{ message['content'] }}
+</final><|eot_id|>
+
+{% endif %}
+{% endif %}
+{% endfor %}
+
+{%- if add_generation_prompt %}
+{%- if think %}
+<|start_header_id|>assistant<|end_header_id|>
+
+<think>
+{%- else %}
+<|start_header_id|>assistant<|end_header_id|>
+
+<final>
+{%- endif %}
+{%- endif %}

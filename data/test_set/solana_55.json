@@ -1,0 +1,6 @@
+{
+  "vulnerability": "not_vulnerable",
+  "owasp_code": "V9",
+  "label": "SAFE",
+  "smart_contract": "fn check_pool_stake_authority_address(\n    program_id: &Pubkey, pool_key: &Pubkey, authority_key: &Pubkey,\n) -> Result<u8, ProgramError> {\n    let (expected_authority, bump) = crate::find_pool_stake_authority_address(program_id, pool_key);\n    if expected_authority != *authority_key {\n        Err(SinglePoolError::InvalidPoolStakeAuthority.into())\n    } else {\n        Ok(bump)\n    }\n}"
+}

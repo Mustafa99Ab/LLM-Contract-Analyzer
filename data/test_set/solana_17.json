@@ -1,0 +1,6 @@
+{
+  "vulnerability": "not_vulnerable",
+  "owasp_code": "V1",
+  "label": "SAFE",
+  "smart_contract": "fn process_set_manager(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    let account_info_iter = &mut accounts.iter();\n    let stake_pool_info = next_account_info(account_info_iter)?;\n    let manager_info = next_account_info(account_info_iter)?;\n    let new_manager_info = next_account_info(account_info_iter)?;\n    let new_manager_fee_info = next_account_info(account_info_iter)?;\n\n    check_account_owner(stake_pool_info, program_id)?;\n    let mut stake_pool = try_from_slice_unchecked::<StakePool>(&stake_pool_info.data.borrow())?;\n    check_account_owner(new_manager_fee_info, &stake_pool.token_program_id)?;\n    if !stake_pool.is_valid() {\n        return Err(StakePoolError::InvalidState.into());\n    }\n\n    stake_pool.check_manager(manager_info)?;\n    if !new_manager_info.is_signer {\n        msg!(\"New manager signature missing\");\n        return Err(StakePoolError::SignatureMissing.into());\n    }\n\n    stake_pool.check_manager_fee_info(new_manager_fee_info)?;\n\n    stake_pool.manager = *new_manager_info.key;\n    stake_pool.manager_fee_account = *new_manager_fee_info.key;\n    borsh::to_writer(&mut stake_pool_info.data.borrow_mut()[..], &stake_pool)?;\n    Ok(())\n}"
+}

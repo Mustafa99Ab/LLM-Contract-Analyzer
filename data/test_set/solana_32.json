@@ -1,0 +1,6 @@
+{
+  "vulnerability": "type_confusion",
+  "owasp_code": "V4",
+  "label": "VULNERABLE",
+  "smart_contract": "RecordInstruction::Write { offset, data } => {\n    let data_info = next_account_info(account_info_iter)?;\n\n    let start = RecordData::WRITABLE_START_INDEX + offset as usize;\n    let end = start + data.len();\n    data_info.data.borrow_mut()[start..end].copy_from_slice(data);\n    Ok(())\n}"
+}

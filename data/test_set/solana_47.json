@@ -1,0 +1,6 @@
+{
+  "vulnerability": "not_vulnerable",
+  "owasp_code": "V9",
+  "label": "SAFE",
+  "smart_contract": "pub fn authority_id(\n    program_id: &Pubkey,\n    my_info: &Pubkey,\n) -> Result<(Pubkey, u8), ProgramError> {\n    Pubkey::find_program_address(&[&my_info.to_bytes()[..32]], program_id)\n        .ok_or_else(|| PoolError::InvalidAuthorityData.into())\n}\n\npub fn process_init_pool(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    mint_end_slot: Slot,\n    decide_end_slot: Slot,\n) -> ProgramResult {\n    let account_info_iter = &mut accounts.iter();\n    let pool_account_info = next_account_info(account_info_iter)?;\n    let authority_info = next_account_info(account_info_iter)?;\n\n    let (authority, bump_seed) = Self::authority_id(program_id, pool_account_info.key)?;\n    if *authority_info.key != authority {\n        return Err(PoolError::InvalidAuthorityAccount.into());\n    }\n\n    let mut pool = Pool::try_from_slice(&pool_account_info.data.borrow())?;\n    pool.bump_seed = bump_seed;\n    pool.mint_end_slot = mint_end_slot;\n    pool.decide_end_slot = decide_end_slot;\n    \n    borsh::to_writer(&mut pool_account_info.data.borrow_mut()[..], &pool)?;\n    Ok(())\n}"
+}
