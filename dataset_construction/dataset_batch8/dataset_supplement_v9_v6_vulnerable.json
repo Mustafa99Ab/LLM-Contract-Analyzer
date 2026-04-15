@@ -1,0 +1,422 @@
+[
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn check_transient_stake_address(\n    program_id: &Pubkey,\n    stake_pool_address: &Pubkey,\n    stake_account_address: &Pubkey,\n    vote_address: &Pubkey,\n    seed: u64,\n    bump_seed: u8,\n) -> Result<u8, ProgramError> {\n    let transient_stake_address = Pubkey::create_program_address(\n        &[b\"transient\", vote_address.as_ref(), stake_pool_address.as_ref(),\n          &seed.to_le_bytes(), &[bump_seed]],\n        program_id,\n    )?;\n    if transient_stake_address != *stake_account_address {\n        Err(StakePoolError::InvalidStakeAccountAddress.into())\n    } else {\n        Ok(bump_seed)\n    }\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV9 - Bump Seed Canonicalization\nHIGH\nAccepts user-provided bump_seed and uses create_program_address() instead of find_transient_stake_program_address() which derives canonical bump. Non-canonical bumps can create phantom transient stake accounts.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Bump Seed",
+    "owasp_code": "V9",
+    "source_info": {
+      "origin": "solana-program/stake-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/stake-pool/blob/main/program/src/processor.rs",
+      "function": "check_transient_stake_address",
+      "lines": "82-101",
+      "extraction_method": "modified from source - replaced find_transient_stake_program_address (L90, uses find_program_address) with create_program_address accepting user-provided bump_seed parameter"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn check_ephemeral_stake_address(\n    program_id: &Pubkey,\n    stake_pool_address: &Pubkey,\n    stake_account_address: &Pubkey,\n    seed: u64,\n    bump_seed: u8,\n) -> Result<u8, ProgramError> {\n    let ephemeral_stake_address = Pubkey::create_program_address(\n        &[b\"ephemeral\", stake_pool_address.as_ref(), &seed.to_le_bytes(), &[bump_seed]],\n        program_id,\n    )?;\n    if ephemeral_stake_address != *stake_account_address {\n        Err(StakePoolError::InvalidStakeAccountAddress.into())\n    } else {\n        Ok(bump_seed)\n    }\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV9 - Bump Seed Canonicalization\nHIGH\nAccepts user-provided bump_seed with create_program_address instead of find_ephemeral_stake_program_address. Multiple ephemeral accounts can be created for the same seed with different non-canonical bumps.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Bump Seed",
+    "owasp_code": "V9",
+    "source_info": {
+      "origin": "solana-program/stake-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/stake-pool/blob/main/program/src/processor.rs",
+      "function": "check_ephemeral_stake_address",
+      "lines": "104-118",
+      "extraction_method": "modified from source - replaced find_ephemeral_stake_program_address (L111, uses find_program_address) with create_program_address accepting user-provided bump_seed parameter"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_recover_nested(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    let owner_associated_token_account_info = next_account_info(account_info_iter)?;\n    let owner_token_mint_info = next_account_info(account_info_iter)?;\n    let wallet_account_info = next_account_info(account_info_iter)?;\n    let spl_token_program_id = spl_token_program_info.key;\n\n    let owner_associated_token_address = Pubkey::create_program_address(\n        &[&wallet_account_info.key.to_bytes(), &spl_token_program_id.to_bytes(),\n          &owner_token_mint_info.key.to_bytes(), &[bump_seed]],\n        program_id,\n    )?;\n    if owner_associated_token_address != *owner_associated_token_account_info.key {\n        return Err(ProgramError::InvalidSeeds);\n    }\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV9 - Bump Seed Canonicalization\nHIGH\nOnly one of three PDAs is verified (owner), nested and destination skipped. Uses create_program_address with user bump instead of get_associated_token_address_and_bump_seed_internal.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Bump Seed",
+    "owasp_code": "V9",
+    "source_info": {
+      "origin": "solana-program/associated-token-account",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/associated-token-account/blob/main/program/src/processor.rs",
+      "function": "process_recover_nested",
+      "lines": "152-270",
+      "extraction_method": "modified from source - replaced get_associated_token_address_and_bump_seed_internal (L161, uses find_program_address) with create_program_address accepting user-provided bump_seed, removed nested and destination PDA verification (L171-199)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_initialize(\n    program_id: &Pubkey,\n    fees: Fees,\n    swap_curve: SwapCurve,\n    accounts: &[AccountInfo],\n) -> ProgramResult {\n    let swap_info = next_account_info(account_info_iter)?;\n    let authority_info = next_account_info(account_info_iter)?;\n\n    if SwapVersion::is_initialized(&swap_info.data.borrow()) {\n        return Err(SwapError::AlreadyInUse.into());\n    }\n\n    let swap_authority = Pubkey::create_program_address(\n        &[&swap_info.key.to_bytes(), &[bump_seed]],\n        program_id,\n    )?;\n    if *authority_info.key != swap_authority {\n        return Err(SwapError::InvalidProgramAddress.into());\n    }\n\n    let obj = SwapVersion::SwapV1(SwapV1 {\n        is_initialized: true,\n        bump_seed,\n        token_program_id,\n        token_a: *token_a_info.key,\n        token_b: *token_b_info.key,\n        pool_mint: *pool_mint_info.key,\n        fees,\n        swap_curve,\n    });\n    SwapVersion::pack(obj, &mut swap_info.data.borrow_mut())?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV9 - Bump Seed Canonicalization\nHIGH\nUses create_program_address with user-provided bump instead of find_program_address. Non-canonical bump stored in swap state affects all subsequent operations. Multiple swap authorities possible for same pool.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Bump Seed",
+    "owasp_code": "V9",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/token-swap",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/token-swap/program/src/processor.rs",
+      "function": "process_initialize",
+      "lines": "246-380",
+      "extraction_method": "modified from source - replaced find_program_address (L269-270) with create_program_address accepting user-provided bump_seed parameter, stored non-canonical bump in state (L367)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_init_lending_market(\n    program_id: &Pubkey,\n    owner: Pubkey,\n    quote_currency: [u8; 32],\n    accounts: &[AccountInfo],\n    bump_seed: u8,\n) -> ProgramResult {\n    let lending_market_info = next_account_info(account_info_iter)?;\n    assert_rent_exempt(rent, lending_market_info)?;\n    let mut lending_market = assert_uninitialized::<LendingMarket>(lending_market_info)?;\n    if lending_market_info.owner != program_id {\n        return Err(LendingError::InvalidAccountOwner.into());\n    }\n\n    lending_market.init(InitLendingMarketParams {\n        bump_seed,\n        owner,\n        quote_currency,\n        token_program_id: *token_program_id.key,\n        oracle_program_id: *oracle_program_id.key,\n    });\n    LendingMarket::pack(lending_market, &mut lending_market_info.data.borrow_mut())?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV9 - Bump Seed Canonicalization\nHIGH\nBump seed comes from instruction data instead of being derived via find_program_address (original L141). All subsequent operations using this bump for authority verification can be bypassed with non-canonical bumps.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Bump Seed",
+    "owasp_code": "V9",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/token-lending",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/token-lending/program/src/processor.rs",
+      "function": "process_init_lending_market",
+      "lines": "121-150",
+      "extraction_method": "modified from source - replaced find_program_address (L141) with user-provided bump_seed parameter, bump no longer derived canonically"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn check_pool_pda(\n    program_id: &Pubkey,\n    base_address: &Pubkey,\n    check_address: &Pubkey,\n    bump_seed: u8,\n    prefix: &[u8],\n    pool_error: SinglePoolError,\n) -> Result<u8, ProgramError> {\n    let derived_address = Pubkey::create_program_address(\n        &[prefix, base_address.as_ref(), &[bump_seed]],\n        program_id,\n    )?;\n    if *check_address != derived_address {\n        Err(pool_error.into())\n    } else {\n        Ok(bump_seed)\n    }\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV9 - Bump Seed Canonicalization\nHIGH\nGeneric PDA checker now accepts user-provided bump instead of using find_program_address via pda_lookup_fn. Since this function is used for ALL pool PDAs (stake, mint, authority), every pool account derivation is compromised.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Bump Seed",
+    "owasp_code": "V9",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "check_pool_pda",
+      "lines": "219-240",
+      "extraction_method": "modified from source - replaced pda_lookup_fn (L227, uses find_program_address) with create_program_address accepting user-provided bump_seed, removed dynamic function dispatch"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_initialize_pool(program_id: &Pubkey, accounts: &[AccountInfo],\n    pool_bump: u8, stake_bump: u8, mint_bump: u8,\n    stake_auth_bump: u8, mint_auth_bump: u8,\n) -> ProgramResult {\n    check_vote_account(vote_account_info)?;\n\n    let pool_address = Pubkey::create_program_address(\n        &[POOL_PREFIX, vote_account_info.key.as_ref(), &[pool_bump]], program_id)?;\n    if pool_address != *pool_info.key {\n        return Err(SinglePoolError::InvalidPoolAccount.into());\n    }\n\n    let stake_address = Pubkey::create_program_address(\n        &[POOL_STAKE_PREFIX, pool_info.key.as_ref(), &[stake_bump]], program_id)?;\n    if stake_address != *pool_stake_info.key {\n        return Err(SinglePoolError::InvalidPoolStakeAccount.into());\n    }\n\n    check_system_program(system_program_info.key)?;\n    check_token_program(token_program_info.key)?;\n    check_stake_program(stake_program_info.key)?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV9 - Bump Seed Canonicalization\nCRITICAL\nAll 5 PDA derivations (pool, stake, mint, stake_authority, mint_authority) accept user-provided bumps. Attacker can initialize pool with non-canonical bumps, creating phantom pool infrastructure.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Bump Seed",
+    "owasp_code": "V9",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "process_initialize_pool",
+      "lines": "560-596",
+      "extraction_method": "modified from source - replaced 5 check_pool_*_address calls (L578-592, each uses find_program_address) with create_program_address accepting 5 user-provided bump parameters"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_trade(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n    size: u64, buy_price: u64, sell_price: u64, bump_seed: u8,\n) -> ProgramResult {\n    let authority_key = Pubkey::create_program_address(\n        &[long_token_mint_info.key.as_ref(), short_token_mint_info.key.as_ref(),\n          token_program_info.key.as_ref(), program_id.as_ref(), &[bump_seed]],\n        program_id,\n    )?;\n    let seeds = &[long_token_mint_info.key.as_ref(), short_token_mint_info.key.as_ref(),\n        token_program_info.key.as_ref(), program_id.as_ref(), &[bump_seed]];\n\n    assert_keys_equal(authority_key, *authority_info.key)?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV9 - Bump Seed Canonicalization\nHIGH\nBump seed from instruction data used with create_program_address. Multiple valid authority keys possible for the same mint pair. Attacker can trade using non-canonical authority.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Bump Seed",
+    "owasp_code": "V9",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/binary-option",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/binary-option/program/src/processor.rs",
+      "function": "process_trade",
+      "lines": "187-238",
+      "extraction_method": "modified from source - replaced find_program_address (L223-231) with create_program_address accepting user-provided bump_seed parameter from instruction data"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_initialize_binary_option(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n    decimals: u8, bump_seed: u8,\n) -> ProgramResult {\n    assert_keys_equal(*token_program_info.key, spl_token::id())?;\n\n    let authority_key = Pubkey::create_program_address(\n        &[long_token_mint_info.key.as_ref(), short_token_mint_info.key.as_ref(),\n          token_program_info.key.as_ref(), program_id.as_ref(), &[bump_seed]],\n        program_id,\n    )?;\n\n    spl_set_authority(token_program_info, escrow_account_info,\n        Some(authority_key), AuthorityType::AccountOwner, update_authority_info)?;\n    spl_set_authority(token_program_info, long_token_mint_info,\n        Some(authority_key), AuthorityType::MintTokens, update_authority_info)?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV9 - Bump Seed Canonicalization\nHIGH\nAuthority PDA derived with user-provided bump. Escrow and mint authorities transferred to potentially non-canonical address. Attacker with different bump can create parallel authority.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Bump Seed",
+    "owasp_code": "V9",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/binary-option",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/binary-option/program/src/processor.rs",
+      "function": "process_initialize_binary_option",
+      "lines": "65-185",
+      "extraction_method": "modified from source - replaced find_program_address (L130-138) with create_program_address accepting user-provided bump_seed from instruction data"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_create(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n    hashed_name: Vec<u8>, lamports: u64, space: u32, bump_seed: u8,\n) -> ProgramResult {\n    let name_account_key = Pubkey::create_program_address(\n        &[hashed_name.as_slice(), name_class.key.as_ref(),\n          parent_name_account.key.as_ref(), &[bump_seed]],\n        program_id,\n    )?;\n\n    if name_account_key != *name_account.key {\n        return Err(ProgramError::InvalidArgument);\n    }\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV9 - Bump Seed Canonicalization\nHIGH\nName account address derived with user-provided bump instead of canonical derivation. Multiple name accounts can exist for the same name/class/parent combination with different bumps.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Bump Seed",
+    "owasp_code": "V9",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/name-service",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/name-service/program/src/processor.rs",
+      "function": "process_create",
+      "lines": "26-50",
+      "extraction_method": "modified from source - replaced get_seeds_and_key (L43-48, uses find_program_address internally) with create_program_address accepting user-provided bump_seed"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_execute_transaction(program_id: &Pubkey, accounts: &[AccountInfo],\n    governance_bump: u8,\n) -> ProgramResult {\n    let governance_data = get_governance_data(program_id, governance_info)?;\n    let mut governance_seeds = governance_data.get_governance_address_seeds()?.to_vec();\n    governance_seeds.push(&[governance_bump]);\n\n    let mut signers_seeds: Vec<&[&[u8]]> = vec![&governance_seeds[..]];\n\n    for instruction in instructions {\n        invoke_signed(&instruction, instruction_account_infos, &signers_seeds[..])?;\n    }\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV9 - Bump Seed Canonicalization\nCRITICAL\nGovernance PDA signing uses user-provided bump instead of find_program_address. Attacker can provide non-canonical bump to sign as a different PDA, potentially executing unauthorized instructions.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Bump Seed",
+    "owasp_code": "V9",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/governance",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/governance/program/src/processor",
+      "function": "process_execute_transaction",
+      "lines": "55-87",
+      "extraction_method": "modified from source - replaced find_program_address for governance PDA (L65-68) with user-provided governance_bump, removed treasury find_program_address (L74-76)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_create_realm(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n    name: String, realm_config_args: RealmConfigArgs, realm_bump: u8,\n) -> ProgramResult {\n    if !realm_info.data_is_empty() {\n        return Err(GovernanceError::RealmAlreadyExists.into());\n    }\n\n    let realm_address = Pubkey::create_program_address(\n        &[b\"governance\", name.as_bytes(), &[realm_bump]],\n        program_id,\n    )?;\n    if realm_address != *realm_info.key {\n        return Err(ProgramError::InvalidSeeds);\n    }\n\n    let realm_data = RealmV2 {\n        account_type: GovernanceAccountType::RealmV2,\n        name: name.clone(),\n        authority: Some(*realm_authority_info.key),\n        // ...\n    };\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV9 - Bump Seed Canonicalization\nHIGH\nRealm PDA derived with user-provided bump. Multiple realms can exist for the same name. Stored bump affects all governance operations within this realm.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Bump Seed",
+    "owasp_code": "V9",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/governance",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/governance/program/src/processor",
+      "function": "process_create_realm",
+      "lines": "32-155",
+      "extraction_method": "modified from source - replaced create_and_serialize_account_signed (L146-154, uses find_program_address internally) with create_program_address accepting user-provided realm_bump"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_cast_vote(\n    program_id: &Pubkey, accounts: &[AccountInfo], vote: Vote, vote_record_bump: u8,\n) -> ProgramResult {\n    let vote_record_address = Pubkey::create_program_address(\n        &[b\"governance\", proposal_info.key.as_ref(),\n          voter_token_owner_record_info.key.as_ref(), &[vote_record_bump]],\n        program_id,\n    )?;\n    if vote_record_address != *vote_record_info.key {\n        return Err(ProgramError::InvalidSeeds);\n    }\n\n    let vote_record_data = VoteRecordV2 {\n        account_type: GovernanceAccountType::VoteRecordV2,\n        proposal: *proposal_info.key,\n        governing_token_owner,\n        voter_weight,\n        vote,\n        is_relinquished: false,\n    };\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV9 - Bump Seed Canonicalization\nHIGH\nVote record PDA uses user-provided bump. A voter can create multiple vote records for the same proposal with different bumps, effectively voting multiple times.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Bump Seed",
+    "owasp_code": "V9",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/governance",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/governance/program/src/processor",
+      "function": "process_cast_vote",
+      "lines": "170-192",
+      "extraction_method": "modified from source - replaced create_and_serialize_account_signed (L178-186, uses find_program_address internally) with create_program_address accepting user-provided vote_record_bump"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_exchange(program_id: &Pubkey, accounts: &[AccountInfo],\n    bump_seed: u8,\n) -> ProgramResult {\n    let expected_escrow_authority = Pubkey::create_program_address(\n        &[b\"token-upgrade\", original_mint_info.key.as_ref(),\n          new_mint_info.key.as_ref(), &[bump_seed]],\n        program_id,\n    )?;\n    if expected_escrow_authority != *new_transfer_authority_info.key {\n        return Err(TokenUpgradeError::InvalidOwner.into());\n    }\n\n    let authority_seeds = &[b\"token-upgrade\", original_mint_info.key.as_ref(),\n        new_mint_info.key.as_ref(), &[bump_seed]];\n\n    transfer_new_tokens(new_token_program.clone(), new_escrow_info.clone(),\n        new_mint_info.clone(), new_account_info.clone(), new_transfer_authority_info.clone(),\n        authority_seeds, token_amount, decimals)?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV9 - Bump Seed Canonicalization\nHIGH\nEscrow authority PDA derived with user-provided bump. Attacker can create multiple escrow authorities for the same mint pair. Original uses find_program_address for canonical derivation.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Bump Seed",
+    "owasp_code": "V9",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/token-upgrade",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/token-upgrade/program/src/processor.rs",
+      "function": "process_exchange",
+      "lines": "102-117",
+      "extraction_method": "modified from source - replaced get_token_upgrade_authority_address_and_bump_seed (L103-104, uses find_program_address) with create_program_address accepting user-provided bump_seed"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_propose(program_id: &Pubkey, accounts: &[AccountInfo],\n    tokens_to_mint: u64, acceptance_criteria: AcceptanceCriteria,\n    mint_bump: u8, feature_id_bump: u8,\n) -> ProgramResult {\n    let mint_address = Pubkey::create_program_address(\n        &[&feature_proposal_info.key.to_bytes(), br\"mint\", &[mint_bump]],\n        program_id,\n    )?;\n    if mint_address != *mint_info.key {\n        return Err(ProgramError::InvalidArgument);\n    }\n\n    let feature_id_address = Pubkey::create_program_address(\n        &[&feature_proposal_info.key.to_bytes(), br\"feature-id\", &[feature_id_bump]],\n        program_id,\n    )?;\n    if feature_id_address != *feature_id_info.key {\n        return Err(ProgramError::InvalidArgument);\n    }\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV9 - Bump Seed Canonicalization\nHIGH\nMint and feature_id PDAs use user-provided bumps. Only 2 of 4 PDAs verified (removed distributor and acceptance). Non-canonical bumps can create phantom proposal infrastructure.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Bump Seed",
+    "owasp_code": "V9",
+    "source_info": {
+      "origin": "solana-program/feature-proposal",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/feature-proposal/blob/main/program/src/processor.rs",
+      "function": "process_propose",
+      "lines": "53-72",
+      "extraction_method": "modified from source - replaced get_mint_address_with_seed and get_feature_id_address_with_seed (L53-75, use find_program_address) with create_program_address accepting user-provided bumps, removed distributor and acceptance PDA checks"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_collect(program_id: &Pubkey, accounts: &[AccountInfo],\n    bump_seed: u8,\n) -> ProgramResult {\n    let escrow_owner_key = Pubkey::create_program_address(\n        &[long_token_mint_info.key.as_ref(), short_token_mint_info.key.as_ref(),\n          token_program_info.key.as_ref(), program_id.as_ref(), &[bump_seed]],\n        program_id,\n    )?;\n    let seeds = &[long_token_mint_info.key.as_ref(), short_token_mint_info.key.as_ref(),\n        token_program_info.key.as_ref(), program_id.as_ref(), &[bump_seed]];\n\n    assert_keys_equal(escrow_owner_key, *escrow_authority_info.key)?;\n\n    if reward > 0 {\n        let amount = reward.checked_mul(escrow_account.amount)\n            .ok_or(BinaryOptionError::AmountOverflow)?;\n        let amount = amount / binary_option.circulation;\n        spl_token_transfer_signed(token_program_info, escrow_account_info,\n            collector_account_info, escrow_authority_info, amount, seeds)?;\n    }\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV9 - Bump Seed Canonicalization\nHIGH\nEscrow authority derived with user-provided bump. Attacker can use non-canonical bump to sign as escrow authority and drain funds. Original uses find_program_address for canonical derivation.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Bump Seed",
+    "owasp_code": "V9",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/binary-option",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/binary-option/program/src/processor.rs",
+      "function": "process_collect",
+      "lines": "626-744",
+      "extraction_method": "modified from source - replaced find_program_address (L649-657) with create_program_address accepting user-provided bump_seed from instruction data"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn token_mint_to<'a>(\n    stake_pool: &Pubkey, token_program: AccountInfo<'a>,\n    mint: AccountInfo<'a>, destination: AccountInfo<'a>,\n    authority: AccountInfo<'a>, authority_type: &[u8], bump_seed: u8,\n    amount: u64,\n) -> Result<(), ProgramError> {\n    let authority_signature_seeds = [stake_pool.as_ref(), authority_type, &[bump_seed]];\n    let signers = &[&authority_signature_seeds[..]];\n    let ix = spl_token_2022::instruction::mint_to(\n        token_program.key, mint.key, destination.key, authority.key, &[], amount,\n    ).unwrap();\n    let _ = invoke_signed(&ix, &[mint, destination, authority, token_program], signers);\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV6 - Unchecked External Calls\nHIGH\n.unwrap() on instruction creation panics instead of returning error. invoke_signed error discarded with let _ = — if minting fails (frozen account, wrong authority), function returns Ok silently. Pool state becomes inconsistent.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Unchecked Calls",
+    "owasp_code": "V6",
+    "source_info": {
+      "origin": "solana-program/stake-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/stake-pool/blob/main/program/src/processor.rs",
+      "function": "token_mint_to",
+      "lines": "586-609",
+      "extraction_method": "modified from source - replaced ? on instruction creation (L596) with .unwrap(), replaced invoke_signed result propagation with let _ = (discarding error)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn stake_delegate<'a>(\n    stake_info: AccountInfo<'a>, vote_account_info: AccountInfo<'a>,\n    clock_info: AccountInfo<'a>, stake_history_info: AccountInfo<'a>,\n    stake_config_info: AccountInfo<'a>, authority_info: AccountInfo<'a>,\n    stake_pool: &Pubkey, authority_type: &[u8], bump_seed: u8,\n) -> Result<(), ProgramError> {\n    let authority_signature_seeds = [stake_pool.as_ref(), authority_type, &[bump_seed]];\n    let signers = &[&authority_signature_seeds[..]];\n    let ix = stake::instruction::delegate_stake(\n        stake_info.key, authority_info.key, vote_account_info.key);\n    let _ = invoke_signed(&ix,\n        &[stake_info, vote_account_info, clock_info, stake_history_info,\n          stake_config_info, authority_info], signers);\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV6 - Unchecked External Calls\nHIGH\nDelegation failure silently ignored. Stake may not actually be delegated to the intended validator, but pool state assumes it is. Can lead to stake sitting undelegated, losing rewards.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Unchecked Calls",
+    "owasp_code": "V6",
+    "source_info": {
+      "origin": "solana-program/stake-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/stake-pool/blob/main/program/src/processor.rs",
+      "function": "stake_delegate",
+      "lines": "331-363",
+      "extraction_method": "modified from source - replaced invoke_signed result (returned directly in original L351-362) with let _ = (discarding delegation failure)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_create_associated_token_account(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n) -> ProgramResult {\n    create_pda_account(\n        funder_info, &Rent::get()?, account_len, spl_token_program_id,\n        system_program_info, associated_token_account_info,\n        associated_token_account_signer_seeds,\n    )?;\n\n    let _ = invoke(\n        &spl_token_2022_interface::instruction::initialize_immutable_owner(\n            spl_token_program_id, associated_token_account_info.key)?,\n        &[associated_token_account_info.clone(), spl_token_program_info.clone()],\n    );\n\n    let _ = invoke(\n        &spl_token_2022_interface::instruction::initialize_account3(\n            spl_token_program_id, associated_token_account_info.key,\n            spl_token_mint_info.key, wallet_account_info.key)?,\n        &[associated_token_account_info.clone(), spl_token_mint_info.clone(),\n          wallet_account_info.clone(), spl_token_program_info.clone()],\n    );\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV6 - Unchecked External Calls\nHIGH\nToken account created but initialization may silently fail. If initialize_immutable_owner fails, account doesn't have immutable owner protection. If initialize_account3 fails, account exists but is uninitialized — usable as a drain target.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Unchecked Calls",
+    "owasp_code": "V6",
+    "source_info": {
+      "origin": "solana-program/associated-token-account",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/associated-token-account/blob/main/program/src/processor.rs",
+      "function": "process_create_associated_token_account",
+      "lines": "120-149",
+      "extraction_method": "modified from source - replaced ? on initialize_immutable_owner invoke (L130-135) with let _ =, replaced ? on initialize_account3 invoke (L137-148) with let _ ="
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn token_burn<'a>(\n    swap: &Pubkey, token_program: AccountInfo<'a>,\n    burn_account: AccountInfo<'a>, mint: AccountInfo<'a>,\n    authority: AccountInfo<'a>, bump_seed: u8, amount: u64,\n) -> Result<(), ProgramError> {\n    let swap_bytes = swap.to_bytes();\n    let authority_signature_seeds = [&swap_bytes[..32], &[bump_seed]];\n    let signers = &[&authority_signature_seeds[..]];\n    let ix = spl_token_2022::instruction::burn(\n        token_program.key, burn_account.key, mint.key, authority.key, &[], amount).unwrap();\n    let _ = invoke_signed_wrapper::<TokenError>(&ix,\n        &[burn_account, mint, authority, token_program], signers);\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV6 - Unchecked External Calls\nHIGH\n.unwrap() panics on instruction creation failure. Burn error silently discarded — if burn fails, pool tokens are not actually destroyed but withdrawal proceeds, inflating supply.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Unchecked Calls",
+    "owasp_code": "V6",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/token-swap",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/token-swap/program/src/processor.rs",
+      "function": "token_burn",
+      "lines": "102-130",
+      "extraction_method": "modified from source - replaced ? on instruction creation (L116-123) with .unwrap(), replaced invoke_signed_wrapper result with let _ ="
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn spl_token_transfer(params: TokenTransferParams<'_, '_>) -> ProgramResult {\n    let TokenTransferParams {\n        source, destination, authority, token_program, amount, authority_signer_seeds,\n    } = params;\n    let _ = invoke_optionally_signed(\n        &spl_token::instruction::transfer(\n            token_program.key, source.key, destination.key,\n            authority.key, &[], amount,\n        )?,\n        &[source, destination, authority, token_program],\n        authority_signer_seeds,\n    );\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV6 - Unchecked External Calls\nCRITICAL\nTransfer error silently discarded. In lending protocol, failed transfers mean: deposits not received but collateral minted, borrows recorded but funds not sent, repayments lost. Complete state inconsistency.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Unchecked Calls",
+    "owasp_code": "V6",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/token-lending",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/token-lending/program/src/processor.rs",
+      "function": "spl_token_transfer + invoke_optionally_signed",
+      "lines": "1900-1938",
+      "extraction_method": "modified from source - replaced result.map_err (L1937) with let _ = (discarding transfer error), function always returns Ok regardless of CPI outcome"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn token_mint_to<'a>(\n    pool_account_key: &Pubkey, token_program: AccountInfo<'a>,\n    mint: AccountInfo<'a>, destination: AccountInfo<'a>,\n    authority: AccountInfo<'a>, bump_seed: u8, amount: u64,\n) -> Result<(), ProgramError> {\n    let authority_seeds = &[POOL_MINT_AUTHORITY_PREFIX, pool_account_key.as_ref(), &[bump_seed]];\n    let signers = &[&authority_seeds[..]];\n    let ix = spl_token::instruction::mint_to(\n        token_program.key, mint.key, destination.key, authority.key, &[], amount).unwrap();\n    let _ = invoke_signed(&ix, &[mint, destination, authority], signers);\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV6 - Unchecked External Calls\nHIGH\nMint failure silently ignored. User's stake is merged into pool but LP tokens may not be minted. User loses stake without receiving pool tokens.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Unchecked Calls",
+    "owasp_code": "V6",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "token_mint_to",
+      "lines": "502-529",
+      "extraction_method": "modified from source - replaced ? on instruction creation (L519-526) with .unwrap(), replaced invoke_signed result (L528) with let _ ="
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn token_burn<'a>(\n    pool_account_key: &Pubkey, token_program: AccountInfo<'a>,\n    burn_account: AccountInfo<'a>, mint: AccountInfo<'a>,\n    authority: AccountInfo<'a>, bump_seed: u8, amount: u64,\n) -> Result<(), ProgramError> {\n    let authority_seeds = &[POOL_MINT_AUTHORITY_PREFIX, pool_account_key.as_ref(), &[bump_seed]];\n    let signers = &[&authority_seeds[..]];\n    let ix = spl_token::instruction::burn(\n        token_program.key, burn_account.key, mint.key, authority.key, &[], amount).unwrap();\n    let _ = invoke_signed(&ix, &[burn_account, mint, authority], signers);\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV6 - Unchecked External Calls\nHIGH\nBurn failure silently ignored. During withdrawal, tokens are not burned but stake is split and transferred. User gets stake back while keeping pool tokens, draining the pool.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Unchecked Calls",
+    "owasp_code": "V6",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "token_burn",
+      "lines": "531-558",
+      "extraction_method": "modified from source - replaced ? on instruction creation (L548-555) with .unwrap(), replaced invoke_signed result (L557) with let _ ="
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_create(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n    hashed_name: Vec<u8>, lamports: u64, space: u32,\n) -> ProgramResult {\n    let (name_account_key, seeds) = get_seeds_and_key(\n        program_id, hashed_name, Some(name_class.key), Some(parent_name_account.key));\n\n    if name_account.data.borrow().len() == 0 {\n        let _ = invoke(\n            &system_instruction::transfer(payer_account.key, &name_account_key, lamports),\n            &[payer_account.clone(), name_account.clone(), system_program.clone()]);\n\n        let _ = invoke_signed(\n            &system_instruction::allocate(&name_account_key,\n                NameRecordHeader::LEN.saturating_add(space as usize) as u64),\n            &[name_account.clone(), system_program.clone()],\n            &[&seeds.chunks(32).collect::<Vec<&[u8]>>()]);\n\n        let _ = invoke_signed(\n            &system_instruction::assign(name_account.key, program_id),\n            &[name_account.clone(), system_program.clone()],\n            &[&seeds.chunks(32).collect::<Vec<&[u8]>>()]);\n    }\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV6 - Unchecked External Calls\nCRITICAL\nAll three account creation steps silently ignore failures. Transfer may fail but allocate proceeds with zero-lamport account. Allocate may fail but assign proceeds. Name record header written to improperly initialized account.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Unchecked Calls",
+    "owasp_code": "V6",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/name-service",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/name-service/program/src/processor.rs",
+      "function": "process_create",
+      "lines": "84-108",
+      "extraction_method": "modified from source - replaced ? on all three CPIs (transfer L89-93, allocate L95-101, assign L103-107) with let _ ="
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_accept_offer(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n    maker_size: u64, taker_size: u64, bump_seed: u8,\n) -> ProgramResult {\n    let _ = invoke_signed(\n        &spl_token::instruction::transfer(\n            token_program_info.key, maker_src_account.key,\n            taker_dst_account.key, transfer_authority.key, &[], maker_pay_size)?,\n        &[maker_src_account.clone(), taker_dst_account.clone(),\n          transfer_authority.clone(), token_program_info.clone()],\n        &[seeds]);\n\n    invoke(\n        &spl_token::instruction::transfer(\n            token_program_info.key, taker_src_account.key,\n            maker_dst_account.key, taker_wallet.key, &[], taker_pay_size)?,\n        &[taker_src_account.clone(), maker_dst_account.clone(),\n          taker_wallet.clone(), token_program_info.clone()])?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV6 - Unchecked External Calls\nCRITICAL\nMaker-to-taker transfer error silently discarded. If maker's tokens don't transfer (insufficient balance, frozen), taker still sends their tokens to maker. Taker loses tokens without receiving anything.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Unchecked Calls",
+    "owasp_code": "V6",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/stateless-asks",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/stateless-asks/program/src/processor.rs",
+      "function": "process_accept_offer",
+      "lines": "213-268",
+      "extraction_method": "modified from source - replaced ? on maker-to-taker invoke_signed (L213-229) with let _ = (error discarded), taker-to-maker still has ?"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_create_realm(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n    name: String, realm_config_args: RealmConfigArgs,\n) -> ProgramResult {\n    let _ = create_spl_token_account_signed(\n        payer_info, governance_token_holding_info,\n        &get_governing_token_holding_address_seeds(realm_info.key, governance_token_mint_info.key),\n        governance_token_mint_info, realm_info, program_id,\n        system_info, spl_token_info, rent_sysvar_info, rent);\n\n    let _ = create_and_serialize_account_signed::<RealmConfigAccount>(\n        payer_info, realm_config_info, &realm_config_data,\n        &get_realm_config_address_seeds(realm_info.key), program_id, system_info, rent, 0);\n\n    create_and_serialize_account_signed::<RealmV2>(\n        payer_info, realm_info, &realm_data,\n        &get_realm_address_seeds(&name), program_id, system_info, rent, 0)?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV6 - Unchecked External Calls\nHIGH\nToken holding and realm config creation errors silently discarded. Realm created but may have no token holding account or config. Governance operations on this realm will fail unpredictably.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Unchecked Calls",
+    "owasp_code": "V6",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/governance",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/governance/program/src/processor",
+      "function": "process_create_realm",
+      "lines": "32-155",
+      "extraction_method": "modified from source - replaced ? on token holding creation (L57-67) with let _ =, replaced ? on realm config creation (L104-111) with let _ =, realm creation still has ?"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_deposit_governing_tokens(\n    program_id: &Pubkey, accounts: &[AccountInfo], amount: u64,\n) -> ProgramResult {\n    let realm_data = get_realm_data(program_id, realm_info)?;\n\n    let _ = transfer_spl_tokens(\n        governing_token_source_info, governing_token_holding_info,\n        governing_token_source_authority_info, amount, spl_token_info);\n\n    let mut record = get_token_owner_record_data_for_seeds(\n        program_id, token_owner_record_info, &token_owner_record_address_seeds)?;\n    record.governing_token_deposit_amount = record.governing_token_deposit_amount\n        .checked_add(amount).unwrap();\n    record.serialize(&mut token_owner_record_info.data.borrow_mut()[..])?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV6 - Unchecked External Calls\nCRITICAL\nToken transfer error silently discarded. Deposit amount incremented in record even if tokens never actually transferred. User gets voting power without depositing tokens.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Unchecked Calls",
+    "owasp_code": "V6",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/governance",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/governance/program/src/processor",
+      "function": "process_deposit_governing_tokens",
+      "lines": "34-132",
+      "extraction_method": "modified from source - replaced ? on transfer_spl_tokens (L73-78) with let _ = (transfer error discarded), deposit amount still incremented regardless"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_withdraw_governing_tokens(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n) -> ProgramResult {\n    if !governing_token_owner_info.is_signer {\n        return Err(GovernanceError::GoverningTokenOwnerMustSign.into());\n    }\n\n    let _ = transfer_spl_tokens_signed(\n        governing_token_holding_info, governing_token_destination_info,\n        realm_info, &get_realm_address_seeds(&realm_data.name),\n        program_id, token_owner_record_data.governing_token_deposit_amount, spl_token_info);\n\n    token_owner_record_data.governing_token_deposit_amount = 0;\n    token_owner_record_data.serialize(&mut token_owner_record_info.data.borrow_mut()[..])?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV6 - Unchecked External Calls\nCRITICAL\nWithdrawal transfer error silently discarded. Deposit amount zeroed even if tokens never transferred. User loses voting power and deposit record without receiving tokens back.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Unchecked Calls",
+    "owasp_code": "V6",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/governance",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/governance/program/src/processor",
+      "function": "process_withdraw_governing_tokens",
+      "lines": "27-85",
+      "extraction_method": "modified from source - replaced ? on transfer_spl_tokens_signed (L73-81) with let _ = (transfer error discarded), deposit zeroed regardless"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_propose(program_id: &Pubkey, accounts: &[AccountInfo],\n    tokens_to_mint: u64,\n) -> ProgramResult {\n    invoke(\n        &system_instruction::create_account(funder_info.key, feature_proposal_info.key,\n            rent.minimum_balance(FeatureProposal::get_packed_len()),\n            FeatureProposal::get_packed_len() as u64, program_id),\n        &[funder_info.clone(), feature_proposal_info.clone(), system_program_info.clone()])?;\n\n    let _ = invoke_signed(\n        &system_instruction::create_account(funder_info.key, mint_info.key,\n            rent.minimum_balance(Mint::get_packed_len()), Mint::get_packed_len() as u64, &spl_token::id()),\n        &[funder_info.clone(), mint_info.clone(), system_program_info.clone()],\n        &[mint_signer_seeds]);\n\n    let _ = invoke(\n        &spl_token::instruction::initialize_mint(&spl_token::id(), mint_info.key,\n            mint_info.key, None, spl_token::native_mint::DECIMALS)?,\n        &[mint_info.clone(), spl_token_program_info.clone(), rent_sysvar_info.clone()]);\n\n    let _ = invoke_signed(\n        &spl_token::instruction::mint_to(&spl_token::id(), mint_info.key,\n            distributor_token_info.key, mint_info.key, &[], tokens_to_mint)?,\n        &[mint_info.clone(), distributor_token_info.clone(), spl_token_program_info.clone()],\n        &[mint_signer_seeds]);\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV6 - Unchecked External Calls\nHIGH\nMint creation, initialization, and minting errors all silently discarded. Proposal account created but mint may not exist, not be initialized, or have zero tokens. Entire proposal infrastructure can be in inconsistent state.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Unchecked Calls",
+    "owasp_code": "V6",
+    "source_info": {
+      "origin": "solana-program/feature-proposal",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/feature-proposal/blob/main/program/src/processor.rs",
+      "function": "process_propose",
+      "lines": "37-224",
+      "extraction_method": "modified from source - replaced ? on mint creation invoke_signed (L116-125) with let _ =, replaced ? on initialize_mint (L128-135) with let _ =, replaced ? on mint_to (L208-217) with let _ ="
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_tally(accounts: &[AccountInfo]) -> ProgramResult {\n    match feature_proposal_state {\n        FeatureProposal::Pending(acceptance_criteria) => {\n            if clock.unix_timestamp >= acceptance_criteria.deadline {\n                FeatureProposal::Expired.pack_into_slice(&mut feature_proposal_info.data.borrow_mut());\n                return Ok(());\n            }\n            let acceptance_token = spl_token::state::Account::unpack(&acceptance_token_info.data.borrow())?;\n            if acceptance_token.amount < acceptance_criteria.tokens_required {\n                return Ok(());\n            }\n\n            let _ = invoke_signed(\n                &system_instruction::assign(feature_id_info.key, &feature::id()),\n                &[feature_id_info.clone(), system_program_info.clone()],\n                &[feature_id_signer_seeds]);\n\n            FeatureProposal::Accepted { tokens_upon_acceptance: acceptance_token.amount }\n                .pack_into_slice(&mut feature_proposal_info.data.borrow_mut());\n        }\n        _ => return Err(ProgramError::InvalidAccountData),\n    }\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV6 - Unchecked External Calls\nHIGH\nFeature assignment error silently discarded. Proposal marked as Accepted even if the feature was never actually activated on-chain. Governance believes feature is live when it's not.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Unchecked Calls",
+    "owasp_code": "V6",
+    "source_info": {
+      "origin": "solana-program/feature-proposal",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/feature-proposal/blob/main/program/src/processor.rs",
+      "function": "process_tally",
+      "lines": "226-291",
+      "extraction_method": "modified from source - replaced ? on invoke_signed for feature assignment (L273-277) with let _ = (error discarded), state transitions to Accepted regardless"
+    }
+  }
+]

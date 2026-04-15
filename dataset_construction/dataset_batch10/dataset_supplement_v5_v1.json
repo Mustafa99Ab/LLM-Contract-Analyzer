@@ -1,0 +1,310 @@
+[
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_deposit_all_token_types(\n    program_id: &Pubkey, pool_token_amount: u64,\n    maximum_token_a_amount: u64, maximum_token_b_amount: u64,\n    accounts: &[AccountInfo],\n) -> ProgramResult {\n    let token_swap = SwapVersion::unpack(&swap_info.data.borrow())?;\n    let results = calculator.pool_tokens_to_trading_tokens(\n        pool_token_amount, pool_mint_supply,\n        u128::from(token_a.amount), u128::from(token_b.amount),\n        RoundDirection::Ceiling)?;\n\n    // WRONG: Mint pool tokens FIRST\n    Self::token_mint_to(swap_info.key, pool_token_program_info.clone(),\n        pool_mint_info.clone(), dest_info.clone(), authority_info.clone(),\n        token_swap.bump_seed(), pool_token_amount)?;\n\n    // THEN transfer tokens in — but pool tokens already minted\n    Self::token_transfer(swap_info.key, token_a_program_info.clone(),\n        source_a_info.clone(), token_a_mint_info.clone(), token_a_info.clone(),\n        user_transfer_authority_info.clone(), token_swap.bump_seed(), token_a_amount, decimals_a)?;\n    Self::token_transfer(swap_info.key, token_b_program_info.clone(),\n        source_b_info.clone(), token_b_mint_info.clone(), token_b_info.clone(),\n        user_transfer_authority_info.clone(), token_swap.bump_seed(), token_b_amount, decimals_b)?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV5 - Reentrancy Attacks\nCRITICAL\nPool tokens minted BEFORE user deposits token A and B. During mint CPI, attacker receives pool tokens and can withdraw before transfers. No slippage checks — pool ratio not enforced.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/token-swap",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/token-swap/program/src/processor.rs",
+      "function": "process_deposit_all_token_types",
+      "lines": "631-740",
+      "extraction_method": "modified from source - reversed CPI order: token_mint_to (originally L731-739) placed before token_transfer calls (originally L709-730), removed slippage checks (L693-704)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_withdraw_stake(program_id: &Pubkey, accounts: &[AccountInfo],\n    user_stake_authority: &Pubkey, token_amount: u64,\n) -> ProgramResult {\n    let withdraw_stake = calculate_withdraw_amount(token_supply, pool_stake, token_amount)\n        .ok_or(SinglePoolError::UnexpectedMathError)?;\n\n    // WRONG: Assign stake to user FIRST\n    Self::stake_authorize(pool_info.key, user_stake_info.clone(),\n        pool_stake_authority_info.clone(), stake_authority_bump_seed,\n        user_stake_authority, clock_info.clone())?;\n\n    // THEN split and burn — but user already controls stake authority\n    Self::stake_split(pool_info.key, pool_stake_info.clone(),\n        pool_stake_authority_info.clone(), stake_authority_bump_seed,\n        withdraw_stake, user_stake_info.clone())?;\n\n    Self::token_burn(pool_info.key, token_program_info.clone(),\n        user_token_account_info.clone(), pool_mint_info.clone(),\n        pool_mint_authority_info.clone(), mint_authority_bump_seed, token_amount)?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV5 - Reentrancy Attacks\nCRITICAL\nStake authority transferred to user BEFORE tokens burned and stake split. User can re-enter with their new authority and withdraw more stake. Tokens not yet burned so balance check passes again.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "process_withdraw_stake",
+      "lines": "1091-1204",
+      "extraction_method": "modified from source - reversed CPI order: stake_authorize (originally L1191-1198) placed before token_burn (originally L1170-1178) and stake_split (originally L1181-1188)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_transfer(\n    program_id: &Pubkey, accounts: &[AccountInfo], amount: u64, decimals: Option<u8>,\n) -> ProgramResult {\n    let mut source_account = PodStateWithExtensionsMut::<PodAccount>::unpack(&mut source_data)?;\n    let mut dest_account = PodStateWithExtensionsMut::<PodAccount>::unpack(&mut dest_data)?;\n\n    // WRONG: Update balances BEFORE calling transfer hooks\n    source_account.base.amount = (u64::from(source_account.base.amount) - amount).into();\n    dest_account.base.amount = (u64::from(dest_account.base.amount) + amount).into();\n\n    // Transfer hooks called after balance already updated\n    if let Some(program_id) = transfer_hook_program_id {\n        invoke(\n            &spl_transfer_hook_interface::instruction::execute(\n                program_id, source_info.key, mint_info.key,\n                dest_info.key, authority_info.key, amount)?\n            &hook_accounts)?;\n    }\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV5 - Reentrancy Attacks\nHIGH\nBalances updated before transfer hook CPI. During hook execution, both accounts show updated balances. Malicious hook can re-enter transfer to double-spend since source balance already reduced and dest already credited.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-program/token-2022",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/token-2022/blob/main/program/src/processor.rs",
+      "function": "process_transfer",
+      "lines": "329-600",
+      "extraction_method": "modified from source - moved balance updates (originally after all checks/hooks) to before transfer hook CPI (L549-570), removed checked_sub/checked_add (L446-450), removed fee calculation ordering"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_accept_offer(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n    maker_size: u64, taker_size: u64, bump_seed: u8,\n) -> ProgramResult {\n    if maker_src_token_account.delegated_amount != maker_pay_size {\n        return Err(ProgramError::InvalidAccountData);\n    }\n\n    // WRONG: Taker sends tokens FIRST\n    invoke(\n        &spl_token::instruction::transfer(token_program_info.key,\n            taker_src_account.key, maker_dst_account.key,\n            taker_wallet.key, &[], taker_pay_size)?,\n        &[taker_src_account.clone(), maker_dst_account.clone(),\n          taker_wallet.clone(), token_program_info.clone()])?;\n\n    // THEN maker sends — but maker can now revoke delegation\n    invoke_signed(\n        &spl_token::instruction::transfer(token_program_info.key,\n            maker_src_account.key, taker_dst_account.key,\n            transfer_authority.key, &[], maker_pay_size)?,\n        &[maker_src_account.clone(), taker_dst_account.clone(),\n          transfer_authority.clone(), token_program_info.clone()],\n        &[seeds])?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV5 - Reentrancy Attacks\nHIGH\nTaker sends tokens before receiving maker's tokens. During taker's transfer CPI, maker could revoke PDA delegation. Taker loses tokens and maker's transfer fails, leaving taker with nothing.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/stateless-asks",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/stateless-asks/program/src/processor.rs",
+      "function": "process_accept_offer",
+      "lines": "213-268",
+      "extraction_method": "modified from source - reversed CPI order: taker-to-maker transfer (originally L253-268) placed before maker-to-taker transfer (originally L213-229)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_deposit_governing_tokens(\n    program_id: &Pubkey, accounts: &[AccountInfo], amount: u64,\n) -> ProgramResult {\n    let realm_data = get_realm_data(program_id, realm_info)?;\n    realm_data.assert_is_valid_governing_token_mint_and_holding(\n        program_id, realm_info.key, &governing_token_mint, governing_token_holding_info.key)?;\n\n    // WRONG: Create/update record FIRST\n    let mut record = get_token_owner_record_data_for_seeds(\n        program_id, token_owner_record_info, &token_owner_record_address_seeds)?;\n    record.governing_token_deposit_amount = record.governing_token_deposit_amount\n        .checked_add(amount).unwrap();\n    record.serialize(&mut token_owner_record_info.data.borrow_mut()[..])?;\n\n    // THEN transfer tokens — but voting power already granted\n    transfer_spl_tokens(\n        governing_token_source_info, governing_token_holding_info,\n        governing_token_source_authority_info, amount, spl_token_info)?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV5 - Reentrancy Attacks\nHIGH\nVoting power granted before tokens deposited. During transfer CPI, if transfer fails or is re-entered, user has voting power without tokens locked. Can create proposals and vote with phantom tokens.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/governance",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/governance/program/src/processor",
+      "function": "process_deposit_governing_tokens",
+      "lines": "34-132",
+      "extraction_method": "modified from source - reversed order: record update (originally L119-131) placed before transfer_spl_tokens (originally L73-78), deposit amount credited before tokens actually move"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_withdraw_governing_tokens(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n) -> ProgramResult {\n    if !governing_token_owner_info.is_signer {\n        return Err(GovernanceError::GoverningTokenOwnerMustSign.into());\n    }\n    token_owner_record_data.assert_can_withdraw_governing_tokens(clock.unix_timestamp)?;\n\n    // WRONG: Zero deposit record FIRST\n    let withdraw_amount = token_owner_record_data.governing_token_deposit_amount;\n    token_owner_record_data.governing_token_deposit_amount = 0;\n    token_owner_record_data.serialize(&mut token_owner_record_info.data.borrow_mut()[..])?;\n\n    // THEN transfer — if transfer fails, deposit is already zeroed\n    transfer_spl_tokens_signed(\n        governing_token_holding_info, governing_token_destination_info,\n        realm_info, &get_realm_address_seeds(&realm_data.name),\n        program_id, withdraw_amount, spl_token_info)?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV5 - Reentrancy Attacks\nHIGH\nDeposit record zeroed before transfer. If transfer CPI fails, voting power is permanently lost but tokens remain in holding. Record shows 0 but tokens never returned to user.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/governance",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/governance/program/src/processor",
+      "function": "process_withdraw_governing_tokens",
+      "lines": "27-85",
+      "extraction_method": "modified from source - reversed order: deposit zeroing (originally L83-84) placed before transfer_spl_tokens_signed (originally L73-81)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_deposit_reserve_liquidity(\n    program_id: &Pubkey, liquidity_amount: u64, accounts: &[AccountInfo],\n) -> ProgramResult {\n    let lending_market = LendingMarket::unpack(&lending_market_info.data.borrow())?;\n    if lending_market_info.owner != program_id {\n        return Err(LendingError::InvalidAccountOwner.into());\n    }\n    let mut reserve = Reserve::unpack(&reserve_info.data.borrow())?;\n    if &reserve.collateral.supply_pubkey == destination_collateral_info.key {\n        return Err(LendingError::InvalidAccountInput.into());\n    }\n\n    // FIRST: Transfer liquidity IN\n    spl_token_transfer(TokenTransferParams {\n        source: source_liquidity_info.clone(),\n        destination: reserve_liquidity_supply_info.clone(),\n        amount: liquidity_amount, authority: user_transfer_authority_info.clone(),\n        authority_signer_seeds: &[], token_program: token_program_id.clone(),\n    })?;\n\n    // THEN: Mint collateral OUT\n    let collateral_amount = reserve.deposit_liquidity(liquidity_amount)?;\n    Reserve::pack(reserve, &mut reserve_info.data.borrow_mut())?;\n\n    spl_token_mint_to(TokenMintToParams {\n        mint: reserve_collateral_mint_info.clone(),\n        destination: destination_collateral_info.clone(),\n        amount: collateral_amount, authority: lending_market_authority_info.clone(),\n        authority_signer_seeds, token_program: token_program_id.clone(),\n    })?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV5 - Reentrancy Attacks - MITIGATED\nCorrect CEI: liquidity transferred IN first, then collateral minted OUT. During transfer CPI, no collateral has been minted yet. Self-deposit prevention blocks circular operations.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/token-lending",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/token-lending/program/src/processor.rs",
+      "function": "process_deposit_reserve_liquidity",
+      "lines": "414-514",
+      "extraction_method": "extracted and simplified - kept ownership check (L435-438), self-deposit prevention (L445-448), transfer-in FIRST (L472-478), THEN mint-out (L497-502)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_deposit_reserve_liquidity(\n    program_id: &Pubkey, liquidity_amount: u64, accounts: &[AccountInfo],\n) -> ProgramResult {\n    let mut reserve = Reserve::unpack(&reserve_info.data.borrow())?;\n    let collateral_amount = reserve.deposit_liquidity(liquidity_amount)?;\n    Reserve::pack(reserve, &mut reserve_info.data.borrow_mut())?;\n\n    // WRONG: Mint collateral FIRST\n    spl_token_mint_to(TokenMintToParams {\n        mint: reserve_collateral_mint_info.clone(),\n        destination: destination_collateral_info.clone(),\n        amount: collateral_amount, authority: lending_market_authority_info.clone(),\n        authority_signer_seeds, token_program: token_program_id.clone(),\n    })?;\n\n    // THEN transfer liquidity — but collateral already minted\n    spl_token_transfer(TokenTransferParams {\n        source: source_liquidity_info.clone(),\n        destination: reserve_liquidity_supply_info.clone(),\n        amount: liquidity_amount, authority: user_transfer_authority_info.clone(),\n        authority_signer_seeds: &[], token_program: token_program_id.clone(),\n    })?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV5 - Reentrancy Attacks\nCRITICAL\nCollateral minted before liquidity deposited. Attacker receives cTokens during mint CPI, can redeem them before their liquidity transfer. Protocol issues collateral backed by nothing.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/token-lending",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/token-lending/program/src/processor.rs",
+      "function": "process_deposit_reserve_liquidity",
+      "lines": "414-514",
+      "extraction_method": "modified from source - reversed CPI order: spl_token_mint_to (originally L497-502) before spl_token_transfer (originally L472-478), removed ownership check (L435-438), removed self-deposit check (L445-448)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_update_stake_pool_balance(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n) -> ProgramResult {\n    check_account_owner(stake_pool_info, program_id)?;\n    let mut stake_pool = try_from_slice_unchecked::<StakePool>(&stake_pool_info.data.borrow())?;\n    if !stake_pool.is_valid() {\n        return Err(StakePoolError::InvalidState.into());\n    }\n    stake_pool.check_validator_list(validator_list_info)?;\n    stake_pool.check_reserve_stake(reserve_stake_info)?;\n\n    // FIRST: Calculate new total from all validator stakes\n    let previous_lamports = stake_pool.total_lamports;\n    let previous_pool_token_supply = stake_pool.pool_token_supply;\n    stake_pool.update_after_validator_list_changes(\n        clock, validator_list_data, reserve_stake_info_lamports)?;\n\n    // THEN: Mint fee tokens if rewards accrued\n    if stake_pool.total_lamports > previous_lamports {\n        let fee_tokens = stake_pool.calc_pool_tokens_sol_withdrawal_fee(reward_lamports)?;\n        if fee_tokens > 0 {\n            Self::token_mint_to(stake_pool_info.key, token_program_info.clone(),\n                pool_mint_info.clone(), manager_fee_info.clone(),\n                withdraw_info.clone(), stake_pool.stake_withdraw_bump_seed, fee_tokens)?;\n        }\n    }\n    stake_pool.serialize(&mut stake_pool_info.data.borrow_mut())?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV5 - Reentrancy Attacks - MITIGATED\nState calculated and validated before any CPI. Fee mint only happens after total lamports updated. Serialization after all CPIs ensures atomic state. Validator list and reserve checks prevent stale data.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-program/stake-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/stake-pool/blob/main/program/src/processor.rs",
+      "function": "process_update_stake_pool_balance",
+      "lines": "2010-2140",
+      "extraction_method": "extracted and simplified - kept ownership/validity checks (L2020-2030), state calculation BEFORE fee mint CPI (L2060-2095), serialize AFTER all CPIs"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_update_stake_pool_balance(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n) -> ProgramResult {\n    let mut stake_pool = try_from_slice_unchecked::<StakePool>(&stake_pool_info.data.borrow())?;\n    let previous_lamports = stake_pool.total_lamports;\n\n    // WRONG: Mint fee tokens BEFORE updating state\n    let estimated_rewards = reserve_stake_info_lamports - previous_lamports;\n    let fee_tokens = stake_pool.calc_pool_tokens_sol_withdrawal_fee(estimated_rewards)?;\n    Self::token_mint_to(stake_pool_info.key, token_program_info.clone(),\n        pool_mint_info.clone(), manager_fee_info.clone(),\n        withdraw_info.clone(), stake_pool.stake_withdraw_bump_seed, fee_tokens)?;\n\n    // THEN update state — but fee already minted on stale data\n    stake_pool.update_after_validator_list_changes(\n        clock, validator_list_data, reserve_stake_info_lamports)?;\n    stake_pool.serialize(&mut stake_pool_info.data.borrow_mut())?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV5 - Reentrancy Attacks\nHIGH\nFee tokens minted on stale data before state update. During mint CPI, pool state still shows old totals. Re-entry can trigger another update cycle with inflated fee calculation.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-program/stake-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/stake-pool/blob/main/program/src/processor.rs",
+      "function": "process_update_stake_pool_balance",
+      "lines": "2010-2140",
+      "extraction_method": "modified from source - reversed order: token_mint_to fee (originally L2090-2095) before update_after_validator_list_changes (originally L2060-2070), removed validity checks (L2022-2028), fee calculated on stale data"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_decide(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n) -> ProgramResult {\n    let authority_pub_key = Self::authority_id(program_id, pool_account_info.key, pool.bump_seed)?;\n    if *authority_account_info.key != authority_pub_key {\n        return Err(PoolError::InvalidAuthorityAccount.into());\n    }\n    if !decider_account_info.is_signer {\n        return Err(PoolError::SignatureMissing.into());\n    }\n    if pool.decider_pubkey != *decider_account_info.key {\n        return Err(PoolError::InvalidDeciderAccount.into());\n    }\n\n    // FIRST: Update pool state (decision recorded)\n    pool.decision = decision;\n    pool.serialize(&mut pool_account_info.data.borrow_mut()[..])?;\n\n    // THEN: Mint/burn tokens based on decision via CPI\n    if decision > 0 {\n        Self::burn(token_program_id_info.clone(), token_pass_mint_info.clone(),\n            authority_account_info.clone(), pool.circulation, pool_account_info.key, pool.bump_seed)?;\n    }\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV5 - Reentrancy Attacks - MITIGATED\nDecision recorded in state BEFORE any burn CPI. If re-entry occurs during burn, the decision is already finalized. Authority and decider checks prevent unauthorized decisions.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/binary-oracle-pair",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/binary-oracle-pair/program/src/processor.rs",
+      "function": "process_decide",
+      "lines": "522-560",
+      "extraction_method": "extracted and simplified - kept authority check, decider signer+key check, state update BEFORE burn CPI"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_decide(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n) -> ProgramResult {\n    let pool = Pool::try_from_slice(&pool_account_info.data.borrow())?;\n\n    // WRONG: Burn BEFORE recording decision\n    if decision > 0 {\n        Self::burn(token_program_id_info.clone(), token_pass_mint_info.clone(),\n            authority_account_info.clone(), pool.circulation, pool_account_info.key, pool.bump_seed)?;\n    }\n\n    // THEN update state — but during burn, state still shows no decision\n    pool.decision = decision;\n    pool.serialize(&mut pool_account_info.data.borrow_mut()[..])?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV5 - Reentrancy Attacks\nHIGH\nTokens burned before decision recorded. During burn CPI, pool.decision still shows 0 (undecided). Re-entry could trigger another decide call since state hasn't changed. No authorization checks.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/binary-oracle-pair",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/binary-oracle-pair/program/src/processor.rs",
+      "function": "process_decide",
+      "lines": "522-560",
+      "extraction_method": "modified from source - reversed order: burn CPI (originally after state update) placed before pool.decision update, removed authority check, removed decider signer+key check"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_borrow_obligation_liquidity(\n    program_id: &Pubkey, liquidity_amount: u64, accounts: &[AccountInfo],\n) -> ProgramResult {\n    let mut reserve = Reserve::unpack(&reserve_info.data.borrow())?;\n    let mut obligation = Obligation::unpack(&obligation_info.data.borrow())?;\n\n    // FIRST: Calculate and update state\n    let CalculateBorrowResult { borrow_amount, receive_amount, borrow_fee } =\n        reserve.calculate_borrow(liquidity_amount, clock.slot)?;\n    reserve.liquidity.borrow(borrow_amount)?;\n    obligation.borrow_obligation_liquidity(borrow_amount, obligation_liquidity_index)?;\n\n    Reserve::pack(reserve, &mut reserve_info.data.borrow_mut())?;\n    Obligation::pack(obligation, &mut obligation_info.data.borrow_mut())?;\n\n    // THEN: Transfer liquidity OUT\n    spl_token_transfer(TokenTransferParams {\n        source: reserve_liquidity_supply_info.clone(),\n        destination: destination_liquidity_info.clone(),\n        amount: receive_amount, authority: lending_market_authority_info.clone(),\n        authority_signer_seeds, token_program: token_program_id.clone(),\n    })?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV5 - Reentrancy Attacks - MITIGATED\nBorrow amounts calculated and both reserve and obligation states updated BEFORE liquidity transfer CPI. During transfer, state already reflects the new borrow. Re-entry would see updated borrow limits.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/token-lending",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/token-lending/program/src/processor.rs",
+      "function": "process_borrow_obligation_liquidity",
+      "lines": "938-1074",
+      "extraction_method": "extracted and simplified - kept state updates (reserve.borrow + obligation.borrow L1033-1043) BEFORE transfer CPI (L1062-1068)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_liquidate_obligation(\n    program_id: &Pubkey, liquidity_amount: u64, accounts: &[AccountInfo],\n) -> ProgramResult {\n    let mut repay_reserve = Reserve::unpack(&repay_reserve_info.data.borrow())?;\n    let mut withdraw_reserve = Reserve::unpack(&withdraw_reserve_info.data.borrow())?;\n    let mut obligation = Obligation::unpack(&obligation_info.data.borrow())?;\n\n    obligation.accrue_interest(clock.slot)?;\n    if obligation.deposited_value == Decimal::zero() {\n        return Err(LendingError::ObligationDepositsZero.into());\n    }\n    if obligation.borrowed_value <= obligation.unhealthy_borrow_value {\n        return Err(LendingError::ObligationHealthy.into());\n    }\n\n    // FIRST: Repay transfer IN\n    spl_token_transfer(TokenTransferParams {\n        source: source_liquidity_info.clone(),\n        destination: repay_reserve_liquidity_supply_info.clone(),\n        amount: repay_amount, ..params\n    })?;\n\n    // THEN: Withdraw collateral transfer OUT\n    spl_token_transfer(TokenTransferParams {\n        source: withdraw_reserve_collateral_supply_info.clone(),\n        destination: destination_collateral_info.clone(),\n        amount: withdraw_amount, ..signed_params\n    })?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV5 - Reentrancy Attacks - MITIGATED\nHealth check ensures obligation is actually unhealthy. Repay transfer (tokens IN) happens before collateral withdrawal (tokens OUT). During repay CPI, no collateral has been released yet.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/token-lending",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/token-lending/program/src/processor.rs",
+      "function": "process_liquidate_obligation",
+      "lines": "1316-1506",
+      "extraction_method": "extracted and simplified - kept obligation health check (L1401-1404), interest accrual (L1397), repay-then-withdraw ordering (repay L1462-1467, withdraw L1474-1479)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_withdraw_all_token_types(\n    program_id: &Pubkey, pool_token_amount: u64,\n    minimum_token_a_amount: u64, minimum_token_b_amount: u64,\n    accounts: &[AccountInfo],\n) -> ProgramResult {\n    let token_swap = SwapVersion::unpack(&swap_info.data.borrow())?;\n    Self::check_accounts(token_swap.as_ref(), program_id, swap_info, authority_info,\n        token_a_info, token_b_info, pool_mint_info, pool_token_program_info, None, None, Some(pool_fee_account_info))?;\n\n    let results = calculator.pool_tokens_to_trading_tokens(\n        u128::from(pool_token_amount), u128::from(pool_mint.supply),\n        u128::from(token_a.amount), u128::from(token_b.amount), RoundDirection::Floor)?;\n\n    // FIRST: Burn pool tokens (destroy user's LP position)\n    Self::token_burn(swap_info.key, pool_token_program_info.clone(),\n        source_info.clone(), pool_mint_info.clone(), authority_info.clone(),\n        token_swap.bump_seed(), pool_token_amount)?;\n\n    // THEN: Transfer tokens A and B out\n    Self::token_transfer(swap_info.key, token_a_program_info.clone(),\n        token_a_info.clone(), token_a_mint_info.clone(), dest_a_info.clone(),\n        authority_info.clone(), token_swap.bump_seed(), token_a_amount, decimals_a)?;\n    Self::token_transfer(swap_info.key, token_b_program_info.clone(),\n        token_b_info.clone(), token_b_mint_info.clone(), dest_b_info.clone(),\n        authority_info.clone(), token_swap.bump_seed(), token_b_amount, decimals_b)?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV5 - Reentrancy Attacks - MITIGATED\nPool tokens burned FIRST (destroying LP position), then A and B transferred. During transfer CPI, pool tokens already destroyed. Re-entry can't withdraw again because tokens no longer exist.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/token-swap",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/token-swap/program/src/processor.rs",
+      "function": "process_withdraw_all_token_types",
+      "lines": "742-874",
+      "extraction_method": "extracted and simplified - kept check_accounts (L765-771), burn BEFORE transfers: token_burn (L822-825), then token_transfer A (L838-841) and B (L851-854)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_decrease_validator_stake(\n    program_id: &Pubkey, accounts: &[AccountInfo], lamports: u64,\n) -> ProgramResult {\n    check_account_owner(stake_pool_info, program_id)?;\n    let stake_pool = try_from_slice_unchecked::<StakePool>(&stake_pool_info.data.borrow())?;\n    if !stake_pool.is_valid() {\n        return Err(StakePoolError::InvalidState.into());\n    }\n    stake_pool.check_staker(staker_info)?;\n    stake_pool.check_reserve_stake(reserve_stake_info)?;\n\n    // FIRST: Split stake from validator into transient\n    Self::stake_split(stake_pool_info.key, validator_stake_info.clone(),\n        withdraw_authority_info.clone(), stake_pool.stake_withdraw_bump_seed,\n        lamports, transient_stake_info.clone())?;\n\n    // THEN: Deactivate the transient stake\n    Self::stake_deactivate(transient_stake_info.clone(), clock_info.clone(),\n        withdraw_authority_info.clone(), stake_pool_info.key,\n        AUTHORITY_WITHDRAW, stake_pool.stake_withdraw_bump_seed)?;\n\n    // Update validator list entry\n    validator_list_entry.active_stake_lamports = validator_list_entry\n        .active_stake_lamports.checked_sub(lamports).ok_or(StakePoolError::CalculationFailure)?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV5 - Reentrancy Attacks - MITIGATED\nStake split before deactivation — both operations ordered correctly. State update (validator list) after CPIs. Staker authorization prevents unauthorized stake decrease.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "CPI",
+    "owasp_code": "V5",
+    "source_info": {
+      "origin": "solana-program/stake-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/stake-pool/blob/main/program/src/processor.rs",
+      "function": "process_decrease_validator_stake",
+      "lines": "1373-1512",
+      "extraction_method": "extracted and simplified - kept staker check, split BEFORE deactivate ordering (split L1458-1462, deactivate L1468-1472), validator list update after both CPIs"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn check_accounts(\n    token_swap: &dyn SwapState,\n    program_id: &Pubkey,\n    swap_account_info: &AccountInfo,\n    authority_info: &AccountInfo,\n    token_a_info: &AccountInfo,\n    token_b_info: &AccountInfo,\n    pool_mint_info: &AccountInfo,\n) -> ProgramResult {\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV1 - Access Control\nCRITICAL\nAll account validations removed. Function is a no-op that accepts any accounts. Attacker can pass arbitrary token accounts, fake mints, wrong authority. Every swap operation using this check is compromised.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Missing Key Check",
+    "owasp_code": "V1",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/token-swap",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/token-swap/program/src/processor.rs",
+      "function": "check_accounts",
+      "lines": "194-244",
+      "extraction_method": "modified from source - removed ALL checks: program ownership (L208-210), authority PDA (L211-215), token_a match (L216-218), token_b match (L219-221), pool_mint match (L222-224), token_program match (L225-227), user-pool collision (L228-237), fee account match (L238-242)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_modify_reserve_config(\n    program_id: &Pubkey, new_config: ReserveConfig, accounts: &[AccountInfo],\n) -> ProgramResult {\n    let mut reserve = Reserve::unpack(&reserve_info.data.borrow_mut())?;\n    reserve.config = new_config;\n    Reserve::pack(reserve, &mut reserve_info.data.borrow_mut())?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV1 - Access Control\nCRITICAL\nNo authorization whatsoever. Anyone can modify any reserve's configuration — set fees to 0, change oracle, modify LTV ratios. No config validation allows invalid parameters. No market-reserve link check allows cross-market attacks.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Missing Key Check",
+    "owasp_code": "V1",
+    "source_info": {
+      "origin": "solana-labs/solana-program-library/token-lending",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-labs/solana-program-library/blob/master/token-lending/program/src/processor.rs",
+      "function": "process_modify_reserve_config",
+      "lines": "1688-1734",
+      "extraction_method": "modified from source - removed new_config.validate() (L1693), removed reserve ownership check (L1700-1703), removed lending_market ownership check (L1706-1709), removed market owner key match (L1710-1713), removed signer check (L1714-1717), removed reserve-market link check (L1724-1727)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_update_pool_token_metadata(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n    name: String, symbol: String, uri: String,\n) -> ProgramResult {\n    let pool_info = next_account_info(account_info_iter)?;\n    let pool_mpl_authority_info = next_account_info(account_info_iter)?;\n    let metadata_info = next_account_info(account_info_iter)?;\n    let mpl_token_metadata_program_info = next_account_info(account_info_iter)?;\n\n    let mpl_authority_bump_seed = check_pool_mpl_authority_address(\n        program_id, pool_info.key, pool_mpl_authority_info.key)?;\n\n    let update_instruction = update_metadata_accounts_v2(\n        *mpl_token_metadata_program_info.key, *metadata_info.key,\n        *pool_mpl_authority_info.key, None,\n        Some(DataV2 { name, symbol, uri, seller_fee_basis_points: 0,\n            creators: None, collection: None, uses: None }),\n        None, Some(true));\n\n    invoke_signed(&update_instruction,\n        &[metadata_info.clone(), pool_mpl_authority_info.clone()],\n        &[&[POOL_MPL_AUTHORITY_PREFIX, pool_info.key.as_ref(), &[mpl_authority_bump_seed]]])?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV1 - Access Control\nHIGH\nNo vote account validation — any account accepted as vote account. No authorized_withdrawer check — anyone can update metadata. No pool address verification. Attacker can change pool token name/symbol/URI to mislead users.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Missing Key Check",
+    "owasp_code": "V1",
+    "source_info": {
+      "origin": "solana-program/single-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/single-pool/blob/main/program/src/processor.rs",
+      "function": "process_update_pool_token_metadata",
+      "lines": "1288-1372",
+      "extraction_method": "modified from source - removed check_vote_account (L1303), removed check_pool_address (L1304), removed pool.vote_account_address match (L1307-1309), removed authorized_withdrawer extraction and verification (L1324-1333), removed withdrawer signer check (L1335-1338), removed metadata account address check (L1318)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_set_preferred_validator(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n    validator_type: PreferredValidatorType, validator_vote_address: Option<Pubkey>,\n) -> ProgramResult {\n    check_account_owner(stake_pool_info, program_id)?;\n    let mut stake_pool = try_from_slice_unchecked::<StakePool>(&stake_pool_info.data.borrow())?;\n    if !stake_pool.is_valid() {\n        return Err(StakePoolError::InvalidState.into());\n    }\n    stake_pool.check_staker(staker_info)?;\n    stake_pool.check_validator_list(validator_list_info)?;\n\n    if let Some(vote_address) = validator_vote_address {\n        let maybe_validator = validator_list.find(&vote_address);\n        if maybe_validator.is_none() {\n            return Err(StakePoolError::ValidatorNotFound.into());\n        }\n    }\n\n    match validator_type {\n        PreferredValidatorType::Deposit => stake_pool.preferred_deposit_validator_vote_address = validator_vote_address,\n        PreferredValidatorType::Withdraw => stake_pool.preferred_withdraw_validator_vote_address = validator_vote_address,\n    }\n    stake_pool.serialize(&mut stake_pool_info.data.borrow_mut())?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV1 - Access Control - MITIGATED\nProgram ownership, state validity, staker authorization (only staker can set preferences), validator list matching, and validator existence check. Preferred validator must actually be in the list.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "Missing Key Check",
+    "owasp_code": "V1",
+    "source_info": {
+      "origin": "solana-program/stake-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/stake-pool/blob/main/program/src/processor.rs",
+      "function": "process_set_preferred_validator",
+      "lines": "3370-3444",
+      "extraction_method": "extracted and simplified - kept ownership (L3384), validity (L3388-3390), staker authorization (L3392), validator list match (L3393), validator existence check (L3403-3410)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\nfn process_set_preferred_validator(\n    program_id: &Pubkey, accounts: &[AccountInfo],\n    validator_type: PreferredValidatorType, validator_vote_address: Option<Pubkey>,\n) -> ProgramResult {\n    let mut stake_pool = try_from_slice_unchecked::<StakePool>(&stake_pool_info.data.borrow())?;\n\n    match validator_type {\n        PreferredValidatorType::Deposit => stake_pool.preferred_deposit_validator_vote_address = validator_vote_address,\n        PreferredValidatorType::Withdraw => stake_pool.preferred_withdraw_validator_vote_address = validator_vote_address,\n    }\n    stake_pool.serialize(&mut stake_pool_info.data.borrow_mut())?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nVULNERABLE\nV1 - Access Control\nHIGH\nNo staker authorization — anyone can set preferred validators. No validator existence check — can set a non-existent validator, causing deposit/withdraw routing to fail. No ownership check allows cross-pool attacks.<|eot_id|>",
+    "label": "VULNERABLE",
+    "vulnerability_type": "Missing Key Check",
+    "owasp_code": "V1",
+    "source_info": {
+      "origin": "solana-program/stake-pool",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/stake-pool/blob/main/program/src/processor.rs",
+      "function": "process_set_preferred_validator",
+      "lines": "3370-3444",
+      "extraction_method": "modified from source - removed ownership check (L3384), removed validity check (L3388-3390), removed staker authorization (L3392), removed validator list check (L3393), removed validator existence check (L3403-3410)"
+    }
+  },
+  {
+    "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze code for vulnerabilities according to OWASP Top 10 for Blockchain. Respond with the vulnerability status and details.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nYou are a Solana smart contract security analyzer. Analyze the following Rust code for vulnerabilities.\n\nCode:\npub fn process_freeze_account(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    let source_account = Account::unpack(&source_account_info.data.borrow())?;\n    if source_account.is_frozen() {\n        return Err(TokenError::AccountFrozen.into());\n    }\n    let mint = Mint::unpack(&mint_info.data.borrow())?;\n    match mint.freeze_authority {\n        COption::Some(authority) => {\n            Self::validate_owner(program_id, &authority, authority_info, account_info_iter.as_slice())?;\n        }\n        COption::None => return Err(TokenError::MintCannotFreeze.into()),\n    }\n    if source_account.mint != *mint_info.key {\n        return Err(TokenError::MintMismatch.into());\n    }\n\n    let mut source_account = Account::unpack(&source_account_info.data.borrow())?;\n    source_account.state = AccountState::Frozen;\n    Account::pack(source_account, &mut source_account_info.data.borrow_mut())?;\n    Ok(())\n}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSAFE\nV1 - Access Control - MITIGATED\nAlready-frozen check prevents double-freeze. Mint freeze_authority verified via validate_owner (checks signer). No freeze_authority returns MintCannotFreeze. Mint-account link verified.<|eot_id|>",
+    "label": "SAFE",
+    "vulnerability_type": "Missing Key Check",
+    "owasp_code": "V1",
+    "source_info": {
+      "origin": "solana-program/token",
+      "file": "program/src/processor.rs",
+      "url": "https://github.com/solana-program/token/blob/main/program/src/processor.rs",
+      "function": "process_freeze_account",
+      "lines": "713-761",
+      "extraction_method": "extracted and simplified - kept frozen check (L721-723), freeze_authority validation (L725-731), mint mismatch check (L732-734), validate_owner for authority"
+    }
+  }
+]
