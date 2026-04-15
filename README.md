@@ -105,6 +105,26 @@ Based on the OWASP Top 10 mapping by Boi & Esposito (2025):
 | 3 | LLaMA-FT (no RAG) | Fine-tuned model, direct prompting |
 | 4 | LLaMA-FT + RAG | Fine-tuned model with RAG (best expected) |
 
+## Trained Model
+
+The fine-tuned LoRA adapter is hosted on Hugging Face Hub:
+
+| Base Model | Fine-Tuned Adapter |
+|-----------|-------------------|
+| LLaMA 3.1-8B-Instruct | [Mustafa99Hafed/LLaMA-3.1-8B-Solana-Audit](https://huggingface.co/Mustafa99Hafed/LLaMA-3.1-8B-Solana-Audit) |
+
+### Loading the model
+
+```python
+from unsloth import FastLanguageModel
+
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name="Mustafa99Hafed/LLaMA-3.1-8B-Solana-Audit",
+    max_seq_length=2048,
+    load_in_4bit=True,
+)
+```
+
 ## References
 
 - Boi, B. & Esposito, C. (2025). *Prompt Engineering vs. Fine-Tuning for LLM-Based Vulnerability Detection in Solana and Algorand Smart Contracts*. IEEE BCCA 2025.
