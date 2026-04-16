@@ -1,6 +1,4 @@
 # LLM-Based Vulnerability Detection for Solana Smart Contracts: Fine-Tuning and RAG
-
-> **IEEE BCCA 2025 Paper**
 >
 > **Author:** Mustafa Abuzaraiba
 >
