@@ -4,7 +4,7 @@
 >
 > **Author:** Mustafa Abuzaraiba
 >
-> **Supervisors:** Prof. Biagio Boi, Prof. Christian Esposito
+> **Supervisors:** Prof. Christian Esposito
 >
 > **University:** University of Salerno — Academic Year 2025/2026
 
