@@ -1,0 +1,340 @@
+[
+  {
+    "file": "solana_01.json",
+    "truth": "Integer Overflow",
+    "predicted": [
+      "Denial of Service",
+      "DoS"
+    ]
+  },
+  {
+    "file": "solana_02.json",
+    "truth": "Not Vulnerable",
+    "predicted": []
+  },
+  {
+    "file": "solana_03.json",
+    "truth": "Bump Seed",
+    "predicted": []
+  },
+  {
+    "file": "solana_04.json",
+    "truth": "Denial of Service",
+    "predicted": []
+  },
+  {
+    "file": "solana_05.json",
+    "truth": "Not Vulnerable",
+    "predicted": []
+  },
+  {
+    "file": "solana_06.json",
+    "truth": "Not Vulnerable",
+    "predicted": [
+      "DoS"
+    ]
+  },
+  {
+    "file": "solana_07.json",
+    "truth": "Unchecked External Calls",
+    "predicted": []
+  },
+  {
+    "file": "solana_08.json",
+    "truth": "Missing Key Check",
+    "predicted": [
+      "DoS"
+    ]
+  },
+  {
+    "file": "solana_09.json",
+    "truth": "Not Vulnerable",
+    "predicted": []
+  },
+  {
+    "file": "solana_10.json",
+    "truth": "Not Vulnerable",
+    "predicted": []
+  },
+  {
+    "file": "solana_11.json",
+    "truth": "Not Vulnerable",
+    "predicted": [
+      "DoS"
+    ]
+  },
+  {
+    "file": "solana_12.json",
+    "truth": "Not Vulnerable",
+    "predicted": [
+      "Not Vulnerable"
+    ]
+  },
+  {
+    "file": "solana_13.json",
+    "truth": "Not Vulnerable",
+    "predicted": []
+  },
+  {
+    "file": "solana_14.json",
+    "truth": "integer_flow",
+    "predicted": []
+  },
+  {
+    "file": "solana_15.json",
+    "truth": "cpi",
+    "predicted": []
+  },
+  {
+    "file": "solana_16.json",
+    "truth": "Not Vulnerable",
+    "predicted": []
+  },
+  {
+    "file": "solana_17.json",
+    "truth": "Not Vulnerable",
+    "predicted": []
+  },
+  {
+    "file": "solana_18.json",
+    "truth": "Missing Key Check",
+    "predicted": []
+  },
+  {
+    "file": "solana_19.json",
+    "truth": "Type Confusion",
+    "predicted": []
+  },
+  {
+    "file": "solana_20.json",
+    "truth": "Not Vulnerable",
+    "predicted": [
+      "Input Validation"
+    ]
+  },
+  {
+    "file": "solana_21.json",
+    "truth": "Missing Key Check",
+    "predicted": [
+      "Reentrancy",
+      "Integer Overflow"
+    ]
+  },
+  {
+    "file": "solana_22.json",
+    "truth": "Bump Seed",
+    "predicted": []
+  },
+  {
+    "file": "solana_23.json",
+    "truth": "Bump Seed",
+    "predicted": [
+      "Input Validation"
+    ]
+  },
+  {
+    "file": "solana_24.json",
+    "truth": "Unchecked External Calls",
+    "predicted": []
+  },
+  {
+    "file": "solana_25.json",
+    "truth": "Type Confusion",
+    "predicted": []
+  },
+  {
+    "file": "solana_26.json",
+    "truth": "Not Vulnerable",
+    "predicted": []
+  },
+  {
+    "file": "solana_27.json",
+    "truth": "cpi",
+    "predicted": []
+  },
+  {
+    "file": "solana_28.json",
+    "truth": "Not Vulnerable",
+    "predicted": [
+      "Not Vulnerable"
+    ]
+  },
+  {
+    "file": "solana_29.json",
+    "truth": "Not Vulnerable",
+    "predicted": []
+  },
+  {
+    "file": "solana_30.json",
+    "truth": "Unchecked External Calls",
+    "predicted": []
+  },
+  {
+    "file": "solana_31.json",
+    "truth": "Not Vulnerable",
+    "predicted": [
+      "DoS"
+    ]
+  },
+  {
+    "file": "solana_32.json",
+    "truth": "Type Confusion",
+    "predicted": []
+  },
+  {
+    "file": "solana_33.json",
+    "truth": "Integer Overflow",
+    "predicted": []
+  },
+  {
+    "file": "solana_34.json",
+    "truth": "Denial of Service",
+    "predicted": []
+  },
+  {
+    "file": "solana_35.json",
+    "truth": "Not Vulnerable",
+    "predicted": []
+  },
+  {
+    "file": "solana_36.json",
+    "truth": "Not Vulnerable",
+    "predicted": [
+      "Input Validation",
+      "DoS"
+    ]
+  },
+  {
+    "file": "solana_37.json",
+    "truth": "cpi",
+    "predicted": []
+  },
+  {
+    "file": "solana_38.json",
+    "truth": "Not Vulnerable",
+    "predicted": []
+  },
+  {
+    "file": "solana_39.json",
+    "truth": "Denial of Service",
+    "predicted": []
+  },
+  {
+    "file": "solana_40.json",
+    "truth": "Unchecked External Calls",
+    "predicted": []
+  },
+  {
+    "file": "solana_41.json",
+    "truth": "Not Vulnerable",
+    "predicted": []
+  },
+  {
+    "file": "solana_42.json",
+    "truth": "Not Vulnerable",
+    "predicted": [
+      "Not Vulnerable"
+    ]
+  },
+  {
+    "file": "solana_43.json",
+    "truth": "cpi",
+    "predicted": [
+      "Reentrancy"
+    ]
+  },
+  {
+    "file": "solana_44.json",
+    "truth": "Type Confusion",
+    "predicted": [
+      "Input Validation"
+    ]
+  },
+  {
+    "file": "solana_45.json",
+    "truth": "Not Vulnerable",
+    "predicted": [
+      "Not Vulnerable"
+    ]
+  },
+  {
+    "file": "solana_46.json",
+    "truth": "Denial of Service",
+    "predicted": []
+  },
+  {
+    "file": "solana_47.json",
+    "truth": "Not Vulnerable",
+    "predicted": []
+  },
+  {
+    "file": "solana_48.json",
+    "truth": "Not Vulnerable",
+    "predicted": []
+  },
+  {
+    "file": "solana_49.json",
+    "truth": "Not Vulnerable",
+    "predicted": []
+  },
+  {
+    "file": "solana_50.json",
+    "truth": "Bump Seed",
+    "predicted": []
+  },
+  {
+    "file": "solana_51.json",
+    "truth": "Not Vulnerable",
+    "predicted": [
+      "Input Validation"
+    ]
+  },
+  {
+    "file": "solana_52.json",
+    "truth": "Integer Overflow",
+    "predicted": []
+  },
+  {
+    "file": "solana_53.json",
+    "truth": "Integer Overflow",
+    "predicted": []
+  },
+  {
+    "file": "solana_54.json",
+    "truth": "Not Vulnerable",
+    "predicted": [
+      "Reentrancy"
+    ]
+  },
+  {
+    "file": "solana_55.json",
+    "truth": "Not Vulnerable",
+    "predicted": [
+      "Input Validation",
+      "Not Vulnerable"
+    ]
+  },
+  {
+    "file": "solana_56.json",
+    "truth": "Not Vulnerable",
+    "predicted": [
+      "Reentrancy",
+      "DoS"
+    ]
+  },
+  {
+    "file": "solana_57.json",
+    "truth": "Missing Key Check",
+    "predicted": []
+  },
+  {
+    "file": "solana_58.json",
+    "truth": "Not Vulnerable",
+    "predicted": []
+  },
+  {
+    "file": "solana_59.json",
+    "truth": "Not Vulnerable",
+    "predicted": []
+  }
+]
