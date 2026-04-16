@@ -1,0 +1,250 @@
+{
+  "base_no_rag": {
+    "accuracy": 0.3582,
+    "precision": 0.1111,
+    "recall": 0.069,
+    "f1_score": 0.0851,
+    "confusion_matrix": {
+      "tp": 2,
+      "fp": 16,
+      "tn": 22,
+      "fn": 27
+    },
+    "per_vulnerability": {
+      "Integer Overflow": {
+        "tp": 0,
+        "fp": 1,
+        "tn": 0,
+        "fn": 5
+      },
+      "Denial of Service": {
+        "tp": 0,
+        "fp": 7,
+        "tn": 0,
+        "fn": 4
+      },
+      "Not Vulnerable": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 22,
+        "fn": 0
+      },
+      "Bump Seed": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 0,
+        "fn": 4
+      },
+      "Unchecked External Calls": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 0,
+        "fn": 4
+      },
+      "Missing Key Check": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 0,
+        "fn": 4
+      },
+      "CPI Reentrancy": {
+        "tp": 1,
+        "fp": 3,
+        "tn": 0,
+        "fn": 3
+      },
+      "Type Confusion": {
+        "tp": 1,
+        "fp": 5,
+        "tn": 0,
+        "fn": 3
+      }
+    }
+  },
+  "base_rag": {
+    "accuracy": 0.33,
+    "precision": 0.1481,
+    "recall": 0.2759,
+    "f1_score": 0.1928,
+    "confusion_matrix": {
+      "tp": 8,
+      "fp": 46,
+      "tn": 25,
+      "fn": 21
+    },
+    "per_vulnerability": {
+      "Integer Overflow": {
+        "tp": 2,
+        "fp": 6,
+        "tn": 0,
+        "fn": 3
+      },
+      "Denial of Service": {
+        "tp": 0,
+        "fp": 11,
+        "tn": 0,
+        "fn": 4
+      },
+      "Type Confusion": {
+        "tp": 1,
+        "fp": 8,
+        "tn": 0,
+        "fn": 3
+      },
+      "Bump Seed": {
+        "tp": 3,
+        "fp": 2,
+        "tn": 0,
+        "fn": 1
+      },
+      "Unchecked External Calls": {
+        "tp": 0,
+        "fp": 6,
+        "tn": 0,
+        "fn": 4
+      },
+      "Missing Key Check": {
+        "tp": 1,
+        "fp": 10,
+        "tn": 0,
+        "fn": 3
+      },
+      "Not Vulnerable": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 25,
+        "fn": 0
+      },
+      "CPI Reentrancy": {
+        "tp": 1,
+        "fp": 3,
+        "tn": 0,
+        "fn": 3
+      }
+    }
+  },
+  "ft_no_rag": {
+    "accuracy": 0.5067,
+    "precision": 0.3462,
+    "recall": 0.3103,
+    "f1_score": 0.3273,
+    "confusion_matrix": {
+      "tp": 9,
+      "fp": 17,
+      "tn": 29,
+      "fn": 20
+    },
+    "per_vulnerability": {
+      "Integer Overflow": {
+        "tp": 3,
+        "fp": 0,
+        "tn": 0,
+        "fn": 2
+      },
+      "Not Vulnerable": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 29,
+        "fn": 0
+      },
+      "Bump Seed": {
+        "tp": 2,
+        "fp": 0,
+        "tn": 0,
+        "fn": 2
+      },
+      "Denial of Service": {
+        "tp": 0,
+        "fp": 1,
+        "tn": 0,
+        "fn": 4
+      },
+      "Type Confusion": {
+        "tp": 0,
+        "fp": 4,
+        "tn": 0,
+        "fn": 4
+      },
+      "CPI Reentrancy": {
+        "tp": 3,
+        "fp": 11,
+        "tn": 0,
+        "fn": 1
+      },
+      "Unchecked External Calls": {
+        "tp": 0,
+        "fp": 1,
+        "tn": 0,
+        "fn": 4
+      },
+      "Missing Key Check": {
+        "tp": 1,
+        "fp": 0,
+        "tn": 0,
+        "fn": 3
+      }
+    }
+  },
+  "ft_rag": {
+    "accuracy": 0.4535,
+    "precision": 0.275,
+    "recall": 0.3793,
+    "f1_score": 0.3188,
+    "confusion_matrix": {
+      "tp": 11,
+      "fp": 29,
+      "tn": 28,
+      "fn": 18
+    },
+    "per_vulnerability": {
+      "Integer Overflow": {
+        "tp": 1,
+        "fp": 0,
+        "tn": 0,
+        "fn": 4
+      },
+      "Not Vulnerable": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 28,
+        "fn": 0
+      },
+      "CPI Reentrancy": {
+        "tp": 3,
+        "fp": 20,
+        "tn": 0,
+        "fn": 1
+      },
+      "Bump Seed": {
+        "tp": 2,
+        "fp": 3,
+        "tn": 0,
+        "fn": 2
+      },
+      "Type Confusion": {
+        "tp": 1,
+        "fp": 5,
+        "tn": 0,
+        "fn": 3
+      },
+      "Denial of Service": {
+        "tp": 2,
+        "fp": 0,
+        "tn": 0,
+        "fn": 2
+      },
+      "Unchecked External Calls": {
+        "tp": 1,
+        "fp": 0,
+        "tn": 0,
+        "fn": 3
+      },
+      "Missing Key Check": {
+        "tp": 1,
+        "fp": 1,
+        "tn": 0,
+        "fn": 3
+      }
+    }
+  }
+}

@@ -2,9 +2,9 @@
 
 > **IEEE BCCA 2025 Paper**
 >
-> **Author:** Mustafa  Abuzaraiba
+> **Author:** Mustafa Abuzaraiba
 >
-> **Supervisors:**  Prof. Christian Esposito
+> **Supervisors:** Prof. Biagio Boi, Prof. Christian Esposito
 >
 > **University:** University of Salerno — Academic Year 2025/2026
 
@@ -14,7 +14,7 @@ This repository contains the source code, datasets, and evaluation pipeline deve
 
 The approach replicates and adapts the methodology proposed by Tortora (2025) for Algorand/PyTeal, applying it to the Solana/Rust ecosystem. The system uses **LLaMA 3.1-8B-Instruct** adapted via *QLoRA* and *Chain-of-Thought* training, combined with a *Retrieval-Augmented Generation (RAG)* pipeline for dynamic vulnerability context injection.
 
-The framework is evaluated across 6 configurations to measure the impact of Fine-Tuning and RAG on detection performance (Precision, Recall, F1-Score).
+The framework is evaluated across 4 configurations to measure the impact of Fine-Tuning and RAG on detection performance (Precision, Recall, F1-Score, Accuracy).
 
 ## System Architecture
 
@@ -22,7 +22,7 @@ The system consists of three main phases:
 
 1. **Fine-Tuning:** Domain adaptation of LLaMA 3.1-8B using QLoRA to learn Solana/Rust vulnerability patterns and Chain-of-Thought reasoning (`<think>...</think>`).
 2. **RAG Pipeline:** Retrieval of similar vulnerable contracts from a vector knowledge base to provide few-shot examples and reduce hallucinations.
-3. **Inference & Evaluation:** Contract audit, structured output parsing, and automated metric computation (Precision, Recall, F1).
+3. **Inference & Evaluation:** Contract audit, structured output parsing, and automated metric computation (Precision, Recall, F1, Accuracy).
 
 ## Vulnerability Taxonomy
 
@@ -30,13 +30,13 @@ Based on the OWASP Top 10 mapping by Boi & Esposito (2025):
 
 | Code | Vulnerability | Solana/Rust Manifestation |
 |------|--------------|--------------------------|
-| V1 | Missing Key Check | Missing signer/owner verification |
-| V4 | Type Confusion | Missing account type/discriminator validation |
-| V5 | CPI Reentrancy | State update after cross-program invocation |
-| V6 | Unchecked External Calls | CPI results silently discarded (`let _ =`) |
-| V8 | Integer Overflow | Unchecked arithmetic (`+` instead of `checked_add`) |
-| V9 | Bump Seed | `create_program_address` without canonical bump |
-| V10 | Denial of Service | Missing re-initialization guards, stale data |
+| V1   | Missing Key Check    | Missing signer/owner verification |
+| V4   | Type Confusion       | Missing account type/discriminator validation |
+| V5   | CPI Reentrancy       | State update after cross-program invocation |
+| V6   | Unchecked External Calls | CPI results silently discarded (`let _ =`) |
+| V8   | Integer Overflow     | Unchecked arithmetic (`+` instead of `checked_add`) |
+| V9   | Bump Seed            | `create_program_address` without canonical bump |
+| V10  | Denial of Service    | Missing re-initialization guards, stale data |
 
 ## Repository Structure
 
@@ -49,25 +49,39 @@ Based on the OWASP Top 10 mapping by Boi & Esposito (2025):
 │   │   └── solana_01.json ... solana_59.json
 │   └── knowledge_base/                  # RAG reference data
 │       ├── vulnerability_info.json      # 7 vulnerability profiles
-│       └── rag_contracts.jsonl          # 37 indexed vulnerable contracts
+│       └── rag_contracts.jsonl          # Indexed vulnerable contracts
+│
+├── notebooks/
+│   └── llama-3.1-8b/
+│       ├── solana_finetuning.ipynb      # QLoRA fine-tuning on Kaggle T4
+│       └── solana_evaluation.ipynb      # 4-configuration evaluation
 │
 ├── src/
-│   ├── rag/                             # RAG pipeline modules
+│   ├── rag/
 │   │   ├── generate_embeddings.py       # Encode KB contracts into vectors
 │   │   └── rag.py                       # Similarity search + dynamic checklist
-│   ├── finetuning/                      # QLoRA training scripts
-│   │   ├── train_qlora.py              # Main training script (Kaggle T4)
+│   ├── finetuning/
+│   │   ├── train_qlora.py               # Main training script (Kaggle T4)
 │   │   └── custom_chat_template.jinja   # Chat template with <think>/<final> tags
-│   └── evaluation/                      # Testing and metrics
+│   └── evaluation/
 │       ├── run_benchmark_no_rag.py      # Benchmark without RAG
 │       ├── run_benchmark_rag.py         # Benchmark with RAG
 │       ├── metrics.py                   # Precision, Recall, F1 computation
 │       └── utils/                       # Prompts, parser, logging
 │
 ├── dataset_construction/                # Original dataset (285 samples, 15 contracts)
-│   └── ...                              # Batch files, raw contracts, documentation
+│   ├── dataset_batch1/ ... dataset_batch11/
+│   └── final DS/
+│       └── dataset_final.json           # Merged dataset (285 samples)
 │
-├── results/                             # Evaluation outputs (populated after testing)
+├── results/                             # Evaluation outputs
+│   ├── evaluation_results.json          # Summary metrics (4 configurations)
+│   ├── detailed_results.json            # Per-contract predictions
+│   ├── evaluation_chart.png             # All 4 configs comparison chart
+│   ├── finetuning_impact.png            # Base vs Fine-Tuned comparison
+│   ├── rag_impact.png                   # FT vs FT+RAG comparison
+│   ├── recompute_metrics.py             # Script to recompute metrics from results
+│   └── results_README.md                # Detailed results documentation
 │
 └── requirements.txt
 ```
@@ -79,6 +93,7 @@ Based on the OWASP Top 10 mapping by Boi & Esposito (2025):
 - **Balanced**: ~50/50 SAFE/VULNERABLE per category
 - **Source**: Real deployed SPL contracts from solana-labs GitHub
 - **Methodology**: Extract secure code as SAFE, systematically remove security checks to create VULNERABLE variants
+- **Training split**: 226 train / 22 validation / 59 test
 
 ## Model and Training
 
@@ -91,7 +106,7 @@ Based on the OWASP Top 10 mapping by Boi & Esposito (2025):
 | Target Modules | All linear layers (Attention + MLP) |
 | Epochs | 3 |
 | Learning Rate | 5e-5 (cosine decay) |
-| Effective Batch Size | 8 (1 per device x 8 accumulation) |
+| Effective Batch Size | 8 (1 per device × 8 accumulation) |
 | Max Sequence Length | 2048 tokens |
 | Framework | Unsloth + trl |
 | Hardware | Kaggle T4 GPU (16GB VRAM) |
@@ -101,9 +116,9 @@ Based on the OWASP Top 10 mapping by Boi & Esposito (2025):
 | # | Configuration | Description |
 |---|--------------|-------------|
 | 1 | LLaMA-Base (no RAG) | Baseline: unmodified model, direct prompting |
-| 2 | LLaMA-Base + RAG | Base model with retrieval-augmented context |
-| 3 | LLaMA-FT (no RAG) | Fine-tuned model, direct prompting |
-| 4 | LLaMA-FT + RAG | Fine-tuned model with RAG (best expected) |
+| 2 | LLaMA-Base + RAG    | Base model with retrieval-augmented context |
+| 3 | LLaMA-FT (no RAG)   | Fine-tuned model, direct prompting |
+| 4 | LLaMA-FT + RAG      | Fine-tuned model with RAG (best expected) |
 
 ## Trained Model
 
