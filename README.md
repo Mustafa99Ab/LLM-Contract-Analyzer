@@ -1,5 +1,5 @@
 # LLM-Based Vulnerability Detection for Solana Smart Contracts: Fine-Tuning and RAG
->
+
 > **Author:** Mustafa Abuzaraiba
 >
 > **Supervisors:** Prof. Christian Esposito
@@ -28,13 +28,13 @@ Based on the OWASP Top 10 mapping by Boi & Esposito (2025):
 
 | Code | Vulnerability | Solana/Rust Manifestation |
 |------|--------------|--------------------------|
-| V1   | Missing Key Check    | Missing signer/owner verification |
-| V4   | Type Confusion       | Missing account type/discriminator validation |
-| V5   | CPI Reentrancy       | State update after cross-program invocation |
+| V1   | Missing Key Check        | Missing signer/owner verification |
+| V4   | Type Confusion           | Missing account type/discriminator validation |
+| V5   | CPI Reentrancy           | State update after cross-program invocation |
 | V6   | Unchecked External Calls | CPI results silently discarded (`let _ =`) |
-| V8   | Integer Overflow     | Unchecked arithmetic (`+` instead of `checked_add`) |
-| V9   | Bump Seed            | `create_program_address` without canonical bump |
-| V10  | Denial of Service    | Missing re-initialization guards, stale data |
+| V8   | Integer Overflow         | Unchecked arithmetic (`+` instead of `checked_add`) |
+| V9   | Bump Seed                | `create_program_address` without canonical bump |
+| V10  | Denial of Service        | Missing re-initialization guards, stale data |
 
 ## Repository Structure
 
@@ -45,9 +45,13 @@ Based on the OWASP Top 10 mapping by Boi & Esposito (2025):
 │   │   └── validation_dataset.jsonl     # 22 validation samples
 │   ├── test_set/                        # 59 test contracts (code only, no labels)
 │   │   └── solana_01.json ... solana_59.json
-│   └── knowledge_base/                  # RAG reference data
-│       ├── vulnerability_info.json      # 7 vulnerability profiles
-│       └── rag_contracts.jsonl          # Indexed vulnerable contracts
+│   ├── knowledge_base/                  # RAG reference data
+│   │   ├── vulnerability_info.json      # 7 vulnerability profiles
+│   │   └── rag_contracts.jsonl          # Indexed vulnerable contracts
+│   └── dataset_construction/            # Original dataset (285 samples, 15 contracts)
+│       ├── dataset_batch1/ ... dataset_batch11/
+│       └── final DS/
+│           └── dataset_final.json       # Merged dataset (285 samples)
 │
 ├── notebooks/
 │   └── llama-3.1-8b/
@@ -67,22 +71,26 @@ Based on the OWASP Top 10 mapping by Boi & Esposito (2025):
 │       ├── metrics.py                   # Precision, Recall, F1 computation
 │       └── utils/                       # Prompts, parser, logging
 │
-├── dataset_construction/                # Original dataset (285 samples, 15 contracts)
-│   ├── dataset_batch1/ ... dataset_batch11/
-│   └── final DS/
-│       └── dataset_final.json           # Merged dataset (285 samples)
-│
-├── results/                             # Evaluation outputs
-│   ├── evaluation_results.json          # Summary metrics (4 configurations)
-│   ├── detailed_results.json            # Per-contract predictions
-│   ├── evaluation_chart.png             # All 4 configs comparison chart
-│   ├── finetuning_impact.png            # Base vs Fine-Tuned comparison
-│   ├── rag_impact.png                   # FT vs FT+RAG comparison
-│   ├── recompute_metrics.py             # Script to recompute metrics from results
-│   └── results_README.md                # Detailed results documentation
+├── results/
+│   └── llama-3.1-8b/                    # Results for LLaMA 3.1-8B
+│       ├── evaluation_results.json      # Summary metrics (4 configurations)
+│       ├── detailed_results.json        # Per-contract predictions
+│       ├── recompute_metrics.py         # Script to recompute metrics
+│       ├── no_rag/
+│       │   ├── LLaMA_Base_results.json  # Config 1: Base model, no RAG
+│       │   └── LLaMA_FT_results.json    # Config 3: Fine-tuned, no RAG
+│       ├── rag/
+│       │   ├── LLaMA_Base_RAG_results.json  # Config 2: Base model + RAG
+│       │   └── LLaMA_FT_RAG_results.json    # Config 4: Fine-tuned + RAG
+│       └── charts/
+│           ├── evaluation_chart.png     # 4-configuration comparison
+│           ├── finetuning_impact.png    # Base vs Fine-Tuned (no RAG)
+│           └── rag_impact.png           # FT vs FT+RAG
 │
 └── requirements.txt
 ```
+
+> Additional models will be added under `results/` and `notebooks/` following the same folder structure.
 
 ## Dataset
 
@@ -116,7 +124,7 @@ Based on the OWASP Top 10 mapping by Boi & Esposito (2025):
 | 1 | LLaMA-Base (no RAG) | Baseline: unmodified model, direct prompting |
 | 2 | LLaMA-Base + RAG    | Base model with retrieval-augmented context |
 | 3 | LLaMA-FT (no RAG)   | Fine-tuned model, direct prompting |
-| 4 | LLaMA-FT + RAG      | Fine-tuned model with RAG (best expected) |
+| 4 | LLaMA-FT + RAG      | Fine-tuned model with RAG context |
 
 ## Trained Model
 
