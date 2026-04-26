@@ -1,0 +1,2092 @@
+{
+  "model": "Qwen2.5-Coder-32B-Instruct",
+  "hardware": "NVIDIA RTX A6000 (48GB)",
+  "configs": {
+    "base_no_rag": {
+      "metrics": {
+        "accuracy": 0.4091,
+        "precision": 0.3077,
+        "recall": 0.2759,
+        "f1_score": 0.2909,
+        "confusion_matrix": {
+          "tp": 8,
+          "fp": 18,
+          "tn": 19,
+          "fn": 21
+        },
+        "per_vulnerability": {
+          "Integer Overflow": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 4
+          },
+          "Bump Seed": {
+            "tp": 2,
+            "fp": 1,
+            "fn": 2
+          },
+          "Denial of Service": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 3
+          },
+          "CPI Reentrancy": {
+            "tp": 2,
+            "fp": 9,
+            "fn": 2
+          },
+          "Unchecked External Calls": {
+            "tp": 1,
+            "fp": 2,
+            "fn": 3
+          },
+          "Missing Key Check": {
+            "tp": 1,
+            "fp": 3,
+            "fn": 3
+          },
+          "Type Confusion": {
+            "tp": 0,
+            "fp": 3,
+            "fn": 4
+          }
+        }
+      },
+      "details": [
+        {
+          "file": "solana_01.json",
+          "ground_truth": "Integer Overflow",
+          "predictions": []
+        },
+        {
+          "file": "solana_02.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": []
+        },
+        {
+          "file": "solana_03.json",
+          "ground_truth": "Bump Seed",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_04.json",
+          "ground_truth": "Denial of Service",
+          "predictions": []
+        },
+        {
+          "file": "solana_05.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_06.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_07.json",
+          "ground_truth": "Unchecked External Calls",
+          "predictions": [
+            "Access Control",
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_08.json",
+          "ground_truth": "Missing Key Check",
+          "predictions": [
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_09.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_10.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_11.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Access Control"
+          ]
+        },
+        {
+          "file": "solana_12.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Reentrancy",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_13.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_14.json",
+          "ground_truth": "integer_flow",
+          "predictions": [
+            "Integer Overflow"
+          ]
+        },
+        {
+          "file": "solana_15.json",
+          "ground_truth": "cpi",
+          "predictions": [
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_16.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": []
+        },
+        {
+          "file": "solana_17.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_18.json",
+          "ground_truth": "Missing Key Check",
+          "predictions": []
+        },
+        {
+          "file": "solana_19.json",
+          "ground_truth": "Type Confusion",
+          "predictions": []
+        },
+        {
+          "file": "solana_20.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Bump Seed",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_21.json",
+          "ground_truth": "Missing Key Check",
+          "predictions": []
+        },
+        {
+          "file": "solana_22.json",
+          "ground_truth": "Bump Seed",
+          "predictions": [
+            "Bump Seed"
+          ]
+        },
+        {
+          "file": "solana_23.json",
+          "ground_truth": "Bump Seed",
+          "predictions": [
+            "Bump Seed"
+          ]
+        },
+        {
+          "file": "solana_24.json",
+          "ground_truth": "Unchecked External Calls",
+          "predictions": [
+            "Unchecked External Calls"
+          ]
+        },
+        {
+          "file": "solana_25.json",
+          "ground_truth": "Type Confusion",
+          "predictions": []
+        },
+        {
+          "file": "solana_26.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": []
+        },
+        {
+          "file": "solana_27.json",
+          "ground_truth": "cpi",
+          "predictions": []
+        },
+        {
+          "file": "solana_28.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": []
+        },
+        {
+          "file": "solana_29.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_30.json",
+          "ground_truth": "Unchecked External Calls",
+          "predictions": [
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_31.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": []
+        },
+        {
+          "file": "solana_32.json",
+          "ground_truth": "Type Confusion",
+          "predictions": []
+        },
+        {
+          "file": "solana_33.json",
+          "ground_truth": "Integer Overflow",
+          "predictions": []
+        },
+        {
+          "file": "solana_34.json",
+          "ground_truth": "Denial of Service",
+          "predictions": []
+        },
+        {
+          "file": "solana_35.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_36.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Reentrancy",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_37.json",
+          "ground_truth": "cpi",
+          "predictions": [
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_38.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": []
+        },
+        {
+          "file": "solana_39.json",
+          "ground_truth": "Denial of Service",
+          "predictions": []
+        },
+        {
+          "file": "solana_40.json",
+          "ground_truth": "Unchecked External Calls",
+          "predictions": []
+        },
+        {
+          "file": "solana_41.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_42.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": []
+        },
+        {
+          "file": "solana_43.json",
+          "ground_truth": "cpi",
+          "predictions": []
+        },
+        {
+          "file": "solana_44.json",
+          "ground_truth": "Type Confusion",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_45.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_46.json",
+          "ground_truth": "Denial of Service",
+          "predictions": [
+            "Denial of Service"
+          ]
+        },
+        {
+          "file": "solana_47.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_48.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_49.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Reentrancy",
+            "Unchecked External Calls"
+          ]
+        },
+        {
+          "file": "solana_50.json",
+          "ground_truth": "Bump Seed",
+          "predictions": []
+        },
+        {
+          "file": "solana_51.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_52.json",
+          "ground_truth": "Integer Overflow",
+          "predictions": [
+            "Access Control",
+            "Unchecked External Calls"
+          ]
+        },
+        {
+          "file": "solana_53.json",
+          "ground_truth": "Integer Overflow",
+          "predictions": []
+        },
+        {
+          "file": "solana_54.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_55.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_56.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_57.json",
+          "ground_truth": "Missing Key Check",
+          "predictions": [
+            "Access Control"
+          ]
+        },
+        {
+          "file": "solana_58.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": []
+        },
+        {
+          "file": "solana_59.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Reentrancy"
+          ]
+        }
+      ]
+    },
+    "base_rag": {
+      "metrics": {
+        "accuracy": 0.2018,
+        "precision": 0.213,
+        "recall": 0.7931,
+        "f1_score": 0.3358,
+        "confusion_matrix": {
+          "tp": 23,
+          "fp": 85,
+          "tn": 0,
+          "fn": 6
+        },
+        "per_vulnerability": {
+          "Integer Overflow": {
+            "tp": 5,
+            "fp": 9,
+            "fn": 0
+          },
+          "Missing Key Check": {
+            "tp": 4,
+            "fp": 29,
+            "fn": 0
+          },
+          "Type Confusion": {
+            "tp": 3,
+            "fp": 19,
+            "fn": 1
+          },
+          "Bump Seed": {
+            "tp": 4,
+            "fp": 9,
+            "fn": 0
+          },
+          "Denial of Service": {
+            "tp": 3,
+            "fp": 5,
+            "fn": 1
+          },
+          "Unchecked External Calls": {
+            "tp": 2,
+            "fp": 7,
+            "fn": 2
+          },
+          "CPI Reentrancy": {
+            "tp": 2,
+            "fp": 7,
+            "fn": 2
+          }
+        }
+      },
+      "details": [
+        {
+          "file": "solana_01.json",
+          "ground_truth": "Integer Overflow",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control",
+            "Integer Overflow"
+          ]
+        },
+        {
+          "file": "solana_02.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation",
+            "Bump Seed",
+            "Bump Seed Canonicalization"
+          ]
+        },
+        {
+          "file": "solana_03.json",
+          "ground_truth": "Bump Seed",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control",
+            "Type Confusion",
+            "Input Validation",
+            "Bump Seed",
+            "Bump Seed Canonicalization"
+          ]
+        },
+        {
+          "file": "solana_04.json",
+          "ground_truth": "Denial of Service",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control",
+            "Denial of Service"
+          ]
+        },
+        {
+          "file": "solana_05.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_06.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Missing Key Check",
+            "Unchecked External Calls",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_07.json",
+          "ground_truth": "Unchecked External Calls",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control",
+            "Type Confusion",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_08.json",
+          "ground_truth": "Missing Key Check",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control"
+          ]
+        },
+        {
+          "file": "solana_09.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Missing Key Check"
+          ]
+        },
+        {
+          "file": "solana_10.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Unchecked External Calls",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_11.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Type Confusion",
+            "Bump Seed",
+            "Bump Seed Canonicalization"
+          ]
+        },
+        {
+          "file": "solana_12.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control"
+          ]
+        },
+        {
+          "file": "solana_13.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control"
+          ]
+        },
+        {
+          "file": "solana_14.json",
+          "ground_truth": "integer_flow",
+          "predictions": [
+            "Missing Key Check",
+            "Integer Overflow"
+          ]
+        },
+        {
+          "file": "solana_15.json",
+          "ground_truth": "cpi",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control"
+          ]
+        },
+        {
+          "file": "solana_16.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Input Validation",
+            "Integer Overflow",
+            "Bump Seed",
+            "Bump Seed Canonicalization",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_17.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Type Confusion",
+            "Unchecked External Calls",
+            "Integer Overflow",
+            "DoS",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_18.json",
+          "ground_truth": "Missing Key Check",
+          "predictions": [
+            "Missing Key Check",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_19.json",
+          "ground_truth": "Type Confusion",
+          "predictions": [
+            "Missing Key Check",
+            "Type Confusion",
+            "CPI Reentrancy",
+            "Reentrancy",
+            "Unchecked External Calls",
+            "Integer Overflow",
+            "Bump Seed",
+            "Denial of Service"
+          ]
+        },
+        {
+          "file": "solana_20.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_21.json",
+          "ground_truth": "Missing Key Check",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control",
+            "Type Confusion"
+          ]
+        },
+        {
+          "file": "solana_22.json",
+          "ground_truth": "Bump Seed",
+          "predictions": [
+            "Bump Seed",
+            "Bump Seed Canonicalization"
+          ]
+        },
+        {
+          "file": "solana_23.json",
+          "ground_truth": "Bump Seed",
+          "predictions": [
+            "Bump Seed",
+            "Bump Seed Canonicalization"
+          ]
+        },
+        {
+          "file": "solana_24.json",
+          "ground_truth": "Unchecked External Calls",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control",
+            "Type Confusion",
+            "Input Validation",
+            "CPI Reentrancy",
+            "Reentrancy",
+            "Unchecked External Calls"
+          ]
+        },
+        {
+          "file": "solana_25.json",
+          "ground_truth": "Type Confusion",
+          "predictions": [
+            "Type Confusion"
+          ]
+        },
+        {
+          "file": "solana_26.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Bump Seed",
+            "Bump Seed Canonicalization"
+          ]
+        },
+        {
+          "file": "solana_27.json",
+          "ground_truth": "cpi",
+          "predictions": [
+            "CPI Reentrancy",
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_28.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control"
+          ]
+        },
+        {
+          "file": "solana_29.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Access Control",
+            "Input Validation",
+            "Integer Overflow"
+          ]
+        },
+        {
+          "file": "solana_30.json",
+          "ground_truth": "Unchecked External Calls",
+          "predictions": [
+            "Missing Key Check",
+            "CPI Reentrancy",
+            "Reentrancy",
+            "Unchecked External Calls"
+          ]
+        },
+        {
+          "file": "solana_31.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Type Confusion",
+            "Reentrancy",
+            "Unchecked External Calls",
+            "Integer Overflow",
+            "Denial of Service",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_32.json",
+          "ground_truth": "Type Confusion",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control"
+          ]
+        },
+        {
+          "file": "solana_33.json",
+          "ground_truth": "Integer Overflow",
+          "predictions": [
+            "Missing Key Check",
+            "Integer Overflow"
+          ]
+        },
+        {
+          "file": "solana_34.json",
+          "ground_truth": "Denial of Service",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control",
+            "Denial of Service",
+            "DoS"
+          ]
+        },
+        {
+          "file": "solana_35.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control"
+          ]
+        },
+        {
+          "file": "solana_36.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_37.json",
+          "ground_truth": "cpi",
+          "predictions": [
+            "Integer Overflow"
+          ]
+        },
+        {
+          "file": "solana_38.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Missing Key Check",
+            "CPI Reentrancy",
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_39.json",
+          "ground_truth": "Denial of Service",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control"
+          ]
+        },
+        {
+          "file": "solana_40.json",
+          "ground_truth": "Unchecked External Calls",
+          "predictions": [
+            "CPI Reentrancy",
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_41.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Bump Seed",
+            "Bump Seed Canonicalization"
+          ]
+        },
+        {
+          "file": "solana_42.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation",
+            "Bump Seed",
+            "Bump Seed Canonicalization"
+          ]
+        },
+        {
+          "file": "solana_43.json",
+          "ground_truth": "cpi",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control",
+            "CPI Reentrancy",
+            "Reentrancy",
+            "Unchecked External Calls",
+            "Integer Overflow"
+          ]
+        },
+        {
+          "file": "solana_44.json",
+          "ground_truth": "Type Confusion",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_45.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_46.json",
+          "ground_truth": "Denial of Service",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control",
+            "Type Confusion",
+            "Integer Overflow",
+            "Denial of Service"
+          ]
+        },
+        {
+          "file": "solana_47.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_48.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Denial of Service"
+          ]
+        },
+        {
+          "file": "solana_49.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Missing Key Check"
+          ]
+        },
+        {
+          "file": "solana_50.json",
+          "ground_truth": "Bump Seed",
+          "predictions": [
+            "Bump Seed",
+            "Bump Seed Canonicalization"
+          ]
+        },
+        {
+          "file": "solana_51.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control",
+            "Type Confusion",
+            "Input Validation",
+            "CPI Reentrancy",
+            "Reentrancy",
+            "Unchecked External Calls",
+            "Integer Overflow",
+            "Bump Seed",
+            "Bump Seed Canonicalization",
+            "Denial of Service",
+            "DoS"
+          ]
+        },
+        {
+          "file": "solana_52.json",
+          "ground_truth": "Integer Overflow",
+          "predictions": [
+            "Integer Overflow"
+          ]
+        },
+        {
+          "file": "solana_53.json",
+          "ground_truth": "Integer Overflow",
+          "predictions": [
+            "Integer Overflow"
+          ]
+        },
+        {
+          "file": "solana_54.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control"
+          ]
+        },
+        {
+          "file": "solana_55.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Bump Seed",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_56.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control"
+          ]
+        },
+        {
+          "file": "solana_57.json",
+          "ground_truth": "Missing Key Check",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control"
+          ]
+        },
+        {
+          "file": "solana_58.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control"
+          ]
+        },
+        {
+          "file": "solana_59.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Missing Key Check"
+          ]
+        }
+      ]
+    },
+    "ft_no_rag": {
+      "metrics": {
+        "accuracy": 0.4706,
+        "precision": 0.4222,
+        "recall": 0.6552,
+        "f1_score": 0.5135,
+        "confusion_matrix": {
+          "tp": 19,
+          "fp": 26,
+          "tn": 13,
+          "fn": 10
+        },
+        "per_vulnerability": {
+          "Integer Overflow": {
+            "tp": 2,
+            "fp": 1,
+            "fn": 3
+          },
+          "Type Confusion": {
+            "tp": 2,
+            "fp": 10,
+            "fn": 2
+          },
+          "Bump Seed": {
+            "tp": 4,
+            "fp": 8,
+            "fn": 0
+          },
+          "Denial of Service": {
+            "tp": 3,
+            "fp": 1,
+            "fn": 1
+          },
+          "Unchecked External Calls": {
+            "tp": 3,
+            "fp": 1,
+            "fn": 1
+          },
+          "Missing Key Check": {
+            "tp": 1,
+            "fp": 4,
+            "fn": 3
+          },
+          "CPI Reentrancy": {
+            "tp": 4,
+            "fp": 1,
+            "fn": 0
+          }
+        }
+      },
+      "details": [
+        {
+          "file": "solana_01.json",
+          "ground_truth": "Integer Overflow",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_02.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_03.json",
+          "ground_truth": "Bump Seed",
+          "predictions": [
+            "Bump Seed",
+            "Bump Seed Canonicalization"
+          ]
+        },
+        {
+          "file": "solana_04.json",
+          "ground_truth": "Denial of Service",
+          "predictions": [
+            "Denial of Service"
+          ]
+        },
+        {
+          "file": "solana_05.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_06.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Input Validation",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_07.json",
+          "ground_truth": "Unchecked External Calls",
+          "predictions": [
+            "Unchecked External Calls"
+          ]
+        },
+        {
+          "file": "solana_08.json",
+          "ground_truth": "Missing Key Check",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control"
+          ]
+        },
+        {
+          "file": "solana_09.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_10.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Access Control",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_11.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Bump Seed",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_12.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_13.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_14.json",
+          "ground_truth": "integer_flow",
+          "predictions": [
+            "Integer Overflow"
+          ]
+        },
+        {
+          "file": "solana_15.json",
+          "ground_truth": "cpi",
+          "predictions": [
+            "CPI Reentrancy",
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_16.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Access Control",
+            "Bump Seed",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_17.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Access Control",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_18.json",
+          "ground_truth": "Missing Key Check",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_19.json",
+          "ground_truth": "Type Confusion",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_20.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Input Validation",
+            "Bump Seed",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_21.json",
+          "ground_truth": "Missing Key Check",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_22.json",
+          "ground_truth": "Bump Seed",
+          "predictions": [
+            "Bump Seed",
+            "Bump Seed Canonicalization"
+          ]
+        },
+        {
+          "file": "solana_23.json",
+          "ground_truth": "Bump Seed",
+          "predictions": [
+            "Bump Seed",
+            "Bump Seed Canonicalization"
+          ]
+        },
+        {
+          "file": "solana_24.json",
+          "ground_truth": "Unchecked External Calls",
+          "predictions": [
+            "Unchecked External Calls"
+          ]
+        },
+        {
+          "file": "solana_25.json",
+          "ground_truth": "Type Confusion",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_26.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Input Validation",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_27.json",
+          "ground_truth": "cpi",
+          "predictions": [
+            "CPI Reentrancy",
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_28.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Unchecked External Calls"
+          ]
+        },
+        {
+          "file": "solana_29.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_30.json",
+          "ground_truth": "Unchecked External Calls",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_31.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_32.json",
+          "ground_truth": "Type Confusion",
+          "predictions": [
+            "Integer Overflow"
+          ]
+        },
+        {
+          "file": "solana_33.json",
+          "ground_truth": "Integer Overflow",
+          "predictions": [
+            "Denial of Service"
+          ]
+        },
+        {
+          "file": "solana_34.json",
+          "ground_truth": "Denial of Service",
+          "predictions": [
+            "Denial of Service"
+          ]
+        },
+        {
+          "file": "solana_35.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Access Control",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_36.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_37.json",
+          "ground_truth": "cpi",
+          "predictions": [
+            "CPI Reentrancy",
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_38.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_39.json",
+          "ground_truth": "Denial of Service",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_40.json",
+          "ground_truth": "Unchecked External Calls",
+          "predictions": [
+            "Unchecked External Calls"
+          ]
+        },
+        {
+          "file": "solana_41.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Bump Seed",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_42.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_43.json",
+          "ground_truth": "cpi",
+          "predictions": [
+            "CPI Reentrancy",
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_44.json",
+          "ground_truth": "Type Confusion",
+          "predictions": [
+            "Bump Seed",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_45.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_46.json",
+          "ground_truth": "Denial of Service",
+          "predictions": [
+            "Denial of Service"
+          ]
+        },
+        {
+          "file": "solana_47.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Bump Seed",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_48.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_49.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Input Validation",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_50.json",
+          "ground_truth": "Bump Seed",
+          "predictions": [
+            "Bump Seed",
+            "Bump Seed Canonicalization"
+          ]
+        },
+        {
+          "file": "solana_51.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Bump Seed",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_52.json",
+          "ground_truth": "Integer Overflow",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_53.json",
+          "ground_truth": "Integer Overflow",
+          "predictions": [
+            "Integer Overflow"
+          ]
+        },
+        {
+          "file": "solana_54.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Input Validation",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_55.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Bump Seed",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_56.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "CPI Reentrancy",
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_57.json",
+          "ground_truth": "Missing Key Check",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_58.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_59.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        }
+      ]
+    },
+    "ft_rag": {
+      "metrics": {
+        "accuracy": 0.2353,
+        "precision": 0.1771,
+        "recall": 0.5862,
+        "f1_score": 0.272,
+        "confusion_matrix": {
+          "tp": 17,
+          "fp": 79,
+          "tn": 11,
+          "fn": 12
+        },
+        "per_vulnerability": {
+          "Integer Overflow": {
+            "tp": 3,
+            "fp": 5,
+            "fn": 2
+          },
+          "Bump Seed": {
+            "tp": 2,
+            "fp": 11,
+            "fn": 2
+          },
+          "Denial of Service": {
+            "tp": 2,
+            "fp": 12,
+            "fn": 2
+          },
+          "Missing Key Check": {
+            "tp": 3,
+            "fp": 20,
+            "fn": 1
+          },
+          "Unchecked External Calls": {
+            "tp": 1,
+            "fp": 5,
+            "fn": 3
+          },
+          "Type Confusion": {
+            "tp": 3,
+            "fp": 14,
+            "fn": 1
+          },
+          "CPI Reentrancy": {
+            "tp": 3,
+            "fp": 12,
+            "fn": 1
+          }
+        }
+      },
+      "details": [
+        {
+          "file": "solana_01.json",
+          "ground_truth": "Integer Overflow",
+          "predictions": [
+            "Integer Overflow"
+          ]
+        },
+        {
+          "file": "solana_02.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_03.json",
+          "ground_truth": "Bump Seed",
+          "predictions": [
+            "Bump Seed",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_04.json",
+          "ground_truth": "Denial of Service",
+          "predictions": [
+            "Denial of Service",
+            "DoS"
+          ]
+        },
+        {
+          "file": "solana_05.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_06.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Access Control",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_07.json",
+          "ground_truth": "Unchecked External Calls",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_08.json",
+          "ground_truth": "Missing Key Check",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control",
+            "Denial of Service",
+            "DoS"
+          ]
+        },
+        {
+          "file": "solana_09.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Access Control",
+            "Reentrancy",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_10.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Access Control",
+            "Type Confusion",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_11.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_12.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control"
+          ]
+        },
+        {
+          "file": "solana_13.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_14.json",
+          "ground_truth": "integer_flow",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control",
+            "Type Confusion",
+            "Input Validation",
+            "Integer Overflow",
+            "Denial of Service",
+            "DoS"
+          ]
+        },
+        {
+          "file": "solana_15.json",
+          "ground_truth": "cpi",
+          "predictions": [
+            "CPI Reentrancy",
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_16.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_17.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_18.json",
+          "ground_truth": "Missing Key Check",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_19.json",
+          "ground_truth": "Type Confusion",
+          "predictions": [
+            "CPI Reentrancy",
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_20.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Access Control",
+            "Bump Seed",
+            "Bump Seed Canonicalization",
+            "Denial of Service",
+            "DoS",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_21.json",
+          "ground_truth": "Missing Key Check",
+          "predictions": [
+            "Access Control",
+            "Input Validation",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_22.json",
+          "ground_truth": "Bump Seed",
+          "predictions": [
+            "Bump Seed",
+            "Bump Seed Canonicalization"
+          ]
+        },
+        {
+          "file": "solana_23.json",
+          "ground_truth": "Bump Seed",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_24.json",
+          "ground_truth": "Unchecked External Calls",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control",
+            "Type Confusion",
+            "Input Validation",
+            "CPI Reentrancy",
+            "Reentrancy",
+            "Unchecked External Calls",
+            "Integer Overflow",
+            "Bump Seed",
+            "Bump Seed Canonicalization",
+            "Denial of Service",
+            "DoS"
+          ]
+        },
+        {
+          "file": "solana_25.json",
+          "ground_truth": "Type Confusion",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_26.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Access Control",
+            "Input Validation",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_27.json",
+          "ground_truth": "cpi",
+          "predictions": [
+            "CPI Reentrancy",
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_28.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Access Control",
+            "Reentrancy",
+            "Unchecked External Calls",
+            "Integer Overflow",
+            "Bump Seed",
+            "DoS",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_29.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_30.json",
+          "ground_truth": "Unchecked External Calls",
+          "predictions": [
+            "Missing Key Check",
+            "Type Confusion",
+            "CPI Reentrancy",
+            "Reentrancy",
+            "Integer Overflow",
+            "Denial of Service"
+          ]
+        },
+        {
+          "file": "solana_31.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Input Validation",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_32.json",
+          "ground_truth": "Type Confusion",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_33.json",
+          "ground_truth": "Integer Overflow",
+          "predictions": [
+            "Integer Overflow"
+          ]
+        },
+        {
+          "file": "solana_34.json",
+          "ground_truth": "Denial of Service",
+          "predictions": [
+            "Type Confusion",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_35.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_36.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Access Control",
+            "Bump Seed",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_37.json",
+          "ground_truth": "cpi",
+          "predictions": [
+            "Access Control",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_38.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Access Control",
+            "DoS",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_39.json",
+          "ground_truth": "Denial of Service",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_40.json",
+          "ground_truth": "Unchecked External Calls",
+          "predictions": [
+            "CPI Reentrancy",
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_41.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_42.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control",
+            "Type Confusion",
+            "Input Validation",
+            "CPI Reentrancy",
+            "Reentrancy",
+            "Unchecked External Calls",
+            "Integer Overflow",
+            "Bump Seed",
+            "Bump Seed Canonicalization",
+            "Denial of Service",
+            "DoS"
+          ]
+        },
+        {
+          "file": "solana_43.json",
+          "ground_truth": "cpi",
+          "predictions": [
+            "CPI Reentrancy",
+            "Reentrancy"
+          ]
+        },
+        {
+          "file": "solana_44.json",
+          "ground_truth": "Type Confusion",
+          "predictions": [
+            "Type Confusion",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_45.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Access Control",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_46.json",
+          "ground_truth": "Denial of Service",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control",
+            "Type Confusion",
+            "Input Validation",
+            "CPI Reentrancy",
+            "Reentrancy",
+            "Unchecked External Calls",
+            "Integer Overflow",
+            "Denial of Service",
+            "DoS"
+          ]
+        },
+        {
+          "file": "solana_47.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Bump Seed",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_48.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "CPI Reentrancy",
+            "Reentrancy",
+            "Bump Seed",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_49.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Missing Key Check",
+            "Type Confusion",
+            "CPI Reentrancy",
+            "Reentrancy",
+            "Unchecked External Calls",
+            "Bump Seed",
+            "Bump Seed Canonicalization",
+            "DoS",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_50.json",
+          "ground_truth": "Bump Seed",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_51.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Access Control",
+            "Bump Seed",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_52.json",
+          "ground_truth": "Integer Overflow",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_53.json",
+          "ground_truth": "Integer Overflow",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control",
+            "Type Confusion",
+            "Input Validation",
+            "CPI Reentrancy",
+            "Reentrancy",
+            "Unchecked External Calls",
+            "Bump Seed",
+            "Bump Seed Canonicalization",
+            "Denial of Service",
+            "DoS"
+          ]
+        },
+        {
+          "file": "solana_54.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "DoS",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_55.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_56.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Missing Key Check",
+            "Access Control",
+            "Bump Seed",
+            "Bump Seed Canonicalization",
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_57.json",
+          "ground_truth": "Missing Key Check",
+          "predictions": [
+            "Access Control",
+            "Input Validation"
+          ]
+        },
+        {
+          "file": "solana_58.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Not Vulnerable"
+          ]
+        },
+        {
+          "file": "solana_59.json",
+          "ground_truth": "Not Vulnerable",
+          "predictions": [
+            "Reentrancy",
+            "DoS",
+            "Not Vulnerable"
+          ]
+        }
+      ]
+    }
+  }
+}
