@@ -10,12 +10,14 @@ notebooks/
 │   ├── solana_finetuning.ipynb     # QLoRA fine-tuning
 │   └── solana_evaluation.ipynb     # 4-configuration evaluation
 │
-└── qwen2.5-coder-32b/
-    ├── qwen-finetuning.ipynb       # QLoRA fine-tuning
-    └── qwen-evaluation.ipynb       # 4-configuration evaluation
+├── qwen2.5-coder-32b/
+│   ├── qwen-finetuning.ipynb       # QLoRA fine-tuning
+│   └── qwen-evaluation.ipynb       # 4-configuration evaluation
+│
+└── qwen3-32b/
+    ├── qwen3-finetuning.ipynb      # QLoRA fine-tuning
+    └── qwen3-evaluation.ipynb      # 4-configuration evaluation
 ```
-
-> Additional models will be added in future work following the same folder structure.
 
 ## Pipeline Overview
 
@@ -82,16 +84,44 @@ Metrics computed: Accuracy, Precision, Recall, F1-Score.
 | Best F1 (FT no RAG) | **0.514** |
 | LoRA adapter | Saved locally on server |
 
+### Qwen3-32B
+
+| Detail | Value |
+|--------|-------|
+| Model type | General-purpose |
+| Parameters | 32B |
+| Hardware | NVIDIA RTX A6000 (48GB VRAM) |
+| Training time | 29.9 minutes |
+| Final Train Loss | 0.165 |
+| Final Val Loss | 0.157 |
+| Best F1 (FT no RAG) | **0.291** |
+| LoRA adapter | Saved locally on server |
+
+**Note:** Qwen3 has a native thinking mode that uses `<think>` as a special token. Since our training data already contains custom `<think>` and `<final>` tags, the native thinking mode is disabled (`enable_thinking=False`) to avoid format conflicts.
+
 ---
 
 ## Results Overview
 
-| Configuration | LLaMA 3.1-8B F1 | Qwen2.5-Coder-32B F1 |
-|--------------|-----------------|----------------------|
-| Base (no RAG) | 0.085 | 0.291 |
-| Base + RAG | 0.193 | 0.336 |
-| **FT (no RAG)** | **0.327** | **0.514** |
-| FT + RAG | 0.319 | 0.272 |
+| Configuration | LLaMA 3.1-8B F1 | Qwen2.5-Coder-32B F1 | Qwen3-32B F1 |
+|--------------|-----------------|----------------------|--------------|
+| Base (no RAG) | 0.085 | 0.291 | 0.237 |
+| Base + RAG | 0.193 | 0.336 | 0.167 |
+| **FT (no RAG)** | **0.327** | **0.514** | **0.291** |
+| FT + RAG | 0.319 | 0.272 | 0.279 |
+
+### Why Three Models?
+
+The three models form a comparison matrix that isolates key effects:
+
+|  | Small (8B) | Large (32B) |
+|---|-----------|-------------|
+| **General-purpose** | LLaMA 3.1-8B | Qwen3-32B |
+| **Code-specialized** | — | Qwen2.5-Coder-32B |
+
+1. **Size effect:** LLaMA 8B vs Qwen3 32B (both general-purpose)
+2. **Code specialization effect:** Qwen3 32B vs Qwen2.5-Coder 32B (same size, different pre-training)
+3. **Cross-platform comparison:** Tortora (2025) used Qwen3-32B for Algorand — enabling direct Algorand vs Solana comparison
 
 Full evaluation results are available at: `results/`
 
