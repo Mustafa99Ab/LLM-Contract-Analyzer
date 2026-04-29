@@ -1,0 +1,46 @@
+[
+  {
+    "Configuration":"Qwen3-Base (no RAG)",
+    "accuracy":0.3571,
+    "precision":0.2333,
+    "recall":0.2414,
+    "f1_score":0.2373,
+    "tp":7,
+    "fp":23,
+    "tn":18,
+    "fn":22
+  },
+  {
+    "Configuration":"Qwen3-Base + RAG",
+    "accuracy":0.5238,
+    "precision":0.4286,
+    "recall":0.1034,
+    "f1_score":0.1667,
+    "tp":3,
+    "fp":4,
+    "tn":30,
+    "fn":26
+  },
+  {
+    "Configuration":"Qwen3-FT (no RAG)",
+    "accuracy":0.4507,
+    "precision":0.3077,
+    "recall":0.2759,
+    "f1_score":0.2909,
+    "tp":8,
+    "fp":18,
+    "tn":24,
+    "fn":21
+  },
+  {
+    "Configuration":"Qwen3-FT + RAG",
+    "accuracy":0.2785,
+    "precision":0.22,
+    "recall":0.3793,
+    "f1_score":0.2785,
+    "tp":11,
+    "fp":39,
+    "tn":11,
+    "fn":18
+  }
+]
