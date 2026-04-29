@@ -129,6 +129,17 @@ All three models share identical QLoRA hyperparameters for fair comparison:
 | Qwen2.5-Coder-32B-Instruct | Code-specialized | 32B | RTX A6000 (48GB) | 29.9 min | 0.173 | 0.170 |
 | Qwen3-32B | General-purpose | 32B | RTX A6000 (48GB) | 29.9 min | 0.165 | 0.157 |
 
+### Evaluation Timing
+
+| Configuration | LLaMA 3.1-8B | Qwen2.5-Coder-32B | Qwen3-32B |
+|--------------|-------------|-------------------|-----------|
+| Base (no RAG) | ~25 min | 49.9 min | 19.4 min |
+| Base + RAG | ~55 min | 51.2 min | 51.6 min |
+| FT (no RAG) | ~12 min | 21.0 min | 8.1 min |
+| FT + RAG | ~35 min | 51.5 min | 28.0 min |
+
+> LLaMA 3.1-8B was evaluated on a Kaggle T4 GPU (16GB VRAM). Qwen models were evaluated on an NVIDIA RTX A6000 (48GB VRAM).
+
 ## Evaluation Configurations
 
 Each model is evaluated across 4 configurations on 59 unseen Solana contracts:
