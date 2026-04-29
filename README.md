@@ -2,7 +2,7 @@
 
 > **Author:** Mustafa Abuzaraiba
 >
-> **Supervisors:** Prof. Christian Esposito
+> **Supervisors:** Prof. Christian Esposito , Dr. Biagio Boi
 >
 > **University:** University of Salerno — Academic Year 2025/2026
 
@@ -10,17 +10,30 @@
 
 This repository contains the source code, datasets, and evaluation pipeline developed for the IEEE BCCA 2025 paper. The project proposes a hybrid framework (**Fine-Tuning + RAG**) for automated vulnerability detection in smart contracts written in **Rust** (Solana).
 
-The approach replicates and adapts the methodology proposed by Tortora (2025) for Algorand/PyTeal, applying it to the Solana/Rust ecosystem. The system uses **LLaMA 3.1-8B-Instruct** adapted via *QLoRA* and *Chain-of-Thought* training, combined with a *Retrieval-Augmented Generation (RAG)* pipeline for dynamic vulnerability context injection.
+The approach replicates and adapts the methodology proposed by Tortora (2025) for Algorand/PyTeal, applying it to the Solana/Rust ecosystem. Three LLMs are evaluated — **LLaMA 3.1-8B-Instruct**, **Qwen2.5-Coder-32B-Instruct**, and **Qwen3-32B** — each adapted via *QLoRA* and *Chain-of-Thought* training, combined with a *Retrieval-Augmented Generation (RAG)* pipeline for dynamic vulnerability context injection.
 
-The framework is evaluated across 4 configurations to measure the impact of Fine-Tuning and RAG on detection performance (Precision, Recall, F1-Score, Accuracy).
+The framework is evaluated across 4 configurations per model to measure the impact of Fine-Tuning and RAG on detection performance (Precision, Recall, F1-Score, Accuracy).
 
 ## System Architecture
 
 The system consists of three main phases:
 
-1. **Fine-Tuning:** Domain adaptation of LLaMA 3.1-8B using QLoRA to learn Solana/Rust vulnerability patterns and Chain-of-Thought reasoning (`<think>...</think>`).
+1. **Fine-Tuning:** Domain adaptation using QLoRA to learn Solana/Rust vulnerability patterns and Chain-of-Thought reasoning (`<think>...</think>`).
 2. **RAG Pipeline:** Retrieval of similar vulnerable contracts from a vector knowledge base to provide few-shot examples and reduce hallucinations.
 3. **Inference & Evaluation:** Contract audit, structured output parsing, and automated metric computation (Precision, Recall, F1, Accuracy).
+
+## Model Comparison Matrix
+
+The three models form a comparison matrix that isolates key effects:
+
+|  | Small (8B) | Large (32B) |
+|---|-----------|-------------|
+| **General-purpose** | LLaMA 3.1-8B | Qwen3-32B |
+| **Code-specialized** | — | Qwen2.5-Coder-32B |
+
+1. **Size effect:** LLaMA 8B vs Qwen3 32B (both general-purpose)
+2. **Code specialization effect:** Qwen3 32B vs Qwen2.5-Coder 32B (same size, different pre-training)
+3. **Cross-platform comparison:** Tortora (2025) used Qwen3-32B for Algorand — enabling direct Algorand vs Solana comparison
 
 ## Vulnerability Taxonomy
 
@@ -54,9 +67,15 @@ Based on the OWASP Top 10 mapping by Boi & Esposito (2025):
 │           └── dataset_final.json       # Merged dataset (285 samples)
 │
 ├── notebooks/
-│   └── llama-3.1-8b/
-│       ├── solana_finetuning.ipynb      # QLoRA fine-tuning on Kaggle T4
-│       └── solana_evaluation.ipynb      # 4-configuration evaluation
+│   ├── llama-3.1-8b/
+│   │   ├── solana_finetuning.ipynb      # QLoRA fine-tuning on Kaggle T4
+│   │   └── solana_evaluation.ipynb      # 4-configuration evaluation
+│   ├── qwen2.5-coder-32b/
+│   │   ├── qwen-finetuning.ipynb        # QLoRA fine-tuning on RTX A6000
+│   │   └── qwen-evaluation.ipynb        # 4-configuration evaluation
+│   └── qwen3-32b/
+│       ├── qwen3-finetuning.ipynb       # QLoRA fine-tuning on RTX A6000
+│       └── qwen3-evaluation.ipynb       # 4-configuration evaluation
 │
 ├── src/
 │   ├── rag/
@@ -72,25 +91,12 @@ Based on the OWASP Top 10 mapping by Boi & Esposito (2025):
 │       └── utils/                       # Prompts, parser, logging
 │
 ├── results/
-│   └── llama-3.1-8b/                    # Results for LLaMA 3.1-8B
-│       ├── evaluation_results.json      # Summary metrics (4 configurations)
-│       ├── detailed_results.json        # Per-contract predictions
-│       ├── recompute_metrics.py         # Script to recompute metrics
-│       ├── no_rag/
-│       │   ├── LLaMA_Base_results.json  # Config 1: Base model, no RAG
-│       │   └── LLaMA_FT_results.json    # Config 3: Fine-tuned, no RAG
-│       ├── rag/
-│       │   ├── LLaMA_Base_RAG_results.json  # Config 2: Base model + RAG
-│       │   └── LLaMA_FT_RAG_results.json    # Config 4: Fine-tuned + RAG
-│       └── charts/
-│           ├── evaluation_chart.png     # 4-configuration comparison
-│           ├── finetuning_impact.png    # Base vs Fine-Tuned (no RAG)
-│           └── rag_impact.png           # FT vs FT+RAG
+│   ├── llama-3.1-8b/                    # Results for LLaMA 3.1-8B
+│   ├── qwen2.5-coder-32b/              # Results for Qwen2.5-Coder-32B
+│   └── qwen3-32b/                      # Results for Qwen3-32B
 │
 └── requirements.txt
 ```
-
-> Additional models will be added under `results/` and `notebooks/` following the same folder structure.
 
 ## Dataset
 
@@ -101,11 +107,12 @@ Based on the OWASP Top 10 mapping by Boi & Esposito (2025):
 - **Methodology**: Extract secure code as SAFE, systematically remove security checks to create VULNERABLE variants
 - **Training split**: 226 train / 22 validation / 59 test
 
-## Model and Training
+## Models and Training
+
+All three models share identical QLoRA hyperparameters for fair comparison:
 
 | Parameter | Value |
 |-----------|-------|
-| Base Model | LLaMA 3.1-8B-Instruct |
 | Quantization | 4-bit (NF4) via QLoRA |
 | LoRA Rank (r) | 64 |
 | LoRA Alpha | 128 |
@@ -115,26 +122,67 @@ Based on the OWASP Top 10 mapping by Boi & Esposito (2025):
 | Effective Batch Size | 8 (1 per device × 8 accumulation) |
 | Max Sequence Length | 2048 tokens |
 | Framework | Unsloth + trl |
-| Hardware | Kaggle T4 GPU (16GB VRAM) |
+
+| Model | Type | Parameters | Hardware | Training Time | Final Train Loss | Final Val Loss |
+|-------|------|-----------|----------|--------------|-----------------|----------------|
+| LLaMA 3.1-8B-Instruct | General-purpose | 8B | Kaggle T4 (16GB) | ~37 min | 0.472 | — |
+| Qwen2.5-Coder-32B-Instruct | Code-specialized | 32B | RTX A6000 (48GB) | 29.9 min | 0.173 | 0.170 |
+| Qwen3-32B | General-purpose | 32B | RTX A6000 (48GB) | 29.9 min | 0.165 | 0.157 |
 
 ## Evaluation Configurations
 
+Each model is evaluated across 4 configurations on 59 unseen Solana contracts:
+
 | # | Configuration | Description |
 |---|--------------|-------------|
-| 1 | LLaMA-Base (no RAG) | Baseline: unmodified model, direct prompting |
-| 2 | LLaMA-Base + RAG    | Base model with retrieval-augmented context |
-| 3 | LLaMA-FT (no RAG)   | Fine-tuned model, direct prompting |
-| 4 | LLaMA-FT + RAG      | Fine-tuned model with RAG context |
+| 1 | Base (no RAG) | Baseline: unmodified model, direct prompting |
+| 2 | Base + RAG    | Base model with retrieval-augmented context |
+| 3 | FT (no RAG)   | Fine-tuned model, direct prompting |
+| 4 | FT + RAG      | Fine-tuned model with RAG context |
 
-## Trained Model
+## Results
 
-The fine-tuned LoRA adapter is hosted on Hugging Face Hub:
+### Per-Model Results
+
+| Configuration | LLaMA 3.1-8B F1 | Qwen2.5-Coder-32B F1 | Qwen3-32B F1 |
+|--------------|-----------------|----------------------|--------------|
+| Base (no RAG) | 0.085 | 0.291 | 0.237 |
+| Base + RAG | 0.193 | 0.336 | 0.167 |
+| **FT (no RAG)** | **0.327** | **0.514** | **0.291** |
+| FT + RAG | 0.319 | 0.272 | 0.279 |
+
+### Cross-Model Comparison (Best Config: FT no RAG)
+
+| Metric | LLaMA 3.1-8B | Qwen2.5-Coder-32B | Qwen3-32B |
+|--------|-------------|-------------------|-----------|
+| Accuracy  | 0.507 | 0.471 | 0.451 |
+| Precision | 0.346 | 0.422 | 0.308 |
+| Recall    | 0.310 | 0.655 | 0.276 |
+| **F1-Score** | **0.327** | **0.514** | **0.291** |
+
+### Key Findings
+
+1. **Fine-tuning is essential for all models.** F1 improves by +285% (LLaMA), +77% (Qwen2.5-Coder), and +23% (Qwen3).
+
+2. **Code specialization matters more than model size.** Qwen2.5-Coder-32B outperforms Qwen3-32B at the same parameter count (F1: 0.514 vs 0.291), confirming that code-specific pre-training provides a stronger foundation.
+
+3. **RAG helps base models but hurts fine-tuned models.** Consistent across all three models — fine-tuned models have already internalized vulnerability patterns.
+
+4. **Model size alone does not guarantee better results.** LLaMA 3.1-8B (8B) outperforms Qwen3-32B (32B) on F1 (0.327 vs 0.291), suggesting that fine-tuning effectiveness varies by architecture.
+
+5. **Qwen2.5-Coder achieves the highest recall.** After fine-tuning, its recall reaches 0.655 — more than double any other model — meaning it catches far more real vulnerabilities.
+
+Full per-model results, charts, and detailed per-contract predictions are available in `results/`.
+
+## Trained Models
 
 | Base Model | Fine-Tuned Adapter |
 |-----------|-------------------|
 | LLaMA 3.1-8B-Instruct | [Mustafa99Hafed/LLaMA-3.1-8B-Solana-Audit](https://huggingface.co/Mustafa99Hafed/LLaMA-3.1-8B-Solana-Audit) |
+| Qwen2.5-Coder-32B-Instruct | Saved locally on server |
+| Qwen3-32B | Saved locally on server |
 
-### Loading the model
+### Loading the LLaMA adapter
 
 ```python
 from unsloth import FastLanguageModel
