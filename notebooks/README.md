@@ -99,6 +99,18 @@ Metrics computed: Accuracy, Precision, Recall, F1-Score.
 
 **Note:** Qwen3 has a native thinking mode that uses `<think>` as a special token. Since our training data already contains custom `<think>` and `<final>` tags, the native thinking mode is disabled (`enable_thinking=False`) to avoid format conflicts.
 
+### Evaluation Timing
+
+| Configuration | LLaMA 3.1-8B | Qwen2.5-Coder-32B | Qwen3-32B |
+|--------------|-------------|-------------------|-----------|
+| Base (no RAG) | ~25 min | 49.9 min | 19.4 min |
+| Base + RAG | ~55 min | 51.2 min | 51.6 min |
+| FT (no RAG) | ~12 min | 21.0 min | 8.1 min |
+| FT + RAG | ~35 min | 51.5 min | 28.0 min |
+
+> LLaMA 3.1-8B was evaluated on a Kaggle T4 GPU (16GB VRAM). Qwen models were evaluated on an NVIDIA RTX A6000 (48GB VRAM).
+
+
 ---
 
 ## Results Overview
