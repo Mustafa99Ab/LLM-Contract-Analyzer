@@ -140,6 +140,17 @@ All three models share identical QLoRA hyperparameters for fair comparison:
 
 > LLaMA 3.1-8B was evaluated on a Kaggle T4 GPU (16GB VRAM). Qwen models were evaluated on an NVIDIA RTX A6000 (48GB VRAM).
 
+
+### Evaluation Timing
+
+| Configuration | LLaMA 3.1-8B | Qwen2.5-Coder-32B | Qwen3-32B |
+|--------------|-------------|-------------------|-----------|
+| Base (no RAG) + Base + RAG | 191.6 min | 101.1 min | 71.0 min |
+| FT (no RAG) + FT + RAG | 49.8 min | 72.5 min | 36.1 min |
+| **Total** | **241.4 min** | **173.6 min** | **107.1 min** |
+
+> LLaMA 3.1-8B was evaluated on a Kaggle T4 GPU (16GB VRAM). Qwen models were evaluated on an NVIDIA RTX A6000 (48GB VRAM). LLaMA timings are reported as combined pairs because both configurations within each pair were executed in a single notebook cell.
+
 ## Evaluation Configurations
 
 Each model is evaluated across 4 configurations on 59 unseen Solana contracts:
