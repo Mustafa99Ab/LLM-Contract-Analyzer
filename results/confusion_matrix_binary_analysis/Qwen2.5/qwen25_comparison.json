@@ -1,0 +1,54 @@
+[
+  {
+    "config": "Qwen-Base (no RAG)",
+    "multiclass_F1_old": 0.2909,
+    "binary_F1_new": 0.4615,
+    "delta_F1": 0.1706,
+    "binary_accuracy": 0.5254,
+    "binary_precision": 0.5217,
+    "binary_recall": 0.4138,
+    "tp": 12,
+    "fp": 11,
+    "tn": 19,
+    "fn": 17
+  },
+  {
+    "config": "Qwen-Base + RAG",
+    "multiclass_F1_old": 0.3358,
+    "binary_F1_new": 0.6591,
+    "delta_F1": 0.3233,
+    "binary_accuracy": 0.4915,
+    "binary_precision": 0.4915,
+    "binary_recall": 1.0,
+    "tp": 29,
+    "fp": 30,
+    "tn": 0,
+    "fn": 0
+  },
+  {
+    "config": "Qwen-FT (no RAG)",
+    "multiclass_F1_old": 0.5135,
+    "binary_F1_new": 0.7222,
+    "delta_F1": 0.2087,
+    "binary_accuracy": 0.661,
+    "binary_precision": 0.6047,
+    "binary_recall": 0.8966,
+    "tp": 26,
+    "fp": 17,
+    "tn": 13,
+    "fn": 3
+  },
+  {
+    "config": "Qwen-FT + RAG",
+    "multiclass_F1_old": 0.272,
+    "binary_F1_new": 0.6667,
+    "delta_F1": 0.3947,
+    "binary_accuracy": 0.5932,
+    "binary_precision": 0.5581,
+    "binary_recall": 0.8276,
+    "tp": 24,
+    "fp": 19,
+    "tn": 11,
+    "fn": 5
+  }
+]
